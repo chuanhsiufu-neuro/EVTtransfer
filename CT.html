@@ -1,0 +1,27 @@
+<input type="file" id="videoUpload" accept="video/mp4,video/x-m4v,video/*">
+
+<video id="ctVideoPlayer" width="600" controls style="display:none;">
+  <source id="videoSource" src="" type="video/mp4">
+  你的瀏覽器不支援 HTML5 影片播放。
+</video>
+
+<script>
+  const videoUpload = document.getElementById('videoUpload');
+  const ctVideoPlayer = document.getElementById('ctVideoPlayer');
+  const videoSource = document.getElementById('videoSource');
+
+  videoUpload.addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    if (file) {
+      // 建立一個可以讓瀏覽器讀取本地檔案的暫時 URL
+      const fileURL = URL.createObjectURL(file);
+      
+      // 將 URL 塞給 video 標籤並顯示出來
+      videoSource.src = fileURL;
+      ctVideoPlayer.style.display = 'block';
+      
+      // 載入並播放影片
+      ctVideoPlayer.load();
+    }
+  });
+</script>
