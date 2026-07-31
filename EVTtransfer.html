@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中風區域聯防轉診平台 v15 (新增出發與抵達按鈕)</title>
+    <style>
+        body { font-family: "Microsoft JhengHei", sans-serif; margin: 0; padding: 20px; background-color: #f0f2f5; color: #333; }
+        .app-container { max-width: 1100px; margin: 0 auto; background: transparent; }
+        .section-header { font-size: 1.2em; font-weight: bold; color: #004085; margin-bottom: 15px; padding-bottom: 5px; border-bottom: 2px solid #b8daff; }
+        
+        .status-board { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .hosp-card { background: white; border-radius: 8px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center; border-top: 4px solid #ccc; }
+        .hosp-card h3 { margin: 0 0 10px 0; font-size: 1.05em; }
+        .status-indicator { display: inline-block; padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 0.9em; margin-bottom: 10px; color: white; }
+        .status-green { background-color: #28a745; } .status-orange { background-color: #fd7e14; } .status-red { background-color: #dc3545; }
+        
+        /* 首頁免登入快速定位與時間紀錄區塊 */
+        .quick-update-board { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 30px; }
+        .quick-case-card { background: white; border: 1px solid #17a2b8; border-left: 5px solid #17a2b8; padding: 15px; border-radius: 8px; width: 100%; max-width: 300px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .quick-case-card .cid { font-weight: bold; color: #0056b3; font-size: 1.1em; margin-bottom: 8px; }
+        .quick-case-card .info { font-size: 0.9em; color: #555; margin-bottom: 12px; line-height: 1.5; }
+        .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+
+        .tabs { display: flex; border-bottom: 2px solid #0056b3; margin-bottom: 20px; gap: 5px; }
+        .tab-btn { background-color: #e9ecef; border: none; padding: 10px 20px; font-size: 1em; cursor: pointer; border-radius: 8px 8px 0 0; font-weight: bold; color: #555; transition: 0.2s; }
+        .tab-btn:hover { background-color: #d6d8db; } .tab-btn.active { background-color: #0056b3; color: white; }
+        .tab-content { display: none; background: white; padding: 20px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 30px; }
+        .tab-content.active { display: block; }
+
+        .req-row { display: flex; flex-wrap: wrap; gap: 15px; align-items: center; margin-bottom: 15px; }
+        .req-group { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 200px; }
+        label { font-weight: bold; font-size: 0.95em; color: #444; }
+        input[type="text"], input[type="email"], input[type="tel"], input[type="password"], select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 15px; width: 100%; box-sizing: border-box; }
+        
+        .btn-main { background-color: #0056b3; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .btn-success { background-color: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .btn-warning { background-color: #ffc107; color: #333; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .btn-danger { background-color: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .btn-disabled { background-color: #6c757d; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: not-allowed; font-weight: bold; }
+
+        .track-list { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+        .track-item { border: 1px solid #ddd; padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; background: #fdfdfd; transition: 0.3s; }
+        .track-item.disabled { background: #e9ecef; opacity: 0.6; pointer-events: none; }
+        .track-item.selected { border-color: #28a745; background: #f2fff5; border-width: 2px; }
+        .track-status { font-size: 0.95em; padding: 5px 10px; border-radius: 4px; background: #e2e3e5; margin: 0 10px; }
+        .track-status.eval { background: #fff3cd; color: #856404; } .track-status.ok { background: #d4edda; color: #155724; font-weight: bold; } .track-status.no { background: #f8d7da; color: #721c24; }
+        .chat-room-banner { background: #e8f4f8; border: 2px dashed #17a2b8; padding: 15px; border-radius: 8px; margin-top: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="section-header">🏥 竹苗區可取栓醫院量能狀態即時看板</div>
+    <div class="status-board" id="hospital_status_board"></div>
+
+    <!-- ★ 新增：首頁免登入 GPS 與 時間紀錄 區塊 ★ -->
+    <div class="section-header" style="border-bottom-color: #17a2b8; color: #17a2b8;">
+        🚑 轉運即時紀錄 (免登入 / 顯示近1小時個案)
+    </div>
+    <div class="quick-update-board" id="quick_update_board">
+        <span style="color: #888; padding: 10px;">目前近一小時內無進行中個案。</span>
+    </div>
+
+    <!-- 下半部分頁功能 -->
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('tab1')">1. 提出取栓需求</button>
+        <button class="tab-btn" onclick="switchTab('tab2')">2. 取栓個案追蹤</button>
+        <button class="tab-btn" onclick="switchTab('tab3')">3. 取栓醫院端介面</button>
+    </div>
+
+    <!-- 1. 提出需求 -->
+    <div id="tab1" class="tab-content active">
+        <div class="req-row">
+            <div class="req-group"><label>轉出醫師電話 (密碼)</label><input type="tel" id="req_doc_phone" value="0912345678"></div>
+        </div>
+        <div class="req-group" style="margin-bottom: 15px;">
+            <label>欲發送通知之轉入醫院 (可複選)</label>
+            <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 5px;" id="target_hospitals_container"></div>
+        </div>
+        <button class="btn-success" onclick="submitCase()">🚀 送出取栓資訊 (發送通知)</button>
+        <div id="submit_result_area" style="display: none; background: #d4edda; padding: 15px; border-radius: 4px; margin-top: 15px;">
+            ✅ <strong>資訊已發送！個案代碼： <span id="case_id_display" style="font-size: 1.3em;"></span></strong>
+        </div>
+    </div>
+
+    <!-- 2. 個案追蹤 -->
+    <div id="tab2" class="tab-content">
+        <div class="req-row">
+            <div class="req-group"><label>個案代碼</label><input type="text" id="track_case_id"></div>
+            <div class="req-group"><label>密碼(電話)</label><input type="password" id="track_phone" value="0912345678"></div>
+            <div class="req-group" style="justify-content: flex-end;"><button class="btn-main" onclick="loginTracker()">🔍 登入</button></div>
+        </div>
+        <div id="track_dashboard" style="display: none; margin-top: 20px;">
+            <h3 style="color: #0056b3;">個案：<span id="disp_track_id"></span> 狀態追蹤</h3>
+            <div id="track_chat_area" style="display: none;"></div>
+            <div id="track_list_container" class="track-list"></div>
+        </div>
+    </div>
+
+    <!-- 3. 取栓醫院端 -->
+    <div id="tab3" class="tab-content">
+        <div id="hosp_login_area" class="req-row">
+            <div class="req-group"><label>醫院</label><select id="login_hosp_name"></select></div>
+            <div class="req-group"><label>密碼</label><input type="password" id="login_hosp_pwd" value="admin"></div>
+            <div class="req-group" style="justify-content: flex-end;"><button class="btn-main" onclick="loginHospital()">登入</button></div>
+        </div>
+        <div id="hosp_dashboard" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="color: #0056b3;"><span id="disp_login_hosp"></span> - 收到的需求</h3>
+                <button class="btn-main" onclick="logoutHospital()" style="background:#6c757d;">登出</button>
+            </div>
+            <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+                <tbody id="hosp_cases_tbody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    let hospitals = [
+        { name: "新竹台大", status: "green", statusText: "可取栓" }, { name: "東元醫院", status: "orange", statusText: "滿床" },
+        { name: "新竹中國", status: "green", statusText: "可取栓" }, { name: "大千醫院", status: "red", statusText: "無人力" },
+        { name: "聯新國際", status: "green", statusText: "可取栓" }, { name: "林口長庚", status: "green", statusText: "可取栓" }
+    ];
+    
+    let cases = {}; 
+    let currentTrackCaseId = null;
+    let loggedInHosp = null;
+
+    window.onload = function() {
+        const board = document.getElementById('hospital_status_board');
+        const container = document.getElementById('target_hospitals_container');
+        const sel = document.getElementById('login_hosp_name');
+        
+        hospitals.forEach(hosp => {
+            const topColor = hosp.status === 'green' ? '#28a745' : (hosp.status === 'orange' ? '#fd7e14' : '#dc3545');
+            board.innerHTML += `<div class="hosp-card" style="border-top-color: ${topColor}"><h3>${hosp.name}</h3><div class="status-indicator status-${hosp.status}">${hosp.statusText}</div></div>`;
+            container.innerHTML += `<label><input type="checkbox" class="target-hosp-cb" value="${hosp.name}" checked> ${hosp.name}</label>`;
+            sel.innerHTML += `<option value="${hosp.name}">${hosp.name}</option>`;
+        });
+        
+        renderQuickUpdateBoard(); 
+    };
+
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        event.target.classList.add('active');
+    }
+
+    function submitCase() {
+        const phone = document.getElementById('req_doc_phone').value;
+        let targets = [];
+        document.querySelectorAll('.target-hosp-cb:checked').forEach(cb => targets.push(cb.value));
+        if (targets.length === 0) return alert("請勾選醫院！");
+
+        const caseId = `${new Date().toISOString().slice(0,10).replace(/-/g,"")}-${String(Math.floor(Math.random()*999)+1).padStart(3,'0')}`;
+        let hospStatusObj = {};
+        targets.forEach(h => hospStatusObj[h] = "尚未讀取個案");
+        
+        // 加入 departTime 與 arriveTime 欄位
+        cases[caseId] = { 
+            phone: phone, 
+            targets: targets, 
+            hospStatus: hospStatusObj, 
+            finalDest: null, 
+            location: null,
+            departTime: null,
+            arriveTime: null,
+            timestamp: Date.now() 
+        };
+
+        document.getElementById('case_id_display').innerText = caseId;
+        document.getElementById('submit_result_area').style.display = 'block';
+        document.getElementById('track_case_id').value = caseId; 
+        
+        renderQuickUpdateBoard(); 
+    }
+
+    // ★ 渲染免登入快速更新區塊 (新增出發與抵達按鈕) ★
+    function renderQuickUpdateBoard() {
+        const board = document.getElementById('quick_update_board');
+        board.innerHTML = "";
+        let hasActiveCases = false;
+        const now = Date.now();
+        const ONE_HOUR = 60 * 60 * 1000; 
+
+        for (let caseId in cases) {
+            const c = cases[caseId];
+            
+            if (now - c.timestamp <= ONE_HOUR) {
+                hasActiveCases = true;
+                
+                let destStatus = c.finalDest ? `<span style="color:#28a745; font-weight:bold;">已鎖定前往：${c.finalDest}</span>` : `<span style="color:#fd7e14;">媒合中...</span>`;
+                let timeStr = new Date(c.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                
+                let gpsStatusStr = c.location ? `<br><span style="color:#28a745;">GPS最後更新: ${c.location.time}</span>` : "";
+
+                // 出發與抵達按鈕邏輯 (有時間則鎖定顯示，無時間則顯示按鈕)
+                let btnDepart = c.departTime 
+                    ? `<button class="btn-disabled" disabled>已出發 ${c.departTime}</button>` 
+                    : `<button class="btn-warning" onclick="markTime('${caseId}', 'depart')">🚑 記錄出發</button>`;
+                
+                let btnArrive = c.arriveTime 
+                    ? `<button class="btn-disabled" disabled>已抵達 ${c.arriveTime}</button>` 
+                    : `<button class="btn-danger" onclick="markTime('${caseId}', 'arrive')">🏥 記錄抵達</button>`;
+
+                board.innerHTML += `
+                    <div class="quick-case-card">
+                        <div class="cid">📄 ${caseId}</div>
+                        <div class="info">
+                            建立時間: ${timeStr}<br>
+                            目標狀態: ${destStatus}
+                            ${gpsStatusStr}
+                        </div>
+                        <div class="action-grid">
+                            ${btnDepart}
+                            ${btnArrive}
+                        </div>
+                        <button class="btn-success" style="width: 100%;" onclick="quickUpdateLocation('${caseId}')" id="btn_quick_${caseId}">
+                            📍 抓取並傳送目前位置
+                        </button>
+                        <div id="quick_loc_msg_${caseId}" style="font-size: 0.85em; color: #28a745; margin-top: 8px; text-align: center;"></div>
+                    </div>
+                `;
+            }
+        }
+
+        if (!hasActiveCases) {
+            board.innerHTML = `<span style="color: #888; padding: 10px;">目前近一小時內無進行中個案。</span>`;
+        }
+    }
+
+    // ★ 標記時間 (出發/抵達) 函數 ★
+    function markTime(caseId, type) {
+        let confirmMsg = type === 'depart' ? "確定標記救護車【已出發】並紀錄當下時間？" : "確定標記救護車【已抵達】並紀錄當下時間？";
+        
+        if(confirm(confirmMsg)) {
+            const timeStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+            if(type === 'depart') {
+                cases[caseId].departTime = timeStr;
+            } else {
+                cases[caseId].arriveTime = timeStr;
+            }
+            
+            renderQuickUpdateBoard(); 
+            if(currentTrackCaseId === caseId) renderTrackerDashboard();
+            if(loggedInHosp) renderHospitalCases();
+        }
+    }
+
+    // 核心 GPS 更新函數
+    function quickUpdateLocation(caseId) {
+        if (!navigator.geolocation) {
+            alert("您的瀏覽器不支援定位功能！"); return;
+        }
+        
+        const msgEl = document.getElementById(`quick_loc_msg_${caseId}`);
+        const btnEl = document.getElementById(`btn_quick_${caseId}`);
+        if(msgEl) msgEl.innerText = "⏳ 正在抓取 GPS 位置，請稍候...";
+        if(btnEl) btnEl.disabled = true;
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+                
+                cases[caseId].location = { lat: lat, lng: lng, time: time };
+                
+                if(msgEl) msgEl.innerText = `✅ 已成功更新座標 (${time})`;
+                if(btnEl) {
+                    btnEl.disabled = false;
+                    btnEl.innerText = "📍 再次更新位置";
+                }
+                
+                renderQuickUpdateBoard(); // 重新渲染以更新文字資訊
+                if(currentTrackCaseId === caseId) renderTrackerDashboard();
+                if(loggedInHosp) renderHospitalCases();
+            },
+            (error) => {
+                if(msgEl) msgEl.innerHTML = "<span style='color:red;'>❌ 定位失敗，請確認手機已開啟「位置權限」</span>";
+                if(btnEl) btnEl.disabled = false;
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
+    }
+
+    // ----------------------------------------------------
+    // 以下為原有的追蹤與醫院端邏輯
+    // ----------------------------------------------------
+    function loginTracker() {
+        const id = document.getElementById('track_case_id').value;
+        const pwd = document.getElementById('track_phone').value;
+        if (cases[id] && cases[id].phone === pwd) {
+            currentTrackCaseId = id;
+            document.getElementById('track_dashboard').style.display = 'block';
+            document.getElementById('disp_track_id').innerText = id;
+            renderTrackerDashboard();
+        } else { alert("代碼或密碼錯誤！"); }
+    }
+
+    function renderTrackerDashboard() {
+        const c = cases[currentTrackCaseId];
+        const container = document.getElementById('track_list_container');
+        const chatArea = document.getElementById('track_chat_area');
+        container.innerHTML = ""; chatArea.innerHTML = ""; chatArea.style.display = "none";
+
+        if (c.finalDest) {
+            let locationText = c.location ? `<br><span style="font-size: 0.9em; color:#28a745;">🚗 最後更新位置時間: ${c.location.time}</span>` : "";
+            
+            chatArea.style.display = "flex";
+            chatArea.className = "chat-room-banner";
+            chatArea.innerHTML = `
+                <div>
+                    <strong style="color:#0056b3; font-size: 1.1em;">💬 專案已鎖定：${c.finalDest}</strong>
+                    ${locationText}
+                </div>
+                <div style="display:flex; gap:10px; flex-wrap: wrap;">
+                    <button class="btn-success" onclick="quickUpdateLocation('${currentTrackCaseId}')">📍 更新 GPS 位置</button>
+                    <button class="btn-main" style="background:#17a2b8;" onclick="window.open('https://docs.google.com/document/u/0/?tgif=d', '_blank')">📝 共編 Doc</button>
+                    <button class="btn-danger" onclick="cancelFinalDest()">❌ 重新媒合</button>
+                </div>
+            `;
+        }
+
+        c.targets.forEach(hospName => {
+            const status = c.hospStatus[hospName];
+            let statusClass = (status.includes("可轉院")) ? "ok" : (status.includes("不建議") ? "no" : "eval");
+            let itemClass = "track-item";
+            let actionHtml = "";
+
+            if (c.finalDest) {
+                if (c.finalDest === hospName) { itemClass += " selected"; }
+                else { itemClass += " disabled"; }
+            } else {
+                if (status.includes("可轉院")) { actionHtml = `<button class="btn-success" onclick="selectFinalDest('${hospName}')">✅ 選擇轉入此院</button>`; }
+            }
+
+            container.innerHTML += `
+                <div class="${itemClass}">
+                    <div><span style="font-weight:bold; font-size:1.1em; color:#004085;">${hospName}</span>
+                    <span class="track-status ${statusClass}">${status}</span></div>
+                    <div>${actionHtml}</div>
+                </div>`;
+        });
+    }
+
+    function selectFinalDest(hospName) {
+        if(confirm(`確定轉至 ${hospName}？`)) {
+            cases[currentTrackCaseId].finalDest = hospName;
+            renderTrackerDashboard();
+            renderQuickUpdateBoard(); 
+            if(loggedInHosp) renderHospitalCases();
+        }
+    }
+
+    function cancelFinalDest() {
+        if(confirm(`確定要取消轉入 ${cases[currentTrackCaseId].finalDest} 嗎？`)) {
+            cases[currentTrackCaseId].finalDest = null;
+            cases[currentTrackCaseId].location = null; 
+            cases[currentTrackCaseId].departTime = null; // 取消時可一併清除
+            cases[currentTrackCaseId].arriveTime = null; 
+            alert("已釋出個案！");
+            renderTrackerDashboard();
+            renderQuickUpdateBoard(); 
+            if(loggedInHosp) renderHospitalCases();
+        }
+    }
+
+    function loginHospital() {
+        if (document.getElementById('login_hosp_pwd').value === "admin") {
+            loggedInHosp = document.getElementById('login_hosp_name').value;
+            document.getElementById('hosp_login_area').style.display = 'none';
+            document.getElementById('hosp_dashboard').style.display = 'block';
+            document.getElementById('disp_login_hosp').innerText = loggedInHosp;
+            renderHospitalCases();
+        }
+    }
+    
+    function logoutHospital() {
+        loggedInHosp = null; 
+        document.getElementById('hosp_login_area').style.display = 'flex'; 
+        document.getElementById('hosp_dashboard').style.display = 'none';
+    }
+
+    function renderHospitalCases() {
+        const tbody = document.getElementById('hosp_cases_tbody');
+        tbody.innerHTML = "";
+        
+        for (let caseId in cases) {
+            const c = cases[caseId];
+            if (c.targets.includes(loggedInHosp)) {
+                if (c.hospStatus[loggedInHosp] === "尚未讀取個案") c.hospStatus[loggedInHosp] = "評估中";
+
+                let intentText = "評估中";
+                let actionBtns = `<button class="btn-main" style="background:#fd7e14;" onclick="hospReply('${caseId}')">🏥 回覆量能</button>`;
+                
+                if (c.finalDest) {
+                    if (c.finalDest === loggedInHosp) {
+                        intentText = `<span style="color:green; font-weight:bold;">✅ 已決定轉入本院</span>`;
+                        let mapBtn = c.location ? `<button class="btn-main" style="background:#28a745;" onclick="window.open('https://www.google.com/maps/search/?api=1&query=${c.location.lat},${c.location.lng}', '_blank')">🗺️ 查看救護車地圖 (${c.location.time})</button>` : `<button class="btn-main" style="background:#ccc; cursor:not-allowed;" disabled>等待定位</button>`;
+
+                        actionBtns = `
+                            ${mapBtn}
+                            <button class="btn-main" style="background:#17a2b8;" onclick="window.open('https://docs.google.com/document/u/0/?tgif=d', '_blank')">📝 共編討論</button>
+                        `;
+                    } else {
+                        intentText = `<span style="color:red;">已轉至 ${c.finalDest}</span>`;
+                        actionBtns = ``; 
+                    }
+                }
+
+                let timeInfo = "";
+                if(c.departTime) timeInfo += ` | 出發: ${c.departTime}`;
+                if(c.arriveTime) timeInfo += ` | 抵達: ${c.arriveTime}`;
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td style="border-bottom: 1px solid #ccc; padding: 15px; width: 150px;"><b>${caseId}</b></td>
+                        <td style="border-bottom: 1px solid #ccc; padding: 15px;">
+                            <div style="display:flex; gap:10px; flex-wrap: wrap;">
+                                <button class="btn-main" style="background:#6c757d;">📜 檢視病史影像</button>
+                                ${actionBtns}
+                            </div>
+                            <div style="margin-top:8px; font-size:0.9em;">本院狀態: <span style="color:#0056b3;">${c.hospStatus[loggedInHosp]}</span> | 轉出端: ${intentText} ${timeInfo}</div>
+                        </td>
+                    </tr>`;
+            }
+        }
+    }
+
+    function hospReply(caseId) {
+        let reply = prompt("請輸入數字:\n1. 可轉院 (請聯繫本院急診)\n2. 不建議轉院 (無床/無人力)");
+        if (reply === "1") cases[caseId].hospStatus[loggedInHosp] = "回覆結果: 可轉院 (請聯繫本院急診)";
+        else if (reply === "2") cases[caseId].hospStatus[loggedInHosp] = "回覆結果: 不建議轉院 (無床/無人力)";
+        renderHospitalCases();
+        if(currentTrackCaseId === caseId) renderTrackerDashboard();
+    }
+</script>
+</body>
+</html>
