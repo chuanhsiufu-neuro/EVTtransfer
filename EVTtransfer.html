@@ -855,24 +855,35 @@
             const c = cases[caseId];
             if (c.targets.includes(loggedInHosp)) {
                 if (c.hospStatus[loggedInHosp] === "尚未讀取個案") c.hospStatus[loggedInHosp] = "評估中";
-                let intentText = "評估中"; let actionBtns = `<button class="btn-main" style="background:#fd7e14;" onclick="openReplyModal('${caseId}')">🏥 回覆量能</button>`;
+                let intentText = "評估中"; 
+                let actionBtns = `<button class="btn-main" style="background:#fd7e14;" onclick="openReplyModal('${caseId}')">🏥 回覆量能</button>`;
                 
                 if (c.finalDest) {
                     if (c.finalDest === loggedInHosp) {
                         intentText = `<span style="color:green; font-weight:bold;">✅ 已轉入本院 (${c.lockTime})</span>`;
-                        actionBtns = ``;
-                    } else { intentText = `<span style="color:red;">已轉至 ${c.finalDest}</span>`; actionBtns = ``; }
+                        
+                        // 🌟 重新找回 GPS 地圖按鈕：如果救護車有傳送過 GPS，就顯示按鈕
+                        let mapBtn = c.location ? `<button class="btn-main" style="background:#28a745;" onclick="window.open('https://www.google.com/maps/search/?api=1&query=${c.location.lat},${c.location.lng}', '_blank')">🗺️ GPS地圖</button>` : `<span style="font-size:0.85em; color:#888;">(尚未回報GPS)</span>`;
+                        
+                        actionBtns = `${mapBtn} <button class="btn-main" style="background:#17a2b8;" onclick="window.open('https://docs.google.com/document/u/0/?tgif=d', '_blank')">📝 共編</button>`;
+                    } else { 
+                        intentText = `<span style="color:red;">已轉至 ${c.finalDest}</span>`; 
+                        actionBtns = ``; 
+                    }
                 }
+
+                let timesInfo = getCaseTimeStr(c);
+                let replyTimeStr = c.hospReplyTime[loggedInHosp] ? ` <span style="font-size:0.85em; color:#666;">(${c.hospReplyTime[loggedInHosp]})</span>` : "";
 
                 tbody.innerHTML += `
                     <tr>
-                        <td style="border-bottom: 1px solid #ccc; padding: 15px; width: 140px;"><b>${caseId}</b><br><span style="font-size: 0.8em; color: #666;">${getCaseTimeStr(c)}</span></td>
+                        <td style="border-bottom: 1px solid #ccc; padding: 15px; width: 140px;"><b>${caseId}</b><br><span style="font-size: 0.8em; color: #666;">${timesInfo}</span></td>
                         <td style="border-bottom: 1px solid #ccc; padding: 15px;">
                             <div style="display:flex; gap:8px; flex-wrap: wrap; margin-bottom: 8px;">
                                 <button class="btn-main" style="background:#6c757d;" onclick="openViewCaseModal('${caseId}')">📜 檢視完整病史與影像</button>
                                 ${actionBtns}
                             </div>
-                            <div style="font-size:0.9em;">狀態: <span style="color:#0056b3;">${c.hospStatus[loggedInHosp]}</span>${c.hospReplyTime[loggedInHosp] ? ` <span style="font-size:0.85em; color:#666;">(${c.hospReplyTime[loggedInHosp]})</span>` : ""} | 轉出端: ${intentText}</div>
+                            <div style="font-size:0.9em;">狀態: <span style="color:#0056b3;">${c.hospStatus[loggedInHosp]}</span>${replyTimeStr} | 轉出端: ${intentText}</div>
                         </td>
                     </tr>`;
             }
