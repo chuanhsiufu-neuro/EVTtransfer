@@ -275,6 +275,9 @@
 </div>
 
 <script>
+    // 儲存目前正在編輯的 caseId (如果是從 Tab 2 開啟的話)
+    let currentEditingCaseId = null;
+
     // 預設時間設定
     window.onload = function() {
         const nowIso = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16);
@@ -387,6 +390,7 @@
         const tpaStatus = document.querySelector('input[name="tpa_status"]:checked')?.value || "";
 
         const data = {
+            caseId: currentEditingCaseId, // 🌟 確保存檔時把 caseId 一併存回去
             age: document.getElementById('age').value,
             gender: document.getElementById('gender').value,
             mrs: document.getElementById('mrs').value,
@@ -415,7 +419,7 @@
         // 寫入瀏覽器本地儲存空間
         localStorage.setItem('stroke_transfer_clinical_data', JSON.stringify(data));
         
-        alert("✅ 表單已暫存成功！\n本頁面即將關閉，請回到主畫面繼續發送流程。");
+        alert("✅ 表單已暫存成功！\n本頁面即將關閉，請回到主畫面繼續發送或同步流程。");
         window.close();
     }
 
@@ -425,12 +429,15 @@
         if(savedStr) {
             try {
                 const d = JSON.parse(savedStr);
-                // 判斷是否有傳入 caseId
+                
+                // 🌟 判斷是否有傳入 caseId，如果有就存進全域變數並顯示
                 if (d.caseId) {
-                document.getElementById('display_case_id').innerText = ` (正在編輯個案: ${d.caseId})`;
-                document.getElementById('display_case_id').style.color = "#28a745";
+                    currentEditingCaseId = d.caseId;
+                    document.getElementById('display_case_id').innerText = ` (正在編輯個案: ${d.caseId})`;
+                    document.getElementById('display_case_id').style.color = "#28a745";
                 }
-                document.getElementById('age').value = d.age || "";
+
+                document.getElementById('age').value = d.age || "";// --- 邏輯：如果已有暫存資料，自動載入 ---
                 document.getElementById('gender').value = d.gender || "男";
                 document.getElementById('mrs').value = d.mrs || "0";
                 document.getElementById('onset').value = d.onset || "";
