@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>中風區域聯防轉診平台 v28 (Workflow 測試完整版)</title>
+    <title>中風區域聯防轉診平台 v29 (GAS網址寫死版)</title>
     <style>
         body { font-family: "Microsoft JhengHei", sans-serif; margin: 0; padding: 20px; background-color: #f0f2f5; color: #333; }
         .app-container { max-width: 1100px; margin: 0 auto; background: transparent; }
@@ -122,7 +122,6 @@
                 <div id="form_status_desc" style="font-size: 0.85em; color: #666; margin-top: 5px;">請點擊按鈕開啟獨立表單填寫，填妥後點擊「讀取暫存資料」。</div>
             </div>
             <div style="display: flex; gap: 5px; flex-wrap: wrap;">
-                <!-- ★ 修正：Tab 1 打開的是純淨的 clinical.html ★ -->
                 <button class="btn-main" style="background:#17a2b8;" onclick="window.open('clinical.html', '_blank')">📝 開啟臨床與影像表單</button>
                 <button class="btn-warning" onclick="loadClinicalFromLocal()">🔄 讀取暫存資料</button>
             </div>
@@ -154,7 +153,6 @@
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                 <h3 style="color: #0056b3; margin:0;">個案：<span id="disp_track_id"></span></h3>
                 <div style="display:flex; gap:10px;">
-                    <!-- ★ 修正：Tab 2 使用 editExistingClinical 帶入 CaseID ★ -->
                     <button class="btn-main" style="background:#17a2b8;" onclick="editExistingClinical()">📝 開啟表單修改/增補影像</button>
                     <button class="btn-warning" onclick="updateClinicalToExistCase()">🔄 同步修改至本案</button>
                 </div>
@@ -191,20 +189,6 @@
     <!-- 分頁 4: 班表與系統設定 -->
     <!-- ========================================== -->
     <div id="tab4" class="tab-content">
-        
-        <!-- ★ 新增 GAS URL 設定區塊 ★ -->
-        <div style="background: #fdfdfd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #ddd;">
-            <h4 style="margin: 0 0 10px 0; color: #0056b3;">🔗 系統後台串接設定 (GAS API)</h4>
-            <div class="req-row" style="margin-bottom: 0;">
-                <div class="req-group" style="flex: 3;">
-                    <input type="text" id="gas_url_input" placeholder="貼上部署好的 Apps Script URL">
-                </div>
-                <div class="req-group" style="flex: 1;">
-                    <button class="btn-success" onclick="saveGasUrl()">💾 儲存網址</button>
-                </div>
-            </div>
-        </div>
-
         <div class="live-clock-banner">
             <div style="font-size: 1.1em; font-weight: bold; color: #0056b3; margin-bottom: 5px;">現在時間：<span id="system_live_clock" style="font-family: monospace; font-size: 1.1em;">載入中...</span></div>
             <div style="font-size: 1.05em; font-weight: bold; color: #d35400;">📍 區域聯防排班 - 第一線優先聯絡醫院：<span id="priority_hosp_display">載入中...</span></div>
@@ -389,11 +373,11 @@
 
 <script>
     // ==========================================
-    // ⚙️ 資料庫與全域變數初始化
+    // ⚙️ 系統設定與寫死之 GAS API 網址
     // ==========================================
-    let GAS_URL = "";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbwuyiS3w3LB-KTOk_XfQ1EokB0frxSgVvTl_A2CRdnS1PcXqCMMsB2VU54p58GUUxiLow/exec"; 
+    // (如果您的 GAS 網址有換，直接修改上方引號內的網址即可)
 
-    // 單機版預設假資料
     let hospitals = [
         { name: "新竹台大", status: "green", statusText: "可取栓", erPhone: "03-5326151", docName: "-", docPhone: "-", docEmail: "", lineGroup: "#", loginPwd: "admin", addressBook: {} }, 
         { name: "東元醫院", status: "orange", statusText: "滿床", erPhone: "03-5527000", docName: "-", docPhone: "-", docEmail: "", lineGroup: "#", loginPwd: "admin", addressBook: {} },
@@ -436,9 +420,6 @@
     }
 
     window.onload = function() {
-        GAS_URL = localStorage.getItem('GAS_URL') || "";
-        document.getElementById('gas_url_input').value = GAS_URL;
-
         const container = document.getElementById('target_hospitals_container');
         const selLogin = document.getElementById('login_hosp_name');
         const selSet = document.getElementById('set_hosp_name');
@@ -463,12 +444,6 @@
         document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
         document.getElementById(tabId).classList.add('active');
         event.target.classList.add('active');
-    }
-
-    function saveGasUrl() {
-        GAS_URL = document.getElementById('gas_url_input').value;
-        localStorage.setItem('GAS_URL', GAS_URL);
-        alert('✅ 已儲存 GAS API 網址！');
     }
 
     function startLiveClock() {
@@ -540,11 +515,8 @@
 
     function editExistingClinical() {
         if(!currentTrackCaseId || !cases[currentTrackCaseId]) return alert("請先登入個案！");
-        
-        // 將舊個案資料塞入暫存區並附帶 CaseID，讓 clinical.html 知道是舊案
         let currentData = cases[currentTrackCaseId].clinicalData || {};
         currentData.caseId = currentTrackCaseId; 
-        
         localStorage.setItem('stroke_transfer_clinical_data', JSON.stringify(currentData));
         window.open('clinical.html', '_blank');
     }
@@ -592,15 +564,13 @@
         const idx = document.getElementById('addr_dr_selector').value;
         hosp.addressBook[idx] = { name: document.getElementById('addr_dr_name').value, email: document.getElementById('addr_dr_email').value, phone: document.getElementById('addr_dr_phone').value };
         
-        if (GAS_URL) {
-            fetch(GAS_URL, {
-                method: 'POST',
-                body: JSON.stringify({
-                    action: "updateAddressBook",
-                    payload: { hospName: loggedInHosp, drIndex: idx, name: hosp.addressBook[idx].name, email: hosp.addressBook[idx].email, phone: hosp.addressBook[idx].phone }
-                })
-            }).catch(e => console.log("GAS 錯誤", e));
-        }
+        fetch(GAS_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                action: "updateAddressBook",
+                payload: { hospName: loggedInHosp, drIndex: idx, name: hosp.addressBook[idx].name, email: hosp.addressBook[idx].email, phone: hosp.addressBook[idx].phone }
+            })
+        }).catch(e => console.log("GAS 錯誤", e));
 
         alert(`✅ Dr ${idx} 通訊錄已更新`);
     }
@@ -614,15 +584,13 @@
         const newPwd = document.getElementById('sys_set_pwd').value; 
         if (newPwd.trim() !== "") { hosp.loginPwd = newPwd; alert("密碼已更新！"); }
 
-        if (GAS_URL) {
-            fetch(GAS_URL, {
-                method: 'POST',
-                body: JSON.stringify({
-                    action: "updateSysSettings",
-                    payload: { hospName: loggedInHosp, erPhone: hosp.erPhone, lineGroup: hosp.lineGroup, pwd: newPwd }
-                })
-            }).catch(e => console.log("GAS 錯誤", e));
-        }
+        fetch(GAS_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                action: "updateSysSettings",
+                payload: { hospName: loggedInHosp, erPhone: hosp.erPhone, lineGroup: hosp.lineGroup, pwd: newPwd }
+            })
+        }).catch(e => console.log("GAS 錯誤", e));
 
         alert("✅ 基本設定已儲存並同步至看板！"); closeHospSysSettingsModal(); renderHospitalBoard();
     }
@@ -661,11 +629,9 @@
         const caseId = `${new Date().toISOString().slice(0,10).replace(/-/g,"")}-${String(Math.floor(Math.random()*999)+1).padStart(3,'0')}`;
         const reqTime = formatDateTime();
 
-        let hospStatusObj = {}; let hospReplyObj = {}; let emailNotifyList = [];
+        let hospStatusObj = {}; let hospReplyObj = {}; 
         targets.forEach(hName => {
             hospStatusObj[hName] = "尚未讀取個案"; hospReplyObj[hName] = null;
-            let hospData = hospitals.find(h => h.name === hName);
-            if(hospData && hospData.docEmail && hospData.docEmail !== "-") emailNotifyList.push(`${hName} ${hospData.docName}醫師 (${hospData.docEmail})`);
         });
 
         const payloadData = {
@@ -681,31 +647,24 @@
             }
         };
 
-        // --- 若有設定 GAS_URL，則發送至 Google Sheet ---
-        if (GAS_URL) {
-            document.getElementById('submit_result_area').style.display = 'block';
-            document.getElementById('submit_result_area').innerHTML = `⏳ <strong>正在將資料與影像上傳至雲端，請稍候... (請勿關閉網頁)</strong>`;
-            
-            fetch(GAS_URL, {
-                method: 'POST',
-                body: JSON.stringify(payloadData)
-            })
-            .then(res => res.json())
-            .then(data => {
-                if(data.status === "success") {
-                    document.getElementById('submit_result_area').innerHTML = `✅ <strong>雲端上傳成功！個案代碼： <span id="case_id_display" style="font-size: 1.3em; color: #0056b3;">${caseId}</span></strong><br><span style="font-size: 0.9em; color: #155724;">(影像已建立專屬 Drive 資料夾，Workflow測試期間未發送通知)</span>`;
-                } else {
-                    document.getElementById('submit_result_area').innerHTML = `❌ <strong>上傳發生錯誤：</strong> ${data.error}`;
-                }
-            })
-            .catch(e => {
-                document.getElementById('submit_result_area').innerHTML = `❌ <strong>網路連線錯誤，請檢查 GAS 網址是否正確。</strong>`;
-            });
-        } else {
-            // 單機版模擬成功畫面
-            document.getElementById('submit_result_area').style.display = 'block';
-            document.getElementById('submit_result_area').innerHTML = `✅ <strong>單機模擬發送成功！個案代碼： <span id="case_id_display" style="font-size: 1.3em; color: #0056b3;">${caseId}</span></strong><br><span style="font-size: 0.9em; color: #856404;">⚠️ 注意：目前尚未填寫 GAS 網址，資料僅存於本機記憶體。</span>`;
-        }
+        document.getElementById('submit_result_area').style.display = 'block';
+        document.getElementById('submit_result_area').innerHTML = `⏳ <strong>正在將資料與影像上傳至雲端，請稍候... (請勿關閉網頁)</strong>`;
+        
+        fetch(GAS_URL, {
+            method: 'POST',
+            body: JSON.stringify(payloadData)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.status === "success") {
+                document.getElementById('submit_result_area').innerHTML = `✅ <strong>雲端上傳成功！個案代碼： <span id="case_id_display" style="font-size: 1.3em; color: #0056b3;">${caseId}</span></strong><br><span style="font-size: 0.9em; color: #155724;">(影像已建立專屬 Drive 資料夾，資料已寫入 Google Sheet)</span>`;
+            } else {
+                document.getElementById('submit_result_area').innerHTML = `❌ <strong>上傳發生錯誤：</strong> ${data.error}`;
+            }
+        })
+        .catch(e => {
+            document.getElementById('submit_result_area').innerHTML = `❌ <strong>網路連線錯誤，請檢查 GAS 網址是否正確。</strong>`;
+        });
 
         cases[caseId] = { 
             reqHospOut: hospOut, phone: phone, targets: targets, hospStatus: hospStatusObj, hospReplyTime: hospReplyObj, hospPendingReason: {},
@@ -743,14 +702,12 @@
         if (!hasActiveCases) board.innerHTML = `<span style="color: #888; padding: 10px;">目前近4小時無進行中個案。</span>`;
     }
 
-    // 追蹤更新與定位 (GAS API 支援)
     function markTime(caseId, type) {
         if(confirm(type === 'depart' ? "標記【已出發】？" : "標記【已抵達】？")) { 
             let t = formatDateTime(); cases[caseId][type === 'depart' ? 'departTime' : 'arriveTime'] = t; 
             
-            if (GAS_URL) {
-                fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "updateCaseTracking", payload: { caseId: caseId, actionType: type, value1: t } }) });
-            }
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "updateCaseTracking", payload: { caseId: caseId, actionType: type, value1: t } }) });
+            
             renderQuickUpdateBoard(); if(currentTrackCaseId === caseId) renderTrackerDashboard(); if(loggedInHosp) renderHospitalCases(); 
         }
     }
@@ -765,9 +722,8 @@
                 let locStr = `Lat:${pos.coords.latitude}, Lng:${pos.coords.longitude}`;
                 cases[caseId].location = { lat: pos.coords.latitude, lng: pos.coords.longitude, time: t }; 
                 
-                if (GAS_URL) {
-                    fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "updateCaseTracking", payload: { caseId: caseId, actionType: "gps", value1: locStr, value2: t } }) });
-                }
+                fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "updateCaseTracking", payload: { caseId: caseId, actionType: "gps", value1: locStr, value2: t } }) });
+                
                 alert("✅ GPS 已更新"); renderQuickUpdateBoard(); if(currentTrackCaseId === caseId) renderTrackerDashboard(); if(loggedInHosp) renderHospitalCases(); 
             },
             (err) => alert("❌ 定位失敗"), { enableHighAccuracy: true, timeout: 10000 }
@@ -820,9 +776,8 @@
             let t = formatDateTime();
             cases[currentTrackCaseId].finalDest = hospName; cases[currentTrackCaseId].lockTime = t; 
             
-            if (GAS_URL) {
-                fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "updateCaseTracking", payload: { caseId: currentTrackCaseId, actionType: "lock", value1: hospName, value2: t } }) });
-            }
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "updateCaseTracking", payload: { caseId: currentTrackCaseId, actionType: "lock", value1: hospName, value2: t } }) });
+            
             renderTrackerDashboard(); renderQuickUpdateBoard(); if(loggedInHosp) renderHospitalCases(); 
         } 
     }
@@ -833,9 +788,8 @@
             cases[currentTrackCaseId].finalDest = null; cases[currentTrackCaseId].location = null; cases[currentTrackCaseId].departTime = null; cases[currentTrackCaseId].arriveTime = null; cases[currentTrackCaseId].lockTime = null; 
             cases[currentTrackCaseId].cancelTime = t;
             
-            if (GAS_URL) {
-                fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "updateCaseTracking", payload: { caseId: currentTrackCaseId, actionType: "cancel", value1: t } }) });
-            }
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "updateCaseTracking", payload: { caseId: currentTrackCaseId, actionType: "cancel", value1: t } }) });
+            
             renderTrackerDashboard(); renderQuickUpdateBoard(); if(loggedInHosp) renderHospitalCases(); 
         } 
     }
@@ -861,10 +815,7 @@
                 if (c.finalDest) {
                     if (c.finalDest === loggedInHosp) {
                         intentText = `<span style="color:green; font-weight:bold;">✅ 已轉入本院 (${c.lockTime})</span>`;
-                        
-                        // 🌟 重新找回 GPS 地圖按鈕：如果救護車有傳送過 GPS，就顯示按鈕
                         let mapBtn = c.location ? `<button class="btn-main" style="background:#28a745;" onclick="window.open('https://www.google.com/maps/search/?api=1&query=${c.location.lat},${c.location.lng}', '_blank')">🗺️ GPS地圖</button>` : `<span style="font-size:0.85em; color:#888;">(尚未回報GPS)</span>`;
-                        
                         actionBtns = `${mapBtn} <button class="btn-main" style="background:#17a2b8;" onclick="window.open('https://docs.google.com/document/u/0/?tgif=d', '_blank')">📝 共編</button>`;
                     } else { 
                         intentText = `<span style="color:red;">已轉至 ${c.finalDest}</span>`; 
@@ -899,16 +850,13 @@
     }
     function closeReplyModal() { document.getElementById('replyModal').style.display = 'none'; currentReplyCaseId = null; }
     
-    // ★ 回覆量能與 GAS 串接 ★
     function submitReply(statusStr) {
         if (!currentReplyCaseId) return;
         let t = formatDateTime();
         cases[currentReplyCaseId].hospStatus[loggedInHosp] = `回覆結果: ${statusStr}`;
         cases[currentReplyCaseId].hospReplyTime[loggedInHosp] = t; 
         
-        if (GAS_URL) {
-            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "updateHospitalResponse", payload: { caseId: currentReplyCaseId, hospitalName: loggedInHosp, response: `回覆結果: ${statusStr}`, replyTime: t } }) });
-        }
+        fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "updateHospitalResponse", payload: { caseId: currentReplyCaseId, hospitalName: loggedInHosp, response: `回覆結果: ${statusStr}`, replyTime: t } }) });
         
         closeReplyModal(); renderHospitalCases(); if (currentTrackCaseId === currentReplyCaseId) renderTrackerDashboard();
     }
@@ -923,14 +871,11 @@
         cases[currentReplyCaseId].hospPendingReason[loggedInHosp] = reason;
         cases[currentReplyCaseId].hospReplyTime[loggedInHosp] = t; 
         
-        if (GAS_URL) {
-            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "updateHospitalResponse", payload: { caseId: currentReplyCaseId, hospitalName: loggedInHosp, response: `待確認`, pendingReason: reason, replyTime: t } }) });
-        }
+        fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "updateHospitalResponse", payload: { caseId: currentReplyCaseId, hospitalName: loggedInHosp, response: `待確認`, pendingReason: reason, replyTime: t } }) });
         
         closeReplyModal(); renderHospitalCases(); if (currentTrackCaseId === currentReplyCaseId) renderTrackerDashboard();
     }
 
-    // 檢視全病史與影像 Modal
     function openViewCaseModal(caseId) {
         const c = cases[caseId]; 
         if (!c || !c.clinicalData) return alert("查無此個案或臨床資料");
