@@ -388,10 +388,11 @@
 
 <script>
     // ==========================================
-    // 資料庫與初始化
+    // ⚙️ 資料庫與全域變數初始化
     // ==========================================
     let GAS_URL = "";
 
+    // 單機版預設假資料 (當沒有填寫 GAS URL 時備用)
     let hospitals = [
         { name: "新竹台大", status: "green", statusText: "可取栓", erPhone: "03-5326151", docName: "-", docPhone: "-", docEmail: "", lineGroup: "#", loginPwd: "admin", addressBook: {} }, 
         { name: "東元醫院", status: "orange", statusText: "滿床", erPhone: "03-5527000", docName: "-", docPhone: "-", docEmail: "", lineGroup: "#", loginPwd: "admin", addressBook: {} },
@@ -410,9 +411,7 @@
         "林口長庚": { m: "林醫師", a: "林醫師", n: "林醫師", phone: "0988-777666", email: "lin@cgmh", line: "#" }
     };
 
-    hospitals.forEach(h => {
-        for(let i=1; i<=5; i++) { h.addressBook[i] = { name: "", email: "", phone: "" }; }
-    });
+    hospitals.forEach(h => { for(let i=1; i<=5; i++) { h.addressBook[i] = { name: "", email: "", phone: "" }; } });
 
     let cases = {}; 
     let currentTrackCaseId = null;
@@ -436,7 +435,6 @@
     }
 
     window.onload = function() {
-        // 讀取儲存的 GAS URL
         GAS_URL = localStorage.getItem('GAS_URL') || "";
         document.getElementById('gas_url_input').value = GAS_URL;
 
@@ -518,7 +516,7 @@
     }
 
     // ==========================================
-    // ★ 跨頁面載入臨床表單與影像 ★
+    // 跨頁面載入臨床表單與影像
     // ==========================================
     function loadClinicalFromLocal() {
         const savedStr = localStorage.getItem('stroke_transfer_clinical_data');
@@ -553,7 +551,7 @@
     }
 
     // ==========================================
-    // ★ Tab 3 專屬: 系統設定與通訊錄 ★
+    // 系統設定與後台
     // ==========================================
     function openHospSysSettingsModal() {
         if (!loggedInHosp) return;
@@ -580,11 +578,19 @@
     function saveAddressBookDr() {
         const hosp = hospitals.find(h => h.name === loggedInHosp);
         const idx = document.getElementById('addr_dr_selector').value;
-        hosp.addressBook[idx] = {
-            name: document.getElementById('addr_dr_name').value,
-            email: document.getElementById('addr_dr_email').value,
-            phone: document.getElementById('addr_dr_phone').value
-        };
+        hosp.addressBook[idx] = { name: document.getElementById('addr_dr_name').value, email: document.getElementById('addr_dr_email').value, phone: document.getElementById('addr_dr_phone').value };
+        
+        // --- 呼叫 GAS API 儲存通訊錄 ---
+        if (GAS_URL) {
+            fetch(GAS_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: "updateAddressBook",
+                    payload: { hospName: loggedInHosp, drIndex: idx, name: hosp.addressBook[idx].name, email: hosp.addressBook[idx].email, phone: hosp.addressBook[idx].phone }
+                })
+            }).catch(e => console.log("GAS 錯誤", e));
+        }
+
         alert(`✅ Dr ${idx} 通訊錄已更新`);
     }
 
@@ -592,16 +598,25 @@
         const hosp = hospitals.find(h => h.name === loggedInHosp);
         hosp.erPhone = document.getElementById('sys_set_er_phone').value; 
         hosp.lineGroup = document.getElementById('sys_set_line').value;
-        
         let forceDr = document.getElementById('sys_set_today_dr').value;
-        if(forceDr) hosp.docName = forceDr; // 強制覆寫
-
+        if(forceDr) hosp.docName = forceDr; 
         const newPwd = document.getElementById('sys_set_pwd').value; 
         if (newPwd.trim() !== "") { hosp.loginPwd = newPwd; alert("密碼已更新！"); }
+
+        // --- 呼叫 GAS API 儲存系統設定 ---
+        if (GAS_URL) {
+            fetch(GAS_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: "updateSysSettings",
+                    payload: { hospName: loggedInHosp, erPhone: hosp.erPhone, lineGroup: hosp.lineGroup, pwd: newPwd }
+                })
+            }).catch(e => console.log("GAS 錯誤", e));
+        }
+
         alert("✅ 基本設定已儲存並同步至看板！"); closeHospSysSettingsModal(); renderHospitalBoard();
     }
 
-    // Modal 控制 (上傳班表、看板燈號)
     function openHospRosterModal() { document.getElementById('hospRosterModal').style.display = 'flex'; }
     function closeHospRosterModal() { document.getElementById('hospRosterModal').style.display = 'none'; }
 
@@ -615,47 +630,89 @@
     function closeHospSettingsModal() { document.getElementById('hospSettingsModal').style.display = 'none'; }
     function saveHospSettings() {
         const hospName = document.getElementById('set_hosp_name').value; const hosp = hospitals.find(h => h.name === hospName);
-        if (document.getElementById('set_hosp_pwd').value !== hosp.loginPwd) return alert(`❌ 密碼錯誤！(測試預設為 ${hosp.loginPwd})`);
+        if (document.getElementById('set_hosp_pwd').value !== hosp.loginPwd) return alert(`❌ 密碼錯誤！`);
         hosp.status = editingHospStatus;
         if (editingHospStatus === 'green') hosp.statusText = "可取栓"; else if (editingHospStatus === 'orange') hosp.statusText = "滿床"; else hosp.statusText = "無人力";
         alert(`✅ ${hospName} 燈號已更新！`); closeHospSettingsModal(); renderHospitalBoard(); 
     }
 
     // ==========================================
-    // 提出需求、追蹤與醫院端邏輯
+    // ★ 建立個案與 GAS 串接核心 ★
     // ==========================================
     function submitCase() {
         const phone = document.getElementById('req_doc_phone').value;
+        const email = document.getElementById('req_doc_email').value;
+        const hospOut = document.getElementById('req_hosp_out').value;
         let targets = []; document.querySelectorAll('.target-hosp-cb:checked').forEach(cb => targets.push(cb.value));
+        
         if (targets.length === 0) return alert("請勾選醫院！");
         if (Object.keys(pendingClinicalData).length === 0) return alert("請先開啟臨床表單填寫並讀取暫存！");
 
+        // 產生防撞號的 CaseID
         const caseId = `${new Date().toISOString().slice(0,10).replace(/-/g,"")}-${String(Math.floor(Math.random()*999)+1).padStart(3,'0')}`;
+        const reqTime = formatDateTime();
+
         let hospStatusObj = {}; let hospReplyObj = {}; let emailNotifyList = [];
         targets.forEach(hName => {
             hospStatusObj[hName] = "尚未讀取個案"; hospReplyObj[hName] = null;
             let hospData = hospitals.find(h => h.name === hName);
             if(hospData && hospData.docEmail && hospData.docEmail !== "-") emailNotifyList.push(`${hName} ${hospData.docName}醫師 (${hospData.docEmail})`);
         });
-        
-        const reqTime = formatDateTime();
-        cases[caseId] = { 
-            reqHospOut: document.getElementById('req_hosp_out').value,
-            phone: phone, targets: targets, hospStatus: hospStatusObj, hospReplyTime: hospReplyObj, hospPendingReason: {},
-            finalDest: null, location: null, departTime: null, arriveTime: null, timestamp: Date.now(),
-            clinicalData: JSON.parse(JSON.stringify(pendingClinicalData)),
-            requestTime: reqTime, cancelTime: null, reRequestTime: null, lockTime: null 
+
+        // 準備要送往後端的 Payload
+        const payloadData = {
+            action: "createCase",
+            payload: {
+                caseId: caseId,
+                requestTime: reqTime,
+                reqHospOut: hospOut,
+                reqPhone: phone,
+                reqEmail: email,
+                targetHospitals: targets,
+                clinicalData: pendingClinicalData
+            }
         };
 
+        // --- 若有設定 GAS_URL，則發送至 Google Sheet ---
+        if (GAS_URL) {
+            document.getElementById('submit_result_area').style.display = 'block';
+            document.getElementById('submit_result_area').innerHTML = `⏳ <strong>正在將資料與影像上傳至雲端，請稍候... (請勿關閉網頁)</strong>`;
+            
+            fetch(GAS_URL, {
+                method: 'POST',
+                body: JSON.stringify(payloadData)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.status === "success") {
+                    document.getElementById('submit_result_area').innerHTML = `✅ <strong>雲端上傳成功！個案代碼： <span id="case_id_display" style="font-size: 1.3em; color: #0056b3;">${caseId}</span></strong><br><span style="font-size: 0.9em; color: #155724;">(影像已建立專屬 Drive 資料夾)</span>`;
+                } else {
+                    document.getElementById('submit_result_area').innerHTML = `❌ <strong>上傳發生錯誤：</strong> ${data.error}`;
+                }
+            })
+            .catch(e => {
+                document.getElementById('submit_result_area').innerHTML = `❌ <strong>網路連線錯誤，請檢查 GAS 網址是否正確。</strong>`;
+            });
+        } else {
+            // 單機版模擬成功畫面
+            document.getElementById('submit_result_area').style.display = 'block';
+            document.getElementById('submit_result_area').innerHTML = `✅ <strong>單機模擬發送成功！個案代碼： <span id="case_id_display" style="font-size: 1.3em; color: #0056b3;">${caseId}</span></strong><br><span style="font-size: 0.9em; color: #856404;">⚠️ 注意：目前尚未填寫 GAS 網址，資料僅存於本機記憶體。</span>`;
+        }
+
+        // 寫入本機狀態供追蹤頁面使用
+        cases[caseId] = { 
+            reqHospOut: hospOut, phone: phone, targets: targets, hospStatus: hospStatusObj, hospReplyTime: hospReplyObj, hospPendingReason: {},
+            finalDest: null, location: null, departTime: null, arriveTime: null, timestamp: Date.now(),
+            clinicalData: JSON.parse(JSON.stringify(pendingClinicalData)), requestTime: reqTime, cancelTime: null, reRequestTime: null, lockTime: null 
+        };
+
+        // 清空暫存
         pendingClinicalData = {}; 
-        document.getElementById('case_id_display').innerHTML = `${caseId} <span style="font-size: 0.7em; color: #666; font-weight: normal;">(提出: ${reqTime})</span>`;
-        document.getElementById('notify_list_display').innerHTML = emailNotifyList.length > 0 ? `📧 已寄發通知：<br>${emailNotifyList.join('<br>')}` : `⚠️ 所選醫院無 Email`;
-        document.getElementById('submit_result_area').style.display = 'block'; document.getElementById('track_case_id').value = caseId; 
+        localStorage.removeItem('stroke_transfer_clinical_data'); // 清空 LocalStorage
         
-        // 重置表單狀態卡
+        document.getElementById('track_case_id').value = caseId; 
         const card = document.getElementById('form_status_card'); const title = document.getElementById('form_status_title');
         card.classList.remove('filled'); title.innerText = "尚未讀取臨床資訊與影像"; title.style.color = "#6c757d";
-
         renderQuickUpdateBoard(); 
     }
 
@@ -680,8 +737,16 @@
         if (!hasActiveCases) board.innerHTML = `<span style="color: #888; padding: 10px;">目前近4小時無進行中個案。</span>`;
     }
 
+    // 追蹤更新與定位 (GAS API 支援)
     function markTime(caseId, type) {
-        if(confirm(type === 'depart' ? "標記【已出發】？" : "標記【已抵達】？")) { cases[caseId][type === 'depart' ? 'departTime' : 'arriveTime'] = formatDateTime(); renderQuickUpdateBoard(); if(currentTrackCaseId === caseId) renderTrackerDashboard(); if(loggedInHosp) renderHospitalCases(); }
+        if(confirm(type === 'depart' ? "標記【已出發】？" : "標記【已抵達】？")) { 
+            let t = formatDateTime(); cases[caseId][type === 'depart' ? 'departTime' : 'arriveTime'] = t; 
+            
+            if (GAS_URL) {
+                fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "updateCaseTracking", payload: { caseId: caseId, actionType: type, value1: t } }) });
+            }
+            renderQuickUpdateBoard(); if(currentTrackCaseId === caseId) renderTrackerDashboard(); if(loggedInHosp) renderHospitalCases(); 
+        }
     }
     function undoTime(caseId, type) {
         if(confirm("確定取消標記嗎？")) { if(type === 'depart') cases[caseId].departTime = null; else cases[caseId].arriveTime = null; renderQuickUpdateBoard(); if(currentTrackCaseId === caseId) renderTrackerDashboard(); if(loggedInHosp) renderHospitalCases(); }
@@ -689,7 +754,16 @@
     function quickUpdateLocation(caseId) {
         if (!navigator.geolocation) return alert("不支援定位！");
         navigator.geolocation.getCurrentPosition(
-            (pos) => { cases[caseId].location = { lat: pos.coords.latitude, lng: pos.coords.longitude, time: formatDateTime() }; alert("✅ GPS 已更新"); renderQuickUpdateBoard(); if(currentTrackCaseId === caseId) renderTrackerDashboard(); if(loggedInHosp) renderHospitalCases(); },
+            (pos) => { 
+                let t = formatDateTime();
+                let locStr = `Lat:${pos.coords.latitude}, Lng:${pos.coords.longitude}`;
+                cases[caseId].location = { lat: pos.coords.latitude, lng: pos.coords.longitude, time: t }; 
+                
+                if (GAS_URL) {
+                    fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "updateCaseTracking", payload: { caseId: caseId, actionType: "gps", value1: locStr, value2: t } }) });
+                }
+                alert("✅ GPS 已更新"); renderQuickUpdateBoard(); if(currentTrackCaseId === caseId) renderTrackerDashboard(); if(loggedInHosp) renderHospitalCases(); 
+            },
             (err) => alert("❌ 定位失敗"), { enableHighAccuracy: true, timeout: 10000 }
         );
     }
@@ -737,16 +811,25 @@
 
     function selectFinalDest(hospName) { 
         if(confirm(`確定轉至 ${hospName}？`)) { 
-            cases[currentTrackCaseId].finalDest = hospName; cases[currentTrackCaseId].lockTime = formatDateTime(); 
-            if (cases[currentTrackCaseId].cancelTime) cases[currentTrackCaseId].reRequestTime = formatDateTime();
+            let t = formatDateTime();
+            cases[currentTrackCaseId].finalDest = hospName; cases[currentTrackCaseId].lockTime = t; 
+            
+            if (GAS_URL) {
+                fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "updateCaseTracking", payload: { caseId: currentTrackCaseId, actionType: "lock", value1: hospName, value2: t } }) });
+            }
             renderTrackerDashboard(); renderQuickUpdateBoard(); if(loggedInHosp) renderHospitalCases(); 
         } 
     }
     
     function cancelFinalDest() { 
         if(confirm(`取消轉入 ${cases[currentTrackCaseId].finalDest}？`)) { 
+            let t = formatDateTime();
             cases[currentTrackCaseId].finalDest = null; cases[currentTrackCaseId].location = null; cases[currentTrackCaseId].departTime = null; cases[currentTrackCaseId].arriveTime = null; cases[currentTrackCaseId].lockTime = null; 
-            cases[currentTrackCaseId].cancelTime = formatDateTime();
+            cases[currentTrackCaseId].cancelTime = t;
+            
+            if (GAS_URL) {
+                fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "updateCaseTracking", payload: { caseId: currentTrackCaseId, actionType: "cancel", value1: t } }) });
+            }
             renderTrackerDashboard(); renderQuickUpdateBoard(); if(loggedInHosp) renderHospitalCases(); 
         } 
     }
@@ -756,7 +839,7 @@
         if (document.getElementById('login_hosp_pwd').value === hosp.loginPwd) {
             loggedInHosp = hospName; document.getElementById('hosp_login_area').style.display = 'none'; document.getElementById('hosp_dashboard').style.display = 'block';
             document.getElementById('disp_login_hosp').innerText = loggedInHosp; renderHospitalCases();
-        } else { alert(`❌ 密碼錯誤！(測試預設為 ${hosp.loginPwd})`); }
+        } else { alert(`❌ 密碼錯誤！`); }
     }
     function logoutHospital() { loggedInHosp = null; document.getElementById('hosp_login_area').style.display = 'flex'; document.getElementById('hosp_dashboard').style.display = 'none'; }
 
@@ -799,30 +882,38 @@
     }
     function closeReplyModal() { document.getElementById('replyModal').style.display = 'none'; currentReplyCaseId = null; }
     
+    // ★ 回覆量能與 GAS 串接 ★
     function submitReply(statusStr) {
         if (!currentReplyCaseId) return;
+        let t = formatDateTime();
         cases[currentReplyCaseId].hospStatus[loggedInHosp] = `回覆結果: ${statusStr}`;
-        cases[currentReplyCaseId].hospReplyTime[loggedInHosp] = formatDateTime(); 
+        cases[currentReplyCaseId].hospReplyTime[loggedInHosp] = t; 
+        
+        if (GAS_URL) {
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "updateHospitalResponse", payload: { caseId: currentReplyCaseId, hospitalName: loggedInHosp, response: `回覆結果: ${statusStr}`, replyTime: t } }) });
+        }
+        
         closeReplyModal(); renderHospitalCases(); if (currentTrackCaseId === currentReplyCaseId) renderTrackerDashboard();
     }
 
-    function openPendingReplyBox() {
-        document.getElementById('pending_reply_box').style.display = 'block';
-    }
+    function openPendingReplyBox() { document.getElementById('pending_reply_box').style.display = 'block'; }
 
     function submitPendingReply() {
         const reason = document.getElementById('pending_reason_input').value;
         if(!reason) return alert("請輸入待確認原因！");
-        
+        let t = formatDateTime();
         cases[currentReplyCaseId].hospStatus[loggedInHosp] = "待確認";
         cases[currentReplyCaseId].hospPendingReason[loggedInHosp] = reason;
-        cases[currentReplyCaseId].hospReplyTime[loggedInHosp] = formatDateTime(); 
+        cases[currentReplyCaseId].hospReplyTime[loggedInHosp] = t; 
+        
+        if (GAS_URL) {
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "updateHospitalResponse", payload: { caseId: currentReplyCaseId, hospitalName: loggedInHosp, response: `待確認`, pendingReason: reason, replyTime: t } }) });
+        }
+        
         closeReplyModal(); renderHospitalCases(); if (currentTrackCaseId === currentReplyCaseId) renderTrackerDashboard();
     }
 
-    // ==========================================
-    // 檢視全病史與影像 Modal (唯讀完整版)
-    // ==========================================
+    // 檢視全病史與影像 Modal
     function openViewCaseModal(caseId) {
         const c = cases[caseId]; 
         if (!c || !c.clinicalData) return alert("查無此個案或臨床資料");
@@ -853,29 +944,14 @@
         const imgContainer = document.getElementById('vc_images_container'); imgContainer.innerHTML = "";
         if (d.images && d.images.length > 0) {
             d.images.forEach(img => {
-                if (img.type.startsWith('image/')) imgContainer.innerHTML += `<img src="${img.data}" class="img-preview">`;
-                else if (img.type.startsWith('video/')) imgContainer.innerHTML += `<video src="${img.data}" controls class="img-preview"></video><a href="${img.data}" download="${img.name}">💾 下載影片</a>`;
+                if (img.type && img.type.startsWith('image/')) imgContainer.innerHTML += `<img src="${img.data}" class="img-preview">`;
+                else if (img.type && img.type.startsWith('video/')) imgContainer.innerHTML += `<video src="${img.data}" controls class="img-preview"></video><a href="${img.data}" download="${img.name}">💾 下載影片</a>`;
             });
         } else { imgContainer.innerHTML = "<span style='color:#999;'>未提供影像</span>"; }
 
         document.getElementById('viewCaseModal').style.display = 'flex';
     }
     function closeViewCaseModal() { document.getElementById('viewCaseModal').style.display = 'none'; }
-
-    // 開啟現有個案的臨床表單 (Tab 2 專用)
-    function editExistingClinical() {
-        if(!currentTrackCaseId || !cases[currentTrackCaseId]) return alert("請先登入個案！");
-        
-        // 抓出現有個案的臨床資料，並把 CaseID 塞進去
-        let currentData = cases[currentTrackCaseId].clinicalData || {};
-        currentData.caseId = currentTrackCaseId; 
-        
-        // 寫入暫存區，然後開啟表單
-        localStorage.setItem('stroke_transfer_clinical_data', JSON.stringify(currentData));
-        window.open('clinical.html', '_blank');
-    }
-
-    
 </script>
 </body>
 </html>
