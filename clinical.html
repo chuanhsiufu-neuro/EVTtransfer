@@ -63,7 +63,7 @@
 
 <div class="form-container">
     <h2>
-        📝 臨床資訊與影像表單
+        <div>📝 臨床資訊與影像表單 <span id="display_case_id" style="font-size: 0.6em; color: #dc3545;">(新個案草稿)</span></div>
         <button class="btn-main" style="background-color: #6c757d; font-size: 0.8em;" onclick="window.close()">取消關閉</button>
     </h2>
 
@@ -425,6 +425,11 @@
         if(savedStr) {
             try {
                 const d = JSON.parse(savedStr);
+                // 判斷是否有傳入 caseId
+                if (d.caseId) {
+                document.getElementById('display_case_id').innerText = ` (正在編輯個案: ${d.caseId})`;
+                document.getElementById('display_case_id').style.color = "#28a745";
+                }
                 document.getElementById('age').value = d.age || "";
                 document.getElementById('gender').value = d.gender || "男";
                 document.getElementById('mrs').value = d.mrs || "0";
