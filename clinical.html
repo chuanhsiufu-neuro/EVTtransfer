@@ -89,14 +89,12 @@
     </div>
 
     <div class="sub-title">2. 臨床表現與評估</div>
-    <!-- 修改排版：臨床病程獨立一列 -->
     <div class="req-row">
         <div class="req-group" style="flex: 1;">
             <label>臨床病程 (Clinical course) <button class="btn-warning" type="button" onclick="openSymptomsModal()">📋 快速帶入症狀</button></label>
             <textarea id="symptoms" rows="4" placeholder="例如: 右側無力 (MP: 2/5)..."></textarea>
         </div>
     </div>
-    <!-- 修改排版：阻塞位置與 NIHSS 下一列 -->
     <div class="req-row">
         <div class="req-group" style="flex: 1;">
             <label>
@@ -131,7 +129,6 @@
         <div class="req-group" style="flex: 1.2;"><label>其他檢驗 (INR, EKG...)</label><input type="text" id="lab_other" placeholder="選填"></div>
     </div>
     
-    <!-- tPA 處置區塊改版 -->
     <div class="req-group" style="margin-bottom: 15px;">
         <label>處置: tPA</label>
         <div style="display: flex; gap: 20px; align-items: center; padding: 10px; border: 1px solid #ccc; border-radius: 6px;">
@@ -139,7 +136,6 @@
             <label class="cb-label"><input type="radio" name="tpa_status" value="未施打" onchange="toggleRtpa()"> 未施打</label>
         </div>
         
-        <!-- 有施打動態區塊 -->
         <div id="tpa_yes_wrap" class="req-row tpa-dynamic-box tpa-yes" style="display: none; align-items: flex-end; margin-bottom: 0;">
             <div class="req-group" style="flex: 0.8;">
                 <label style="font-size: 0.85em;">劑量</label>
@@ -158,7 +154,6 @@
             </div>
         </div>
 
-        <!-- 未施打動態區塊 -->
         <div id="tpa_no_wrap" class="req-row tpa-dynamic-box tpa-no" style="display: none; margin-bottom: 0;">
             <div class="req-group" style="flex: 1;">
                 <label style="font-size: 0.85em;">備註 (未打原因)</label>
@@ -187,9 +182,7 @@
 
 </div>
 
-<!-- ========================================== -->
 <!-- 症狀選擇 Modal -->
-<!-- ========================================== -->
 <div id="symptom-modal" class="modal" onclick="if(event.target===this) closeSymptomsModal()">
     <div class="modal-content">
         <span class="close-btn" onclick="closeSymptomsModal()">&times;</span>
@@ -209,9 +202,7 @@
     </div>
 </div>
 
-<!-- ========================================== -->
 <!-- 血管阻塞位置選擇 Modal -->
-<!-- ========================================== -->
 <div id="occlusion-modal" class="modal" onclick="if(event.target===this) closeOcclusionModal()">
     <div class="modal-content">
         <span class="close-btn" onclick="closeOcclusionModal()">&times;</span>
@@ -224,48 +215,13 @@
             <strong style="color: #28a745;">Bil (雙側)</strong>
         </div>
 
-        <div class="occ-row">
-            <span class="occ-name">MCA M1</span>
-            <input type="checkbox" name="occ_vessel" value="R't MCA M1">
-            <input type="checkbox" name="occ_vessel" value="L't MCA M1">
-            <input type="checkbox" name="occ_vessel" value="Bil MCA M1">
-        </div>
-        <div class="occ-row">
-            <span class="occ-name">MCA M2</span>
-            <input type="checkbox" name="occ_vessel" value="R't MCA M2">
-            <input type="checkbox" name="occ_vessel" value="L't MCA M2">
-            <input type="checkbox" name="occ_vessel" value="Bil MCA M2">
-        </div>
-        <div class="occ-row">
-            <span class="occ-name">ICA</span>
-            <input type="checkbox" name="occ_vessel" value="R't ICA">
-            <input type="checkbox" name="occ_vessel" value="L't ICA">
-            <input type="checkbox" name="occ_vessel" value="Bil ICA">
-        </div>
-        <div class="occ-row">
-            <span class="occ-name">ACA</span>
-            <input type="checkbox" name="occ_vessel" value="R't ACA">
-            <input type="checkbox" name="occ_vessel" value="L't ACA">
-            <input type="checkbox" name="occ_vessel" value="Bil ACA">
-        </div>
-        <div class="occ-row">
-            <span class="occ-name">VA</span>
-            <input type="checkbox" name="occ_vessel" value="R't VA">
-            <input type="checkbox" name="occ_vessel" value="L't VA">
-            <input type="checkbox" name="occ_vessel" value="Bil VA">
-        </div>
-        <div class="occ-row">
-            <span class="occ-name">BA</span>
-            <input type="checkbox" name="occ_vessel" value="R't BA">
-            <input type="checkbox" name="occ_vessel" value="L't BA">
-            <input type="checkbox" name="occ_vessel" value="Bil BA">
-        </div>
-        <div class="occ-row" style="border-bottom: none;">
-            <span class="occ-name">PCA</span>
-            <input type="checkbox" name="occ_vessel" value="R't PCA">
-            <input type="checkbox" name="occ_vessel" value="L't PCA">
-            <input type="checkbox" name="occ_vessel" value="Bil PCA">
-        </div>
+        <div class="occ-row"><span class="occ-name">MCA M1</span><input type="checkbox" name="occ_vessel" value="R't MCA M1"><input type="checkbox" name="occ_vessel" value="L't MCA M1"><input type="checkbox" name="occ_vessel" value="Bil MCA M1"></div>
+        <div class="occ-row"><span class="occ-name">MCA M2</span><input type="checkbox" name="occ_vessel" value="R't MCA M2"><input type="checkbox" name="occ_vessel" value="L't MCA M2"><input type="checkbox" name="occ_vessel" value="Bil MCA M2"></div>
+        <div class="occ-row"><span class="occ-name">ICA</span><input type="checkbox" name="occ_vessel" value="R't ICA"><input type="checkbox" name="occ_vessel" value="L't ICA"><input type="checkbox" name="occ_vessel" value="Bil ICA"></div>
+        <div class="occ-row"><span class="occ-name">ACA</span><input type="checkbox" name="occ_vessel" value="R't ACA"><input type="checkbox" name="occ_vessel" value="L't ACA"><input type="checkbox" name="occ_vessel" value="Bil ACA"></div>
+        <div class="occ-row"><span class="occ-name">VA</span><input type="checkbox" name="occ_vessel" value="R't VA"><input type="checkbox" name="occ_vessel" value="L't VA"><input type="checkbox" name="occ_vessel" value="Bil VA"></div>
+        <div class="occ-row"><span class="occ-name">BA</span><input type="checkbox" name="occ_vessel" value="R't BA"><input type="checkbox" name="occ_vessel" value="L't BA"><input type="checkbox" name="occ_vessel" value="Bil BA"></div>
+        <div class="occ-row" style="border-bottom: none;"><span class="occ-name">PCA</span><input type="checkbox" name="occ_vessel" value="R't PCA"><input type="checkbox" name="occ_vessel" value="L't PCA"><input type="checkbox" name="occ_vessel" value="Bil PCA"></div>
 
         <div style="margin-top:20px; display:flex; gap:10px; justify-content:flex-end;">
             <button class="btn-main" style="background:#7f8c8d;" type="button" onclick="closeOcclusionModal()">取消</button>
@@ -275,22 +231,17 @@
 </div>
 
 <script>
-    // 儲存目前正在編輯的 caseId (如果是從 Tab 2 開啟的話)
     let currentEditingCaseId = null;
 
-    // 預設時間設定
     window.onload = function() {
         const nowIso = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16);
         document.getElementById('onset').value = nowIso;
         document.getElementById('door').value = nowIso;
         
         document.getElementById('fileInput').addEventListener('change', handleFileSelect);
-
-        // 如果 LocalStorage 內已經有暫存資料，自動帶入 (方便編輯)
         loadFromLocal();
     };
 
-    // --- 邏輯：NIHSS 自動計算 ---
     function calcNIHSS() {
         const val = document.getElementById('nihss').value; 
         let sum = 0, hasX = false;
@@ -301,14 +252,12 @@
         document.getElementById('nihss_display').innerText = val.trim() === "" ? "" : `(${hasX ? sum+'+X' : sum}分)`;
     }
 
-    // --- 邏輯：tPA 欄位切換 ---
     function toggleRtpa() {
         const status = document.querySelector('input[name="tpa_status"]:checked')?.value;
         document.getElementById('tpa_yes_wrap').style.display = (status === '有施打') ? 'flex' : 'none';
         document.getElementById('tpa_no_wrap').style.display = (status === '未施打') ? 'flex' : 'none';
     }
 
-    // --- 邏輯：症狀 Modal ---
     function openSymptomsModal() { document.getElementById('symptom-modal').style.display = 'flex'; }
     function closeSymptomsModal() { document.getElementById('symptom-modal').style.display = 'none'; }
     function applySymptoms() {
@@ -330,7 +279,6 @@
         closeSymptomsModal();
     }
 
-    // --- 邏輯：血管阻塞位置 Modal ---
     function openOcclusionModal() { document.getElementById('occlusion-modal').style.display = 'flex'; }
     function closeOcclusionModal() { document.getElementById('occlusion-modal').style.display = 'none'; }
     function applyOcclusion() {
@@ -344,19 +292,13 @@
         closeOcclusionModal();
     }
 
-    // --- 邏輯：影像檔案上傳 (轉 Base64) ---
     let pendingFiles = [];
     function handleFileSelect(event) {
         const files = Array.from(event.target.files);
         files.forEach(file => {
             const reader = new FileReader();
             reader.onload = (e) => {
-                pendingFiles.push({ 
-                    name: file.name, 
-                    type: file.type, 
-                    size: file.size, 
-                    data: e.target.result 
-                });
+                pendingFiles.push({ name: file.name, type: file.type, size: file.size, data: e.target.result });
                 renderFilePreview();
             };
             reader.readAsDataURL(file);
@@ -382,7 +324,6 @@
         renderFilePreview();
     }
 
-    // --- 邏輯：儲存至 LocalStorage 並關閉 ---
     function saveToLocal() {
         let pmhArr = [];
         document.querySelectorAll('.pmh-cb:checked').forEach(cb => pmhArr.push(cb.value));
@@ -390,7 +331,7 @@
         const tpaStatus = document.querySelector('input[name="tpa_status"]:checked')?.value || "";
 
         const data = {
-            caseId: currentEditingCaseId, // 🌟 確保存檔時把 caseId 一併存回去
+            caseId: currentEditingCaseId, 
             age: document.getElementById('age').value,
             gender: document.getElementById('gender').value,
             mrs: document.getElementById('mrs').value,
@@ -416,28 +357,36 @@
             images: pendingFiles
         };
 
-        // 寫入瀏覽器本地儲存空間
         localStorage.setItem('stroke_transfer_clinical_data', JSON.stringify(data));
         
-        alert("✅ 表單已暫存成功！\n本頁面即將關閉，請回到主畫面繼續發送或同步流程。");
-        window.close();
+        alert("✅ 表單已暫存成功！");
+        
+        try {
+            window.close();
+        } catch (e) {
+            console.log("無法自動關閉");
+        }
+
+        setTimeout(() => {
+            if (!window.closed) {
+                alert("💡 提示：請手動關閉此分頁，回到主畫面讀取暫存資料即可！");
+            }
+        }, 500);
     }
 
-    // --- 邏輯：如果已有暫存資料，自動載入 ---
     function loadFromLocal() {
         const savedStr = localStorage.getItem('stroke_transfer_clinical_data');
         if(savedStr) {
             try {
                 const d = JSON.parse(savedStr);
                 
-                // 🌟 判斷是否有傳入 caseId，如果有就存進全域變數並顯示
                 if (d.caseId) {
                     currentEditingCaseId = d.caseId;
                     document.getElementById('display_case_id').innerText = ` (正在編輯個案: ${d.caseId})`;
                     document.getElementById('display_case_id').style.color = "#28a745";
                 }
 
-                document.getElementById('age').value = d.age || "";// --- 邏輯：如果已有暫存資料，自動載入 ---
+                document.getElementById('age').value = d.age || "";
                 document.getElementById('gender').value = d.gender || "男";
                 document.getElementById('mrs').value = d.mrs || "0";
                 document.getElementById('onset').value = d.onset || "";
@@ -473,7 +422,8 @@
                 }
 
                 calcNIHSS();
-                toggleRtpa();
+                rtpaStatus = document.querySelector('input[name="tpa_status"]:checked')?.value;
+                if(rtpaStatus) toggleRtpa();
             } catch (e) {
                 console.error("載入失敗", e);
             }
