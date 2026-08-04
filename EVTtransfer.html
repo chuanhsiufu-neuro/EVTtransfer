@@ -757,12 +757,14 @@
         const container = document.getElementById('track_list_container'); const chatArea = document.getElementById('track_chat_area');
         container.innerHTML = ""; chatArea.innerHTML = ""; chatArea.style.display = "none";
 
-        if (c.finalDest) {
+       if (c.finalDest) {
             chatArea.style.display = "flex"; chatArea.className = "chat-room-banner";
+            let docLink = c.docUrl ? c.docUrl : "https://docs.google.com/document/u/0/?tgif=d";
             chatArea.innerHTML = `
                 <div><strong style="color:#0056b3; font-size: 1.1em;">💬 已鎖定：${c.finalDest} (${c.lockTime})</strong></div>
                 <div style="display:flex; gap:10px;">
                     <button class="btn-success" onclick="quickUpdateLocation('${currentTrackCaseId}')">📍 更新 GPS</button>
+                    <button class="btn-main" style="background:#17a2b8;" onclick="window.open('${docLink}', '_blank')">📝 即時文字溝通 (Google Doc)</button>
                     <button class="btn-danger" onclick="cancelFinalDest()">❌ 取消</button>
                 </div>`;
         }
@@ -789,11 +791,31 @@
     function selectFinalDest(hospName) { 
         if(confirm(`確定轉至 ${hospName}？`)) { 
             let t = formatDateTime();
-            cases[currentTrackCaseId].finalDest = hospName; cases[currentTrackCaseId].lockTime = t; 
+            cases[currentTrackCaseId].finalDest = hospName; 
+            cases[currentTrackCaseId].lockTime = t; 
             
-            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "updateCaseTracking", payload: { caseId: currentTrackCaseId, actionType: "lock", value1: hospName, value2: t } }) });
+            if (GAS_URL) {
+                fetch(GAS_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ 
+                        action: "updateCaseTracking", 
+                        payload: { caseId: currentTrackCaseId, actionType: "lock", value1: hospName, value2: t } 
+                    }) 
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if(data.status === "success" && data.data.docUrl) {
+                        cases[currentTrackCaseId].docUrl = data.data.docUrl; // 儲存真實 Google Doc 網址
+                        renderTrackerDashboard();
+                        if(loggedInHosp) renderHospitalCases();
+                    }
+                })
+                .catch(e => console.log("取得共編文件失敗", e));
+            }
             
-            renderTrackerDashboard(); renderQuickUpdateBoard(); if(loggedInHosp) renderHospitalCases(); 
+            renderTrackerDashboard(); 
+            renderQuickUpdateBoard(); 
+            if(loggedInHosp) renderHospitalCases(); 
         } 
     }
     
@@ -831,7 +853,9 @@
                     if (c.finalDest === loggedInHosp) {
                         intentText = `<span style="color:green; font-weight:bold;">✅ 已轉入本院 (${c.lockTime})</span>`;
                         let mapBtn = c.location ? `<button class="btn-main" style="background:#28a745;" onclick="window.open('https://www.google.com/maps/search/?api=1&query=${c.location.lat},${c.location.lng}', '_blank')">🗺️ GPS地圖</button>` : `<span style="font-size:0.85em; color:#888;">(尚未回報GPS)</span>`;
-                        actionBtns = `${mapBtn} <button class="btn-main" style="background:#17a2b8;" onclick="window.open('https://docs.google.com/document/u/0/?tgif=d', '_blank')">📝 共編</button>`;
+                        
+                        let docLink = c.docUrl ? c.docUrl : "https://docs.google.com/document/u/0/?tgif=d";
+                        actionBtns = `${mapBtn} <button class="btn-main" style="background:#17a2b8;" onclick="window.open('${docLink}', '_blank')">📝 即時文字溝通 (Google Doc)</button>`;
                     } else { 
                         intentText = `<span style="color:red;">已轉至 ${c.finalDest}</span>`; 
                         actionBtns = ``; 
