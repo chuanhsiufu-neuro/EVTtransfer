@@ -222,7 +222,7 @@
 <!-- 彈出視窗群 (Modals)                        -->
 <!-- ========================================== -->
 
-<!-- ★ Tab 3 專屬: 系統設定與通訊錄 Modal ★ -->
+<!-- ★ Tab 3 專屬: 系統設定與通訊錄 Modal (已加入 Folder 欄位) ★ -->
 <div id="hospSysSettingsModal" class="modal">
     <div class="modal-content" style="max-width: 550px;">
         <span class="close-btn" onclick="closeHospSysSettingsModal()">&times;</span>
@@ -233,6 +233,11 @@
             <div class="req-row">
                 <div class="req-group"><label>急診電話/取栓專線</label><input type="text" id="sys_set_er_phone"></div>
                 <div class="req-group"><label>LINE 群組連結</label><input type="text" id="sys_set_line"></div>
+            </div>
+            <!-- 🌟 新增：Google Drive Folder ID 輸入框 -->
+            <div class="req-group" style="margin-bottom: 10px;">
+                <label>Google Drive 專屬資料夾 ID (Folder)</label>
+                <input type="text" id="sys_set_folder" placeholder="例如: 1mKrQfQWL_oIHu0YVyXycBTd8lZXG5GX2">
             </div>
             <div class="req-group" style="margin-bottom: 10px;"><label>登入密碼修改</label><input type="password" id="sys_set_pwd" placeholder="若不修改請留空 (預設 admin)"></div>
             <div class="req-row" style="align-items: flex-end; border-top: 1px dashed #ccc; padding-top: 10px;">
@@ -540,9 +545,10 @@
     function openHospSysSettingsModal() {
         if (!loggedInHosp) return;
         const hosp = hospitals.find(h => h.name === loggedInHosp);
-        document.getElementById('sys_set_er_phone').value = hosp.erPhone; 
-        document.getElementById('sys_set_line').value = hosp.lineGroup;
-        document.getElementById('sys_set_today_dr').value = hosp.docName;
+        document.getElementById('sys_set_er_phone').value = hosp.erPhone || ""; 
+        document.getElementById('sys_set_line').value = hosp.lineGroup || "";
+        document.getElementById('sys_set_folder').value = hosp.folderId || ""; // 🌟 帶入 Folder ID
+        document.getElementById('sys_set_today_dr').value = hosp.docName || "";
         document.getElementById('sys_set_pwd').value = ""; 
         document.getElementById('addr_dr_selector').value = "1";
         loadAddressBookDr();
@@ -579,6 +585,7 @@
         const hosp = hospitals.find(h => h.name === loggedInHosp);
         hosp.erPhone = document.getElementById('sys_set_er_phone').value; 
         hosp.lineGroup = document.getElementById('sys_set_line').value;
+        hosp.folderId = document.getElementById('sys_set_folder').value; // 🌟 儲存 Folder ID
         let forceDr = document.getElementById('sys_set_today_dr').value;
         if(forceDr) hosp.docName = forceDr; 
         const newPwd = document.getElementById('sys_set_pwd').value; 
@@ -588,11 +595,19 @@
             method: 'POST',
             body: JSON.stringify({
                 action: "updateSysSettings",
-                payload: { hospName: loggedInHosp, erPhone: hosp.erPhone, lineGroup: hosp.lineGroup, pwd: newPwd }
+                payload: { 
+                    hospName: loggedInHosp, 
+                    erPhone: hosp.erPhone, 
+                    lineGroup: hosp.lineGroup, 
+                    folderId: hosp.folderId, // 🌟 傳給 GAS 
+                    pwd: newPwd 
+                }
             })
         }).catch(e => console.log("GAS 錯誤", e));
 
-        alert("✅ 基本設定已儲存並同步至看板！"); closeHospSysSettingsModal(); renderHospitalBoard();
+        alert("✅ 基本設定與 Folder ID 已儲存並同步！"); 
+        closeHospSysSettingsModal(); 
+        renderHospitalBoard();
     }
 
     function openHospRosterModal() { document.getElementById('hospRosterModal').style.display = 'flex'; }
