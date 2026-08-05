@@ -585,9 +585,11 @@
         const hosp = hospitals.find(h => h.name === loggedInHosp);
         hosp.erPhone = document.getElementById('sys_set_er_phone').value; 
         hosp.lineGroup = document.getElementById('sys_set_line').value;
-        hosp.folderId = document.getElementById('sys_set_folder').value; // 🌟 儲存 Folder ID
+        hosp.folderId = document.getElementById('sys_set_folder').value; 
+        
         let forceDr = document.getElementById('sys_set_today_dr').value;
         if(forceDr) hosp.docName = forceDr; 
+        
         const newPwd = document.getElementById('sys_set_pwd').value; 
         if (newPwd.trim() !== "") { hosp.loginPwd = newPwd; alert("密碼已更新！"); }
 
@@ -599,15 +601,14 @@
                     hospName: loggedInHosp, 
                     erPhone: hosp.erPhone, 
                     lineGroup: hosp.lineGroup, 
-                    folderId: hosp.folderId, // 🌟 傳給 GAS 
-                    pwd: newPwd 
+                    folderId: hosp.folderId, 
+                    pwd: newPwd,
+                    overrideDr: forceDr  // 🌟 把覆寫醫師的名字傳回後端
                 }
             })
         }).catch(e => console.log("GAS 錯誤", e));
 
-        alert("✅ 基本設定與 Folder ID 已儲存並同步！"); 
-        closeHospSysSettingsModal(); 
-        renderHospitalBoard();
+        alert("✅ 基本設定已儲存並同步至看板！"); closeHospSysSettingsModal(); renderHospitalBoard();
     }
 
     function openHospRosterModal() { document.getElementById('hospRosterModal').style.display = 'flex'; }
@@ -782,8 +783,10 @@
             if (c.finalDest) { itemClass += (c.finalDest === hospName) ? " selected" : " disabled"; } 
             else if (statusClass === "ok") { actionHtml = `<button class="btn-success" onclick="selectFinalDest('${hospName}')">✅ 選擇此院</button>`; }
             
-            let statusTextHtml = `<span class="track-status ${statusClass}" ${statusClass==='pending' ? `onclick="alert('待確認原因: ${c.hospPendingReason[hospName]}')"` : ""}>${status}</span>`;
-
+            // ----- 請將原本這裡的 statusTextHtml 替換成下面這段 -----
+            let pendingReason = (statusClass === 'pending' && c.hospPendingReason[hospName]) ? ` (${c.hospPendingReason[hospName]})` : "";
+            let statusTextHtml = `<span class="track-status ${statusClass}">${status}${pendingReason}</span>`;
+            
             container.innerHTML += `<div class="${itemClass}"><div><span style="font-weight:bold; font-size:1.1em; color:#004085; display:inline-block; min-width:90px;">${hospName}</span>${statusTextHtml}${replyTimeStr}</div><div>${actionHtml}</div></div>`;
         });
     }
@@ -795,27 +798,27 @@
             cases[currentTrackCaseId].lockTime = t; 
             
             if (GAS_URL) {
+                // 在按鈕上顯示「建立中...」的提示
+                document.getElementById('track_chat_area').innerHTML = `<strong style="color:#fd7e14;">⏳ 正在為您與 ${hospName} 建立專屬 Google Doc，請稍候...</strong>`;
+                document.getElementById('track_chat_area').style.display = "block";
+
                 fetch(GAS_URL, { 
                     method: 'POST', 
-                    body: JSON.stringify({ 
-                        action: "updateCaseTracking", 
-                        payload: { caseId: currentTrackCaseId, actionType: "lock", value1: hospName, value2: t } 
-                    }) 
+                    body: JSON.stringify({ action: "updateCaseTracking", payload: { caseId: currentTrackCaseId, actionType: "lock", value1: hospName, value2: t } }) 
                 })
                 .then(res => res.json())
                 .then(data => {
-                    if(data.status === "success" && data.data.docUrl) {
-                        cases[currentTrackCaseId].docUrl = data.data.docUrl; // 儲存真實 Google Doc 網址
-                        renderTrackerDashboard();
-                        if(loggedInHosp) renderHospitalCases();
+                    // 🌟 成功收到後端建立好的專屬文件網址
+                    if(data.status === "success" && data.data && data.data.docUrl) {
+                        cases[currentTrackCaseId].docUrl = data.data.docUrl; 
+                        renderTrackerDashboard(); 
+                        if(loggedInHosp) renderHospitalCases(); 
                     }
                 })
                 .catch(e => console.log("取得共編文件失敗", e));
+            } else {
+                renderTrackerDashboard(); renderQuickUpdateBoard(); if(loggedInHosp) renderHospitalCases(); 
             }
-            
-            renderTrackerDashboard(); 
-            renderQuickUpdateBoard(); 
-            if(loggedInHosp) renderHospitalCases(); 
         } 
     }
     
