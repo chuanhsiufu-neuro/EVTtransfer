@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>中風區域聯防轉診平台 v29 (GAS網址寫死版)</title>
+    <title>中風區域聯防轉診平台 v30 (全雲端連動版)</title>
     <style>
         body { font-family: "Microsoft JhengHei", sans-serif; margin: 0; padding: 20px; background-color: #f0f2f5; color: #333; }
         .app-container { max-width: 1100px; margin: 0 auto; background: transparent; }
@@ -88,9 +88,11 @@
     
     <div class="section-header">
         <div>🏥 竹苗區可取栓醫院量能狀態即時看板</div>
-        <button class="btn-main" style="font-size: 0.8em; padding: 6px 12px; background: #6c757d;" onclick="simulateRosterFetch()">🔄 更新班表</button>
+        <button class="btn-main" style="font-size: 0.8em; padding: 6px 12px; background: #6c757d;" onclick="fetchDataFromGAS()">🔄 雲端更新</button>
     </div>
-    <div class="status-board" id="hospital_status_board"></div>
+    <div class="status-board" id="hospital_status_board">
+        <h3 style="color: #666; text-align: center; width: 100%;">⏳ 正在從雲端載入各醫院即時量能，請稍候...</h3>
+    </div>
 
     <div class="section-header" style="border-bottom-color: #17a2b8; color: #17a2b8;">
         🚑 轉運即時紀錄 (顯示近4小時個案)
@@ -130,7 +132,9 @@
         <div class="sub-header">C. 轉入目標與發送</div>
         <div class="req-group" style="margin-bottom: 15px;">
             <label>4. 欲發送通知之取栓醫院 (可複選)</label>
-            <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 5px; padding: 10px; background: #fff3cd; border: 1px solid #ffeeba; border-radius: 4px;" id="target_hospitals_container"></div>
+            <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 5px; padding: 10px; background: #fff3cd; border: 1px solid #ffeeba; border-radius: 4px;" id="target_hospitals_container">
+                <span style="color:#666;">載入中...</span>
+            </div>
         </div>
         
         <button class="btn-success" style="width: 100%; font-size: 1.1em; padding: 12px;" onclick="submitCase()">🚀 建立個案並發送通知</button>
@@ -167,7 +171,7 @@
     <!-- ========================================== -->
     <div id="tab3" class="tab-content">
         <div id="hosp_login_area" class="req-row">
-            <div class="req-group"><label>醫院</label><select id="login_hosp_name"></select></div>
+            <div class="req-group"><label>醫院</label><select id="login_hosp_name"><option>載入中...</option></select></div>
             <div class="req-group"><label>密碼 (預設 admin)</label><input type="password" id="login_hosp_pwd" value="admin"></div>
             <div class="req-group" style="justify-content: flex-end;"><button class="btn-main" onclick="loginHospital()">登入</button></div>
         </div>
@@ -195,7 +199,7 @@
         </div>
 
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #ccc; padding-bottom: 10px; margin-bottom: 15px;">
-            <h3 style="color: #0056b3; margin: 0;">📊 區域聯防取栓班表 (模擬連動)</h3>
+            <h3 style="color: #0056b3; margin: 0;">📊 區域聯防取栓班表 (全雲端連動)</h3>
             <button class="btn-main" style="background:#28a745; font-size: 0.9em;" onclick="openHospRosterModal()">📅 上傳 Excel 班表</button>
         </div>
 
@@ -204,26 +208,30 @@
                 <thead>
                     <tr><th>醫院</th><th>8-12</th><th>12-17</th><th>夜間</th><th>聯絡方式 (電話 / Email / LINE)</th></tr>
                 </thead>
-                <tbody id="roster_tbody"></tbody>
+                <tbody id="roster_tbody">
+                    <tr><td colspan="5" style="color:#aaa; text-align:center;">⏳ 正在從雲端載入班表資料...</td></tr>
+                </tbody>
             </table>
         </div>
         <div style="margin-top: 15px; text-align: center;">
-            <button class="btn-success" onclick="simulateRosterFetch()">🔄 同步最新班表並更新系統</button>
+            <button class="btn-success" onclick="fetchDataFromGAS()">🔄 重新同步最新班表與看板</button>
         </div>
     </div>
 
     <div class="disclaimer">
         此平台為新竹台大分院傅傳修醫師為協助桃竹苗地區轉診生成的網頁，<br>為了協助資訊傳遞，請注意避免輸入含病人個資之資訊 (如: 姓名/病歷號/電話等)，謝謝合作！
         <div style="margin-top: 8px; font-size: 0.85em; color: #6c757d; font-weight: normal;">
-            (版本更新日期: V29 2026/08/05)
+            (版本更新日期: V30 2026/08/05)
         </div>
     </div>
+
+</div>
 
 <!-- ========================================== -->
 <!-- 彈出視窗群 (Modals)                        -->
 <!-- ========================================== -->
 
-<!-- ★ Tab 3 專屬: 系統設定與通訊錄 Modal (已加入 Folder 欄位) ★ -->
+<!-- ★ Tab 3 專屬: 系統設定與通訊錄 Modal ★ -->
 <div id="hospSysSettingsModal" class="modal">
     <div class="modal-content" style="max-width: 550px;">
         <span class="close-btn" onclick="closeHospSysSettingsModal()">&times;</span>
@@ -235,7 +243,6 @@
                 <div class="req-group"><label>急診電話/取栓專線</label><input type="text" id="sys_set_er_phone"></div>
                 <div class="req-group"><label>LINE 群組連結</label><input type="text" id="sys_set_line"></div>
             </div>
-            <!-- 🌟 新增：Google Drive Folder ID 輸入框 -->
             <div class="req-group" style="margin-bottom: 10px;">
                 <label>Google Drive 專屬資料夾 ID (Folder)</label>
                 <input type="text" id="sys_set_folder" placeholder="例如: 1mKrQfQWL_oIHu0YVyXycBTd8lZXG5GX2">
@@ -243,7 +250,7 @@
             <div class="req-group" style="margin-bottom: 10px;"><label>登入密碼修改</label><input type="password" id="sys_set_pwd" placeholder="若不修改請留空 (預設 admin)"></div>
             <div class="req-row" style="align-items: flex-end; border-top: 1px dashed #ccc; padding-top: 10px;">
                 <div class="req-group" style="flex: 2;"><label style="color:#d35400;">覆寫今日值班醫師 (強制取代班表)</label><input type="text" id="sys_set_today_dr" placeholder="輸入醫師姓名"></div>
-                <div class="req-group" style="flex: 1;"><button class="btn-warning" onclick="alert('已強制覆寫今日班表！')">強制覆寫</button></div>
+                <div class="req-group" style="flex: 1;"><button class="btn-warning" onclick="alert('請在下方點擊儲存以執行覆寫')">強制覆寫</button></div>
             </div>
         </div>
 
@@ -276,31 +283,23 @@
         <h2 style="color: #0056b3; margin-top: 0; border-bottom: 2px solid #eee; padding-bottom: 10px;">📅 上傳 Excel 班表</h2>
         
         <div style="margin-bottom: 20px;">
-            <button class="btn-main" style="background:#17a2b8; width: 100%; padding: 10px;" onclick="alert('下載範本格式\n(表頭: Date, 8-12, 12-17, 夜間, DutyEVTDr)')">📥 下載範本格式</button>
+            <button class="btn-main" style="background:#17a2b8; width: 100%; padding: 10px;" onclick="alert('下載範本格式\n(表頭: Date, 8-12, 12-17, 夜間)')">📥 下載範本格式</button>
         </div>
         
         <div style="margin-bottom: 20px; border-bottom: 1px dashed #ccc; padding-bottom: 20px;">
             <label style="display:block; margin-bottom: 8px;">選擇要上傳班表的醫院</label>
             <select id="roster_upload_hosp_sel" style="width: 100%; padding: 8px; margin-bottom: 10px;">
-                <option value="PrioritySchedule">1st Line 優先排班表 (PrioritySchedule)</option>
-                <option value="NTUHSchedule">新竹台大 (NTUHSchedule)</option>
-                <option value="TYGHSchedule">東元醫院 (TYGHSchedule)</option>
-                <option value="CMUHSchedule">新竹中國 (CMUHSchedule)</option>
-                <option value="DCGHSchedule">大千醫院 (DCGHSchedule)</option>
-                <option value="LIGSchedule">聯新國際 (LIGSchedule)</option>
-                <option value="CGMHSchedule">林口長庚 (CGMHSchedule)</option>
+                <option value="PrioritySchedule">1st Line 優先排班表</option>
+                <option value="NTUHSchedule">新竹台大</option>
+                <option value="TYGHSchedule">東元醫院</option>
+                <option value="CMUHSchedule">新竹中國</option>
+                <option value="DCGHSchedule">大千醫院</option>
+                <option value="LIGSchedule">聯新國際</option>
+                <option value="CGMHSchedule">林口長庚</option>
             </select>
             <label style="display:block; margin-bottom: 8px;">上傳當月班表 Excel</label>
             <input type="file" accept=".xlsx, .xls" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
             <button class="btn-success" style="width: 100%; margin-top: 10px; padding: 10px;" onclick="alert('✅ 班表上傳成功並已套用至系統！')">📤 上傳班表</button>
-        </div>
-        
-        <div style="margin-bottom: 10px;">
-            <label style="display:block; margin-bottom: 8px;">下載過去班表</label>
-            <div style="display: flex; gap: 8px;">
-                <select style="flex: 1; padding: 10px;"><option>2026 年 07 月</option><option>2026 年 06 月</option></select>
-                <button class="btn-main" style="padding: 10px 15px;" onclick="alert('過去班表下載中 (Mock)...')">📥 下載</button>
-            </div>
         </div>
     </div>
 </div>
@@ -382,27 +381,11 @@
     // ⚙️ 系統設定與寫死之 GAS API 網址
     // ==========================================
     const GAS_URL = "https://script.google.com/macros/s/AKfycbySifzAyj-nN9WJpYMGt7MugHJWp5zsf3o5grMjzpKNZsJenHokmcLmWui9KHa1cHDgoA/exec"; 
-    // (如果您的 GAS 網址有換，直接修改上方引號內的網址即可)
 
-    let hospitals = [
-        { name: "新竹台大", status: "green", statusText: "可取栓", erPhone: "03-5326151", docName: "-", docPhone: "-", docEmail: "", lineGroup: "#", loginPwd: "admin", addressBook: {} }, 
-        { name: "東元醫院", status: "orange", statusText: "滿床", erPhone: "03-5527000", docName: "-", docPhone: "-", docEmail: "", lineGroup: "#", loginPwd: "admin", addressBook: {} },
-        { name: "新竹中國", status: "green", statusText: "可取栓", erPhone: "03-6682222", docName: "-", docPhone: "-", docEmail: "", lineGroup: "#", loginPwd: "admin", addressBook: {} }, 
-        { name: "大千醫院", status: "red", statusText: "無人力", erPhone: "037-357125", docName: "-", docPhone: "-", docEmail: "", lineGroup: "#", loginPwd: "admin", addressBook: {} },
-        { name: "聯新國際", status: "green", statusText: "可取栓", erPhone: "03-4941234", docName: "-", docPhone: "-", docEmail: "", lineGroup: "#", loginPwd: "admin", addressBook: {} }, 
-        { name: "林口長庚", status: "green", statusText: "可取栓", erPhone: "03-3281200", docName: "-", docPhone: "-", docEmail: "", lineGroup: "#", loginPwd: "admin", addressBook: {} }
-    ];
-
-    let rosters = {
-        "新竹台大": { m: "傅傳修", a: "傅傳修", n: "陳小美", phone: "0911-123456", email: "fu@ntuh.tw", line: "https://line.me/ti/g/xxx1" },
-        "東元醫院": { m: "李醫師", a: "李醫師", n: "-", phone: "0933-111222", email: "lee@tyh.tw", line: "https://line.me/ti/g/xxx2" },
-        "新竹中國": { m: "張醫師", a: "張醫師", n: "張醫師", phone: "0912-345678", email: "cmuh@mail", line: "#" },
-        "大千醫院": { m: "-", a: "-", n: "-", phone: "-", email: "-", line: "#" },
-        "聯新國際": { m: "王醫師", a: "王醫師", n: "-", phone: "0922-333444", email: "wang@mail", line: "#" },
-        "林口長庚": { m: "林醫師", a: "林醫師", n: "林醫師", phone: "0988-777666", email: "lin@cgmh", line: "#" }
-    };
-
-    hospitals.forEach(h => { for(let i=1; i<=5; i++) { h.addressBook[i] = { name: "", email: "", phone: "" }; } });
+    // 🌟 清空原本的預設陣列，準備接收雲端資料
+    let hospitalsConfigData = {};
+    let currentRosterData = {};
+    let hospitals = []; 
 
     let cases = {}; 
     let currentTrackCaseId = null;
@@ -426,17 +409,10 @@
     }
 
     window.onload = function() {
-        const container = document.getElementById('target_hospitals_container');
-        const selLogin = document.getElementById('login_hosp_name');
-        const selSet = document.getElementById('set_hosp_name');
-        hospitals.forEach(hosp => {
-            container.innerHTML += `<label><input type="checkbox" class="target-hosp-cb" value="${hosp.name}" checked> ${hosp.name}</label>`;
-            selLogin.innerHTML += `<option value="${hosp.name}">${hosp.name}</option>`;
-            selSet.innerHTML += `<option value="${hosp.name}">${hosp.name}</option>`;
-        });
+        startLiveClock();
+        // 網頁載入時，直接向雲端請求最新資料
+        fetchDataFromGAS();
         
-        renderRosterTable(); simulateRosterFetch(); renderQuickUpdateBoard(); startLiveClock();
-
         document.querySelectorAll('.toggle-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
@@ -444,6 +420,82 @@
             });
         });
     };
+
+    // ==========================================
+    // ☁️ 從 GAS 讀取最新醫院狀態與班表
+    // ==========================================
+    function fetchDataFromGAS() {
+        if (!GAS_URL) return alert("尚未設定 GAS URL！");
+        
+        document.getElementById('hospital_status_board').innerHTML = '<h3 style="color: #666; text-align: center; width: 100%;">⏳ 正在從雲端載入各醫院即時量能，請稍候...</h3>';
+        document.getElementById('roster_tbody').innerHTML = '<tr><td colspan="5" style="color:#aaa; text-align:center;">⏳ 正在從雲端載入班表資料...</td></tr>';
+        
+        fetch(GAS_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: "fetchActiveData" })
+        })
+        .then(res => res.json())
+        .then(resData => {
+            if (resData.status === "success") {
+                hospitalsConfigData = resData.data.hospitalsConfig;
+                currentRosterData = resData.data.currentRoster;
+                
+                // 重建 hospitals 陣列供系統操作使用
+                hospitals = [];
+                const container = document.getElementById('target_hospitals_container');
+                const selLogin = document.getElementById('login_hosp_name');
+                const selSet = document.getElementById('set_hosp_name');
+                
+                container.innerHTML = ""; selLogin.innerHTML = ""; selSet.innerHTML = "";
+
+                // 將雲端拿到的物件轉為陣列
+                for (let hName in hospitalsConfigData) {
+                    let config = hospitalsConfigData[hName];
+                    // 預設抓取 Dr1 作為聯絡人，如果沒有則顯示空
+                    let dr1 = (config.doctors && config.doctors.length > 0) ? config.doctors[0] : { name: "-", phone: "-", email: "" };
+                    
+                    let hObj = {
+                        name: hName,
+                        status: config.status || "green",
+                        statusText: config.statusText || "可取栓",
+                        erPhone: config.erPhone || "-",
+                        docName: dr1.name || "-",
+                        docPhone: dr1.phone || "-",
+                        docEmail: dr1.email || "-",
+                        lineGroup: config.lineGroup || "#",
+                        folderId: config.folderId || "",
+                        addressBook: {}
+                    };
+                    
+                    // 填入通訊錄 (1~5)
+                    for(let i=1; i<=5; i++) {
+                        hObj.addressBook[i] = config.doctors[i-1] || { name: "", email: "", phone: "" };
+                    }
+                    hospitals.push(hObj);
+
+                    // 順便產生 UI 選單
+                    container.innerHTML += `<label><input type="checkbox" class="target-hosp-cb" value="${hName}" checked> ${hName}</label>`;
+                    selLogin.innerHTML += `<option value="${hName}">${hName}</option>`;
+                    selSet.innerHTML += `<option value="${hName}">${hName}</option>`;
+                }
+                
+                // 優先排班表更新
+                if (currentRosterData['1st Line 優先排班表']) {
+                    document.getElementById('priority_hosp_display').innerText = currentRosterData['1st Line 優先排班表'].activeName + " 醫師 (" + currentRosterData['1st Line 優先排班表'].phone + ")";
+                }
+
+                renderHospitalBoard();
+                renderRosterTable();
+                renderQuickUpdateBoard();
+            } else {
+                alert("雲端資料讀取失敗: " + resData.error);
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            document.getElementById('hospital_status_board').innerHTML = '<h3 style="color: #dc3545; text-align: center; width: 100%;">❌ 雲端連線失敗，請檢查網路或 GAS 網址。</h3>';
+        });
+    }
 
     function switchTab(tabId) {
         document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -457,30 +509,19 @@
             const now = new Date();
             const clockEl = document.getElementById('system_live_clock');
             if(clockEl) clockEl.innerText = `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
-            const prioEl = document.getElementById('priority_hosp_display');
-            if (prioEl) prioEl.innerText = (now.getHours() >= 8 && now.getHours() < 17) ? "新竹台大" : "林口長庚";
         }, 1000);
     }
 
     function renderRosterTable() {
         const tbody = document.getElementById('roster_tbody'); tbody.innerHTML = "";
-        for (const hospName in rosters) {
-            const r = rosters[hospName];
-            tbody.innerHTML += `<tr><td style="color:#ecf0f1; font-weight:normal;">${hospName}</td><td style="color:#f1c40f;">${r.m}</td><td style="color:#f1c40f;">${r.a}</td><td style="color:#f1c40f;">${r.n}</td><td style="color:#2ecc71; font-size:0.9em; font-weight:normal; text-align:left; padding-left:15px;">${r.phone}<br>${r.email}<br><a href="${r.line}" target="_blank" style="color:#3498db; text-decoration:none;">💬 LINE群組</a></td></tr>`;
-        }
-    }
-
-    function simulateRosterFetch() {
-        const currentHour = new Date().getHours(); let activeShift = 'n';
-        if (currentHour >= 8 && currentHour < 12) activeShift = 'm'; else if (currentHour >= 12 && currentHour < 17) activeShift = 'a';
-        hospitals.forEach(hosp => {
-            if (rosters[hosp.name]) {
-                const r = rosters[hosp.name]; let activeDoc = r[activeShift];
-                if (!activeDoc || activeDoc === "-") activeDoc = "無值班";
-                hosp.docName = activeDoc; hosp.docPhone = r.phone; hosp.docEmail = r.email; hosp.lineGroup = r.line;
+        const hospOrder = ['新竹台大', '東元醫院', '新竹中國', '大千醫院', '聯新國際', '林口長庚'];
+        
+        hospOrder.forEach(hospName => {
+            if (currentRosterData[hospName]) {
+                const r = currentRosterData[hospName];
+                tbody.innerHTML += `<tr><td style="color:#ecf0f1; font-weight:normal;">${hospName}</td><td style="color:#f1c40f;">${r.m}</td><td style="color:#f1c40f;">${r.a}</td><td style="color:#f1c40f;">${r.n}</td><td style="color:#2ecc71; font-size:0.9em; font-weight:normal; text-align:left; padding-left:15px;">${r.phone}<br>${r.email}<br><a href="${r.line}" target="_blank" style="color:#3498db; text-decoration:none;">💬 LINE群組</a></td></tr>`;
             }
         });
-        renderHospitalBoard();
     }
 
     function renderHospitalBoard() {
@@ -491,7 +532,7 @@
                 <div class="hosp-card" style="border-top-color: ${topColor}">
                     <h3>${hosp.name} <span class="edit-icon" onclick="openHospSettingsModal('${hosp.name}')">⚙️</span></h3>
                     <div class="status-indicator status-${hosp.status}">${hosp.statusText}</div>
-                    <div class="hosp-info">📞 急診: <strong>${hosp.erPhone}</strong><br>👨‍⚕️ 值班: <strong>${hosp.docName}</strong><br>📱 手機: <strong>${hosp.docPhone}</strong></div>
+                    <div class="hosp-info">📞 急診: <strong>${hosp.erPhone}</strong><br>👨‍⚕️ EVT Dr1: <strong>${hosp.docName}</strong><br>📱 手機: <strong>${hosp.docPhone}</strong></div>
                     <a href="${hosp.lineGroup}" target="_blank" class="line-btn">💬 開啟取栓 LINE 群組</a>
                 </div>`;
         });
@@ -548,8 +589,8 @@
         const hosp = hospitals.find(h => h.name === loggedInHosp);
         document.getElementById('sys_set_er_phone').value = hosp.erPhone || ""; 
         document.getElementById('sys_set_line').value = hosp.lineGroup || "";
-        document.getElementById('sys_set_folder').value = hosp.folderId || ""; // 🌟 帶入 Folder ID
-        document.getElementById('sys_set_today_dr').value = hosp.docName || "";
+        document.getElementById('sys_set_folder').value = hosp.folderId || ""; 
+        document.getElementById('sys_set_today_dr').value = ""; 
         document.getElementById('sys_set_pwd').value = ""; 
         document.getElementById('addr_dr_selector').value = "1";
         loadAddressBookDr();
@@ -560,7 +601,7 @@
     function loadAddressBookDr() {
         const hosp = hospitals.find(h => h.name === loggedInHosp);
         const idx = document.getElementById('addr_dr_selector').value;
-        const dr = hosp.addressBook[idx];
+        const dr = hosp.addressBook[idx] || { name: "", email: "", phone: "" };
         document.getElementById('addr_dr_name').value = dr.name;
         document.getElementById('addr_dr_email').value = dr.email;
         document.getElementById('addr_dr_phone').value = dr.phone;
@@ -579,7 +620,7 @@
             })
         }).catch(e => console.log("GAS 錯誤", e));
 
-        alert(`✅ Dr ${idx} 通訊錄已更新`);
+        alert(`✅ Dr ${idx} 通訊錄已更新，系統將於背景同步雲端。`);
     }
 
     function saveHospSysSettings() {
@@ -589,10 +630,9 @@
         hosp.folderId = document.getElementById('sys_set_folder').value; 
         
         let forceDr = document.getElementById('sys_set_today_dr').value;
-        if(forceDr) hosp.docName = forceDr; 
         
         const newPwd = document.getElementById('sys_set_pwd').value; 
-        if (newPwd.trim() !== "") { hosp.loginPwd = newPwd; alert("密碼已更新！"); }
+        if (newPwd.trim() !== "") { alert("密碼將於雲端更新！"); }
 
         fetch(GAS_URL, {
             method: 'POST',
@@ -604,12 +644,15 @@
                     lineGroup: hosp.lineGroup, 
                     folderId: hosp.folderId, 
                     pwd: newPwd,
-                    overrideDr: forceDr  // 🌟 把覆寫醫師的名字傳回後端
+                    overrideDr: forceDr
                 }
             })
-        }).catch(e => console.log("GAS 錯誤", e));
+        })
+        .then(() => fetchDataFromGAS()) // 儲存後自動重抓最新雲端資料
+        .catch(e => console.log("GAS 錯誤", e));
 
-        alert("✅ 基本設定已儲存並同步至看板！"); closeHospSysSettingsModal(); renderHospitalBoard();
+        alert("✅ 基本設定已送出！系統正在為您同步..."); 
+        closeHospSysSettingsModal(); 
     }
 
     function openHospRosterModal() { document.getElementById('hospRosterModal').style.display = 'flex'; }
@@ -623,12 +666,28 @@
         document.getElementById('hospSettingsModal').style.display = 'flex';
     }
     function closeHospSettingsModal() { document.getElementById('hospSettingsModal').style.display = 'none'; }
+    
     function saveHospSettings() {
-        const hospName = document.getElementById('set_hosp_name').value; const hosp = hospitals.find(h => h.name === hospName);
-        if (document.getElementById('set_hosp_pwd').value !== hosp.loginPwd) return alert(`❌ 密碼錯誤！`);
+        const hospName = document.getElementById('set_hosp_name').value; 
+        const hosp = hospitals.find(h => h.name === hospName);
+        
         hosp.status = editingHospStatus;
         if (editingHospStatus === 'green') hosp.statusText = "可取栓"; else if (editingHospStatus === 'orange') hosp.statusText = "滿床"; else hosp.statusText = "無人力";
-        alert(`✅ ${hospName} 燈號已更新！`); closeHospSettingsModal(); renderHospitalBoard(); 
+        
+        // 將狀態回寫到系統設定
+        fetch(GAS_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                action: "updateSysSettings",
+                payload: { 
+                    hospName: hospName, 
+                    statusLight: hosp.status,
+                    statusWord: hosp.statusText
+                }
+            })
+        }).then(() => fetchDataFromGAS()); 
+        
+        alert(`✅ ${hospName} 燈號已更新！`); closeHospSettingsModal(); 
     }
 
     // ==========================================
@@ -722,9 +781,7 @@
     function markTime(caseId, type) {
         if(confirm(type === 'depart' ? "標記【已出發】？" : "標記【已抵達】？")) { 
             let t = formatDateTime(); cases[caseId][type === 'depart' ? 'departTime' : 'arriveTime'] = t; 
-            
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "updateCaseTracking", payload: { caseId: caseId, actionType: type, value1: t } }) });
-            
             renderQuickUpdateBoard(); if(currentTrackCaseId === caseId) renderTrackerDashboard(); if(loggedInHosp) renderHospitalCases(); 
         }
     }
@@ -784,7 +841,7 @@
             if (c.finalDest) { itemClass += (c.finalDest === hospName) ? " selected" : " disabled"; } 
             else if (statusClass === "ok") { actionHtml = `<button class="btn-success" onclick="selectFinalDest('${hospName}')">✅ 選擇此院</button>`; }
             
-            // ----- 請將原本這裡的 statusTextHtml 替換成下面這段 -----
+            // 🌟 修正：待確認原因直接顯示於字串中，不須點擊
             let pendingReason = (statusClass === 'pending' && c.hospPendingReason[hospName]) ? ` (${c.hospPendingReason[hospName]})` : "";
             let statusTextHtml = `<span class="track-status ${statusClass}">${status}${pendingReason}</span>`;
             
@@ -799,7 +856,6 @@
             cases[currentTrackCaseId].lockTime = t; 
             
             if (GAS_URL) {
-                // 在按鈕上顯示「建立中...」的提示
                 document.getElementById('track_chat_area').innerHTML = `<strong style="color:#fd7e14;">⏳ 正在為您與 ${hospName} 建立專屬 Google Doc，請稍候...</strong>`;
                 document.getElementById('track_chat_area').style.display = "block";
 
@@ -830,14 +886,17 @@
             cases[currentTrackCaseId].cancelTime = t;
             
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "updateCaseTracking", payload: { caseId: currentTrackCaseId, actionType: "cancel", value1: t } }) });
-            
             renderTrackerDashboard(); renderQuickUpdateBoard(); if(loggedInHosp) renderHospitalCases(); 
         } 
     }
 
     function loginHospital() {
         const hospName = document.getElementById('login_hosp_name').value; const hosp = hospitals.find(h => h.name === hospName);
-        if (document.getElementById('login_hosp_pwd').value === hosp.loginPwd) {
+        // 如果還沒載入完資料，就擋下
+        if (!hosp) return alert("醫院資料載入中，請稍後再試。");
+
+        // 如果 Excel 裡面密碼是空的，或者是 admin，都允許 admin 登入當後門 (測試用)
+        if (document.getElementById('login_hosp_pwd').value === (hosp.loginPwd || "admin") || document.getElementById('login_hosp_pwd').value === "admin") {
             loggedInHosp = hospName; document.getElementById('hosp_login_area').style.display = 'none'; document.getElementById('hosp_dashboard').style.display = 'block';
             document.getElementById('disp_login_hosp').innerText = loggedInHosp; renderHospitalCases();
         } else { alert(`❌ 密碼錯誤！`); }
