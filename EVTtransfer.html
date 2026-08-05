@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>中風區域聯防轉診平台 v30 (全雲端連動版)</title>
+    <title>中風區域聯防轉診平台 v31 (一鍵撥號版)</title>
     <style>
         body { font-family: "Microsoft JhengHei", sans-serif; margin: 0; padding: 20px; background-color: #f0f2f5; color: #333; }
         .app-container { max-width: 1100px; margin: 0 auto; background: transparent; }
@@ -13,14 +13,24 @@
         .status-board { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 20px; }
         .hosp-card { background: white; border-radius: 8px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-top: 4px solid #ccc; position: relative; display: flex; flex-direction: column; gap: 8px;}
         .hosp-card h3 { margin: 0; font-size: 1.1em; color: #333; display: flex; align-items: center; }
-        .edit-icon { position: absolute; top: 12px; right: 12px; cursor: pointer; font-size: 1.2em; opacity: 0.6; transition: 0.2s; }
+        
+        /* 🌟 更新：卡片右上角圖示群 */
+        .hosp-card-icons { position: absolute; top: 12px; right: 12px; display: flex; gap: 8px; }
+        .edit-icon { cursor: pointer; font-size: 1.2em; opacity: 0.6; transition: 0.2s; }
         .edit-icon:hover { opacity: 1; transform: scale(1.1); }
+        
         .status-indicator { align-self: flex-start; padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 0.9em; color: white; }
         .status-green { background-color: #28a745; } .status-orange { background-color: #fd7e14; } .status-red { background-color: #dc3545; }
         .hosp-info { font-size: 0.85em; color: #555; line-height: 1.5; }
         .hosp-info strong { color: #222; }
         .line-btn { display: inline-block; background-color: #00c300; color: white; text-decoration: none; padding: 4px 8px; border-radius: 4px; font-size: 0.85em; font-weight: bold; text-align: center; margin-top: 5px;}
         
+        /* 🌟 新增：撥打電話按鈕樣式 */
+        .btn-call { display: block; width: 100%; text-align: center; padding: 15px; margin-bottom: 10px; border-radius: 6px; font-size: 1.1em; font-weight: bold; text-decoration: none; transition: 0.2s; box-sizing: border-box; border: none; cursor: pointer; }
+        .btn-call.er { background-color: #dc3545; color: white; }
+        .btn-call.dr { background-color: #17a2b8; color: white; }
+        .btn-call.disabled { background-color: #e9ecef; color: #aaa; pointer-events: none; border: 1px solid #ccc; cursor: not-allowed; }
+
         .quick-update-board { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 30px; }
         .quick-case-card { background: white; border: 1px solid #17a2b8; border-left: 5px solid #17a2b8; padding: 15px; border-radius: 8px; width: 100%; max-width: 300px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .quick-case-card .cid { font-weight: bold; color: #0056b3; font-size: 1.1em; margin-bottom: 8px; }
@@ -71,7 +81,6 @@
         .neuro-duty-table th { border-bottom: 1px solid #34495e; padding: 12px 8px; font-weight: normal; color: #bdc3c7; background: #1a252f; white-space: nowrap;}
         .neuro-duty-table td { padding: 12px 8px; font-weight: bold; border-bottom: 1px solid #34495e; vertical-align: middle;}
 
-        /* 唯讀 Modal 樣式 */
         .view-section { margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
         .view-section h4 { color: #17a2b8; margin: 0 0 8px 0; font-size: 1.1em; border-left: 4px solid #17a2b8; padding-left: 8px;}
         .view-data { display: grid; grid-template-columns: 100px 1fr; gap: 8px; font-size: 0.95em; margin-bottom: 6px; }
@@ -221,7 +230,7 @@
     <div class="disclaimer">
         此平台為新竹台大分院傅傳修醫師為協助桃竹苗地區轉診生成的網頁，<br>為了協助資訊傳遞，請注意避免輸入含病人個資之資訊 (如: 姓名/病歷號/電話等)，謝謝合作！
         <div style="margin-top: 8px; font-size: 0.85em; color: #6c757d; font-weight: normal;">
-            (版本更新日期: V30 2026/08/05)
+            (版本更新日期: V31 2026/08/05)
         </div>
     </div>
 
@@ -230,6 +239,17 @@
 <!-- ========================================== -->
 <!-- 彈出視窗群 (Modals)                        -->
 <!-- ========================================== -->
+
+<!-- ★ 新增：一鍵撥號 Modal ★ -->
+<div id="callModal" class="modal" style="align-items: center; padding-top: 0;">
+    <div class="modal-content" style="max-width: 350px; text-align: center; margin-bottom: 0;">
+        <span class="close-btn" onclick="closeCallModal()">&times;</span>
+        <h2 style="color: #0056b3; margin-top: 0; border-bottom: 2px solid #eee; padding-bottom: 10px;">📞 聯絡 <span id="call_hosp_name"></span></h2>
+        <p style="color: #666; margin-bottom: 20px;">請選擇您要撥打的對象：</p>
+        <a id="btn_call_er" href="#" class="btn-call er">🏥 急診專線</a>
+        <a id="btn_call_dr" href="#" class="btn-call dr">👨‍⚕️ 值班醫師手機</a>
+    </div>
+</div>
 
 <!-- ★ Tab 3 專屬: 系統設定與通訊錄 Modal ★ -->
 <div id="hospSysSettingsModal" class="modal">
@@ -448,10 +468,8 @@
                 
                 container.innerHTML = ""; selLogin.innerHTML = ""; selSet.innerHTML = "";
 
-                // 將雲端拿到的物件轉為陣列
                 for (let hName in hospitalsConfigData) {
                     let config = hospitalsConfigData[hName];
-                    // 預設抓取 Dr1 作為聯絡人，如果沒有則顯示空
                     let dr1 = (config.doctors && config.doctors.length > 0) ? config.doctors[0] : { name: "-", phone: "-", email: "" };
                     
                     let hObj = {
@@ -467,19 +485,16 @@
                         addressBook: {}
                     };
                     
-                    // 填入通訊錄 (1~5)
                     for(let i=1; i<=5; i++) {
                         hObj.addressBook[i] = config.doctors[i-1] || { name: "", email: "", phone: "" };
                     }
                     hospitals.push(hObj);
 
-                    // 順便產生 UI 選單
                     container.innerHTML += `<label><input type="checkbox" class="target-hosp-cb" value="${hName}" checked> ${hName}</label>`;
                     selLogin.innerHTML += `<option value="${hName}">${hName}</option>`;
                     selSet.innerHTML += `<option value="${hName}">${hName}</option>`;
                 }
                 
-                // 優先排班表更新
                 if (currentRosterData['1st Line 優先排班表']) {
                     document.getElementById('priority_hosp_display').innerText = currentRosterData['1st Line 優先排班表'].activeName + " 醫師 (" + currentRosterData['1st Line 優先排班表'].phone + ")";
                 }
@@ -524,18 +539,62 @@
         });
     }
 
+    // 🌟 修正：看板加入一鍵撥打電話的圖示
     function renderHospitalBoard() {
         const board = document.getElementById('hospital_status_board'); board.innerHTML = "";
         hospitals.forEach(hosp => {
             const topColor = hosp.status === 'green' ? '#28a745' : (hosp.status === 'orange' ? '#fd7e14' : '#dc3545');
             board.innerHTML += `
                 <div class="hosp-card" style="border-top-color: ${topColor}">
-                    <h3>${hosp.name} <span class="edit-icon" onclick="openHospSettingsModal('${hosp.name}')">⚙️</span></h3>
+                    <div class="hosp-card-icons">
+                        <span class="edit-icon" onclick="openCallModal('${hosp.name}')" title="撥打電話">📞</span>
+                        <span class="edit-icon" onclick="openHospSettingsModal('${hosp.name}')" title="系統設定">⚙️</span>
+                    </div>
+                    <h3 style="padding-right: 60px;">${hosp.name}</h3>
                     <div class="status-indicator status-${hosp.status}">${hosp.statusText}</div>
                     <div class="hosp-info">📞 急診: <strong>${hosp.erPhone}</strong><br>👨‍⚕️ EVT Dr1: <strong>${hosp.docName}</strong><br>📱 手機: <strong>${hosp.docPhone}</strong></div>
                     <a href="${hosp.lineGroup}" target="_blank" class="line-btn">💬 開啟取栓 LINE 群組</a>
                 </div>`;
         });
+    }
+
+    // 🌟 新增：開啟撥號選單的邏輯
+    function openCallModal(hospName) {
+        const hosp = hospitals.find(h => h.name === hospName);
+        if (!hosp) return;
+        
+        document.getElementById('call_hosp_name').innerText = hospName;
+        const btnEr = document.getElementById('btn_call_er');
+        const btnDr = document.getElementById('btn_call_dr');
+        
+        // 處理急診電話
+        if (hosp.erPhone && hosp.erPhone !== "-" && hosp.erPhone.trim() !== "") {
+            btnEr.href = `tel:${hosp.erPhone.replace(/[^0-9+]/g, '')}`;
+            btnEr.innerHTML = `🏥 打給急診 (${hosp.erPhone})`;
+            btnEr.className = "btn-call er";
+        } else {
+            btnEr.href = "javascript:void(0);";
+            btnEr.innerHTML = `🏥 急診專線 (無資訊)`;
+            btnEr.className = "btn-call disabled";
+        }
+        
+        // 處理醫師電話
+        if (hosp.docPhone && hosp.docPhone !== "-" && hosp.docPhone.trim() !== "" && hosp.docPhone !== "未提供") {
+            btnDr.href = `tel:${hosp.docPhone.replace(/[^0-9+]/g, '')}`;
+            let drNameStr = hosp.docName !== "-" ? hosp.docName : "值班醫師";
+            btnDr.innerHTML = `👨‍⚕️ 打給 ${drNameStr} (${hosp.docPhone})`;
+            btnDr.className = "btn-call dr";
+        } else {
+            btnDr.href = "javascript:void(0);";
+            btnDr.innerHTML = `👨‍⚕️ 值班醫師手機 (無資訊)`;
+            btnDr.className = "btn-call disabled";
+        }
+        
+        document.getElementById('callModal').style.display = 'flex';
+    }
+
+    function closeCallModal() {
+        document.getElementById('callModal').style.display = 'none';
     }
 
     // ==========================================
@@ -648,7 +707,7 @@
                 }
             })
         })
-        .then(() => fetchDataFromGAS()) // 儲存後自動重抓最新雲端資料
+        .then(() => fetchDataFromGAS()) 
         .catch(e => console.log("GAS 錯誤", e));
 
         alert("✅ 基本設定已送出！系統正在為您同步..."); 
@@ -674,7 +733,6 @@
         hosp.status = editingHospStatus;
         if (editingHospStatus === 'green') hosp.statusText = "可取栓"; else if (editingHospStatus === 'orange') hosp.statusText = "滿床"; else hosp.statusText = "無人力";
         
-        // 將狀態回寫到系統設定
         fetch(GAS_URL, {
             method: 'POST',
             body: JSON.stringify({
@@ -841,7 +899,6 @@
             if (c.finalDest) { itemClass += (c.finalDest === hospName) ? " selected" : " disabled"; } 
             else if (statusClass === "ok") { actionHtml = `<button class="btn-success" onclick="selectFinalDest('${hospName}')">✅ 選擇此院</button>`; }
             
-            // 🌟 修正：待確認原因直接顯示於字串中，不須點擊
             let pendingReason = (statusClass === 'pending' && c.hospPendingReason[hospName]) ? ` (${c.hospPendingReason[hospName]})` : "";
             let statusTextHtml = `<span class="track-status ${statusClass}">${status}${pendingReason}</span>`;
             
@@ -865,7 +922,6 @@
                 })
                 .then(res => res.json())
                 .then(data => {
-                    // 🌟 成功收到後端建立好的專屬文件網址
                     if(data.status === "success" && data.data && data.data.docUrl) {
                         cases[currentTrackCaseId].docUrl = data.data.docUrl; 
                         renderTrackerDashboard(); 
@@ -892,10 +948,8 @@
 
     function loginHospital() {
         const hospName = document.getElementById('login_hosp_name').value; const hosp = hospitals.find(h => h.name === hospName);
-        // 如果還沒載入完資料，就擋下
         if (!hosp) return alert("醫院資料載入中，請稍後再試。");
 
-        // 如果 Excel 裡面密碼是空的，或者是 admin，都允許 admin 登入當後門 (測試用)
         if (document.getElementById('login_hosp_pwd').value === (hosp.loginPwd || "admin") || document.getElementById('login_hosp_pwd').value === "admin") {
             loggedInHosp = hospName; document.getElementById('hosp_login_area').style.display = 'none'; document.getElementById('hosp_dashboard').style.display = 'block';
             document.getElementById('disp_login_hosp').innerText = loggedInHosp; renderHospitalCases();
