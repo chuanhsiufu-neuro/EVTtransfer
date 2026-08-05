@@ -506,7 +506,10 @@
                 
                 sortedHospitals.forEach(h => {
                     let colorCode = h.status === 'green' ? '#28a745' : (h.status === 'orange' ? '#fd7e14' : '#dc3545');
-                    container.innerHTML += `<label style="padding: 5px 10px; border: 1px solid ${colorCode}; border-radius: 4px; background: white;"><input type="checkbox" class="target-hosp-cb" value="${h.name}" checked> <span style="font-weight:bold;">${h.name}</span> <span style="color:${colorCode}; font-size:0.9em;">(${h.statusText})</span></label>`;
+                    // 🌟 預設勾選邏輯：如果是綠燈或橘燈就預設勾選，紅燈則預設不勾選
+                    let isChecked = (h.status === 'green' || h.status === 'orange') ? 'checked' : '';
+                    
+                    container.innerHTML += `<label style="padding: 5px 10px; border: 1px solid ${colorCode}; border-radius: 4px; background: white;"><input type="checkbox" class="target-hosp-cb" value="${h.name}" ${isChecked}> <span style="font-weight:bold;">${h.name}</span> <span style="color:${colorCode}; font-size:0.9em;">(${h.statusText})</span></label>`;
                 });
                 
                 if (currentRosterData['1st Line 優先排班表']) {
