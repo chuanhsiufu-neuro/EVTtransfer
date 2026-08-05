@@ -513,7 +513,8 @@
                 });
                 
                 if (currentRosterData['1st Line 優先排班表']) {
-                    document.getElementById('priority_hosp_display').innerText = currentRosterData['1st Line 優先排班表'].activeName + " 醫師 (" + currentRosterData['1st Line 優先排班表'].phone + ")";
+                   // 🌟 修正：直接顯示儲存格內的文字，不額外加上「醫師」或電話
+                    document.getElementById('priority_hosp_display').innerText = currentRosterData['1st Line 優先排班表'].activeName;
                 }
 
                 renderHospitalBoard(); renderRosterTable(); renderQuickUpdateBoard();
@@ -568,7 +569,6 @@
                     <div class="hosp-info" style="margin-top: 8px;">
                         📞 急診: <strong>${hosp.erPhone}</strong><br>
                         👨‍⚕️ 當前值班: <strong>${hosp.docName}</strong><br>
-                        ✉️ Email: <strong>${hosp.docEmail}</strong><br>
                         📱 手機: <strong>${hosp.docPhone}</strong>
                     </div>
                     <a href="${hosp.lineGroup}" target="_blank" class="line-btn">💬 開啟取栓 LINE 群組</a>
