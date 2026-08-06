@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>中風區域聯防轉診平台 v32 (動態排班與自訂燈號版)</title>
+    <title>中風區域聯防轉診平台 v33 (極速上傳與全端同步版)</title>
     <style>
         body { font-family: "Microsoft JhengHei", sans-serif; margin: 0; padding: 20px; background-color: #f0f2f5; color: #333; }
         .app-container { max-width: 1100px; margin: 0 auto; background: transparent; }
@@ -87,6 +87,13 @@
 
         .disclaimer { margin-top: 20px; padding: 15px; background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404; border-radius: 6px; font-size: 0.9em; line-height: 1.5; text-align: center; font-weight: bold; }
         .live-clock-banner { background: #e8f4f8; border-left: 4px solid #17a2b8; padding: 15px; border-radius: 4px; margin-bottom: 15px; }
+
+        /* 🌟 上傳按鈕的閃爍發光特效 */
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(0, 86, 179, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(0, 86, 179, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 86, 179, 0); }
+        }
     </style>
 </head>
 <body>
@@ -127,11 +134,11 @@
         <div class="sub-header">B. 臨床資訊與影像 (獨立表單)</div>
         <div class="status-card" id="form_status_card">
             <div>
-                <strong id="form_status_title" style="color: #6c757d;">尚未讀取臨床資訊與影像</strong>
-                <div id="form_status_desc" style="font-size: 0.85em; color: #666; margin-top: 5px;">請點擊按鈕開啟獨立表單填寫，填妥後點擊「讀取暫存資料」。</div>
+                <strong id="form_status_title" style="color: #6c757d;">尚未讀取臨床資訊</strong>
+                <div id="form_status_desc" style="font-size: 0.85em; color: #666; margin-top: 5px;">請點擊按鈕開啟獨立表單填寫臨床資料，填妥後點擊「讀取暫存資料」。</div>
             </div>
             <div style="display: flex; gap: 5px; flex-wrap: wrap;">
-                <button class="btn-main" style="background:#17a2b8;" onclick="window.open('clinical.html', '_blank')">📝 開啟臨床與影像表單</button>
+                <button class="btn-main" style="background:#17a2b8;" onclick="window.open('clinical.html', '_blank')">📝 開啟臨床表單</button>
                 <button class="btn-warning" onclick="loadClinicalFromLocal()">🔄 讀取暫存資料</button>
             </div>
         </div>
@@ -145,10 +152,9 @@
         </div>
         
         <button class="btn-success" style="width: 100%; font-size: 1.1em; padding: 12px;" onclick="submitCase()">🚀 建立個案並發送通知</button>
-        <div id="submit_result_area" style="display: none; background: #d4edda; padding: 15px; border-radius: 4px; margin-top: 15px; line-height: 1.5;">
-            ✅ <strong>資訊已成功發送！個案代碼： <span id="case_id_display" style="font-size: 1.3em; color: #0056b3;"></span></strong><br>
-            <span style="font-size: 0.9em; color: #155724;" id="notify_list_display"></span>
-        </div>
+        
+        <!-- 🌟 極速上傳專屬成功畫面區域 -->
+        <div id="submit_result_area" style="display: none; background: #d4edda; padding: 25px; border-radius: 8px; margin-top: 20px; line-height: 1.5; border: 2px solid #28a745;"></div>
     </div>
 
     <!-- ========================================== -->
@@ -164,7 +170,7 @@
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                 <h3 style="color: #0056b3; margin:0;">個案：<span id="disp_track_id"></span></h3>
                 <div style="display:flex; gap:10px;">
-                    <button class="btn-main" style="background:#17a2b8;" onclick="editExistingClinical()">📝 開啟表單修改/增補影像</button>
+                    <button class="btn-main" style="background:#17a2b8;" onclick="editExistingClinical()">📝 開啟表單修改</button>
                     <button class="btn-warning" onclick="updateClinicalToExistCase()">🔄 同步修改至本案</button>
                 </div>
             </div>
@@ -228,7 +234,7 @@
     <div class="disclaimer">
         此平台為新竹台大分院傅傳修醫師為協助桃竹苗地區轉診生成的網頁，<br>為了協助資訊傳遞，請注意避免輸入含病人個資之資訊 (如: 姓名/病歷號/電話等)，謝謝合作！
         <div style="margin-top: 8px; font-size: 0.85em; color: #6c757d; font-weight: normal;">
-            (版本更新日期: V32 2026/08/05)
+            (版本更新日期: V33 2026/08/06)
         </div>
     </div>
 
@@ -322,7 +328,7 @@
     </div>
 </div>
 
-<!-- ★ 看板設定 Modal (修改燈號) 🌟 包含自訂文字輸入框 ★ -->
+<!-- ★ 看板設定 Modal (修改燈號) ★ -->
 <div id="hospSettingsModal" class="modal" style="align-items: center; padding-top: 0;">
     <div class="modal-content" style="max-width: 400px; text-align: left; margin-bottom: 0;">
         <span class="close-btn" onclick="closeHospSettingsModal()">&times;</span>
@@ -336,7 +342,6 @@
             <button class="toggle-btn red" data-val="red">無人力</button>
         </div>
         
-        <!-- 🌟 新增：自訂狀態文字輸入框 -->
         <div class="req-group" style="margin-top: 15px;">
             <label style="font-size: 0.9em; color: #555;">自訂狀態文字 (預設為上方選項文字)</label>
             <input type="text" id="set_hosp_status_text" placeholder="例如：CT維修中，暫停取栓">
@@ -395,7 +400,7 @@
             <div class="view-data"><span class="view-label">決策家屬:</span><span id="vc_family"></span></div>
         </div>
         <div class="view-section" style="border-bottom: none;">
-            <h4>🖼️ 臨床影像 (照片/影片)</h4>
+            <h4>🖼️ 臨床影像</h4>
             <div id="vc_images_container" style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;"></div>
         </div>
     </div>
@@ -405,7 +410,7 @@
     // ==========================================
     // ⚙️ 系統設定與 GAS API 網址
     // ==========================================
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbxkwKzR-L7n19VcWLzsRifPikFOwB7Hjgirq7zy-ISTf1lLpXCgVxqwyflFwf4wHKjTDQ/exec"; 
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbwwJ_YSqbdRzvs2VMzNY0nywl4tmuW2cn9UWxk8Xx18k4NZ5U-sU9SjneH659OetUXU_A/exec"; 
 
     let hospitalsConfigData = {};
     let currentRosterData = {};
@@ -435,8 +440,11 @@
     window.onload = function() {
         startLiveClock();
         fetchDataFromGAS();
+        fetchRecentCasesFromGAS(); // 🌟 網頁一載入，先抓一次最新個案
         
-        // 🌟 點擊燈號按鈕時，連帶更新下方輸入框的預設文字
+        // 🌟 設定每 5 分鐘 (300000 毫秒) 自動在背景向雲端刷新個案
+        setInterval(fetchRecentCasesFromGAS, 300000); 
+        
         document.querySelectorAll('.toggle-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
@@ -447,6 +455,21 @@
             });
         });
     };
+
+    // 🌟 跨裝置同步函數：向 GAS 討要 4 小時內的個案
+    function fetchRecentCasesFromGAS() {
+        if (!GAS_URL) return;
+        fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "fetchRecentCases" }) })
+        .then(res => res.json())
+        .then(resData => {
+            if (resData.status === "success" && resData.data.cases) {
+                cases = resData.data.cases;
+                renderQuickUpdateBoard();
+                if (currentTrackCaseId) renderTrackerDashboard();
+                if (loggedInHosp) renderHospitalCases();
+            }
+        }).catch(e => console.log("即時同步背景執行失敗", e));
+    }
 
     // ==========================================
     // ☁️ 從 GAS 讀取最新醫院狀態與班表
@@ -475,7 +498,6 @@
                     let config = hospitalsConfigData[hName];
                     let rData = currentRosterData[hName] || {};
                     
-                    // 🌟 精準抓取當下值班醫師資訊，沒有則為「無」
                     let drName = (rData.activeName && rData.activeName !== "無排班" && rData.activeName !== "-") ? rData.activeName : "無";
                     let drPhone = (rData.phone && rData.phone !== "未提供" && rData.phone !== "-") ? rData.phone : "無";
                     let drEmail = (rData.email && rData.email !== "-") ? rData.email : "無";
@@ -500,20 +522,17 @@
                     selSet.innerHTML += `<option value="${hName}">${hName}</option>`;
                 }
 
-                // 🌟 將醫院依燈號顏色排序 (綠 -> 橘 -> 紅)，再繪製 Tab 1 的勾選框
                 const statusOrder = { "green": 1, "orange": 2, "red": 3 };
                 let sortedHospitals = [...hospitals].sort((a, b) => statusOrder[a.status] - statusOrder[b.status]);
                 
                 sortedHospitals.forEach(h => {
                     let colorCode = h.status === 'green' ? '#28a745' : (h.status === 'orange' ? '#fd7e14' : '#dc3545');
-                    // 🌟 預設勾選邏輯：如果是綠燈或橘燈就預設勾選，紅燈則預設不勾選
                     let isChecked = (h.status === 'green' || h.status === 'orange') ? 'checked' : '';
                     
                     container.innerHTML += `<label style="padding: 5px 10px; border: 1px solid ${colorCode}; border-radius: 4px; background: white;"><input type="checkbox" class="target-hosp-cb" value="${h.name}" ${isChecked}> <span style="font-weight:bold;">${h.name}</span> <span style="color:${colorCode}; font-size:0.9em;">(${h.statusText})</span></label>`;
                 });
                 
                 if (currentRosterData['1st Line 優先排班表']) {
-                   // 🌟 修正：直接顯示儲存格內的文字，不額外加上「醫師」或電話
                     document.getElementById('priority_hosp_display').innerText = currentRosterData['1st Line 優先排班表'].activeName;
                 }
 
@@ -557,7 +576,6 @@
         const board = document.getElementById('hospital_status_board'); board.innerHTML = "";
         hospitals.forEach(hosp => {
             const topColor = hosp.status === 'green' ? '#28a745' : (hosp.status === 'orange' ? '#fd7e14' : '#dc3545');
-            // 🌟 看板現在精準顯示當下值班醫師，並加上了一鍵撥號小圖示
             board.innerHTML += `
                 <div class="hosp-card" style="border-top-color: ${topColor}">
                     <div class="hosp-card-icons">
@@ -621,8 +639,7 @@
                 const card = document.getElementById('form_status_card'); 
                 const title = document.getElementById('form_status_title');
                 card.classList.add('filled'); 
-                let imgCount = (pendingClinicalData.images) ? pendingClinicalData.images.length : 0;
-                title.innerText = `✅ 已讀取病史 / ${imgCount} 影像`; title.style.color = "#28a745"; 
+                title.innerText = `✅ 已讀取病史資料`; title.style.color = "#28a745"; 
                 alert("✅ 成功讀取暫存資料！");
             } catch (e) { alert("❌ 資料讀取失敗"); }
         } else { alert("⚠️ 目前沒有暫存的臨床資料，請先開啟表單填寫。"); }
@@ -642,7 +659,7 @@
         if(savedStr) {
             try {
                 cases[currentTrackCaseId].clinicalData = JSON.parse(savedStr);
-                alert("✅ 此個案的臨床病史與影像已同步更新！");
+                alert("✅ 此個案的臨床病史資料已同步更新！");
             } catch (e) { alert("❌ 同步失敗"); }
         } else { alert("⚠️ 請先開啟表單修改並儲存後，再點擊同步。"); }
     }
@@ -731,7 +748,6 @@
         const hosp = hospitals.find(h => h.name === hospName);
         
         hosp.status = editingHospStatus;
-        // 🌟 讀取使用者自訂的文字
         let customText = document.getElementById('set_hosp_status_text').value;
         if (!customText || customText.trim() === "") {
             customText = (editingHospStatus === 'green' ? "可取栓" : (editingHospStatus === 'orange' ? "滿床" : "無人力"));
@@ -750,7 +766,7 @@
     }
 
     // ==========================================
-    // ★ 建立個案與 GAS 串接核心 ★
+    // ★ 建立個案與極速上傳核心 ★
     // ==========================================
     function submitCase() {
         const phone = document.getElementById('req_doc_phone').value;
@@ -767,19 +783,34 @@
         let hospStatusObj = {}; let hospReplyObj = {}; 
         targets.forEach(hName => { hospStatusObj[hName] = "尚未讀取個案"; hospReplyObj[hName] = null; });
 
+        // 🌟 不再打包 images，只送出文字給 GAS
+        let payloadClinicalData = JSON.parse(JSON.stringify(pendingClinicalData));
+        delete payloadClinicalData.images; 
+
         const payloadData = {
             action: "createCase",
-            payload: { caseId: caseId, requestTime: reqTime, reqHospOut: hospOut, reqPhone: phone, reqEmail: email, targetHospitals: targets, clinicalData: pendingClinicalData }
+            payload: { caseId: caseId, requestTime: reqTime, reqHospOut: hospOut, reqPhone: phone, reqEmail: email, targetHospitals: targets, clinicalData: payloadClinicalData }
         };
 
         document.getElementById('submit_result_area').style.display = 'block';
-        document.getElementById('submit_result_area').innerHTML = `⏳ <strong>正在將資料與影像上傳至雲端，請稍候... (請勿關閉網頁)</strong>`;
+        document.getElementById('submit_result_area').innerHTML = `⏳ <strong style="color:#0056b3;">正在秒速建檔並發送通知信，請稍候...</strong>`;
         
         fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payloadData) })
         .then(res => res.json())
         .then(data => {
+            // 🌟 收到成功回覆，秀出閃爍按鈕引導醫師上傳圖片
             if(data.status === "success") {
-                document.getElementById('submit_result_area').innerHTML = `✅ <strong>雲端上傳成功！個案代碼： <span id="case_id_display" style="font-size: 1.3em; color: #0056b3;">${caseId}</span></strong><br><span style="font-size: 0.9em; color: #155724;">(影像已建立專屬 Drive 資料夾，資料已寫入 Google Sheet，並已寄發通知信)</span>`;
+                document.getElementById('submit_result_area').innerHTML = `
+                    <div style="text-align: center;">
+                        <h3 style="color: #28a745; margin-bottom: 5px;">✅ 資訊與通知已秒速發送！</h3>
+                        <p style="font-size: 1.1em; color: #0056b3; font-weight: bold; margin-bottom: 15px;">個案代碼：${caseId}</p>
+                        <p style="color: #dc3545; font-weight: bold; font-size: 1.1em; margin-bottom: 10px;">⚠️ 最後一步：請點擊下方按鈕上傳臨床影像 ⚠️</p>
+                        <a href="${data.data.folderUrl}" target="_blank" style="display: inline-block; background-color: #0056b3; color: white; padding: 15px 30px; border-radius: 8px; font-size: 1.2em; font-weight: bold; text-decoration: none; box-shadow: 0 4px 6px rgba(0,0,0,0.2); animation: pulse 1.5s infinite;">
+                            📂 點此開啟專屬資料夾，並將影像拖曳進入
+                        </a>
+                        <p style="font-size: 0.85em; color: #666; margin-top: 10px;">(上傳完成後，接收端醫院即可在信件中查看；鎖定目標醫院後，系統將自動為您搬運影像)</p>
+                    </div>
+                `;
             } else { document.getElementById('submit_result_area').innerHTML = `❌ <strong>上傳發生錯誤：</strong> ${data.error}`; }
         })
         .catch(e => { document.getElementById('submit_result_area').innerHTML = `❌ <strong>網路連線錯誤，請檢查 GAS 網址是否正確。</strong>`; });
@@ -787,7 +818,7 @@
         cases[caseId] = { 
             reqHospOut: hospOut, phone: phone, targets: targets, hospStatus: hospStatusObj, hospReplyTime: hospReplyObj, hospPendingReason: {},
             finalDest: null, location: null, departTime: null, arriveTime: null, timestamp: Date.now(),
-            clinicalData: JSON.parse(JSON.stringify(pendingClinicalData)), requestTime: reqTime, cancelTime: null, reRequestTime: null, lockTime: null 
+            clinicalData: payloadClinicalData, requestTime: reqTime, cancelTime: null, reRequestTime: null, lockTime: null 
         };
 
         pendingClinicalData = {}; 
@@ -895,7 +926,7 @@
             cases[currentTrackCaseId].lockTime = t; 
             
             if (GAS_URL) {
-                document.getElementById('track_chat_area').innerHTML = `<strong style="color:#fd7e14;">⏳ 正在為您與 ${hospName} 建立專屬 Google Doc，請稍候...</strong>`;
+                document.getElementById('track_chat_area').innerHTML = `<strong style="color:#fd7e14;">⏳ 正在為您與 ${hospName} 建立專屬 Google Doc，並在背景自動搬運影像...</strong>`;
                 document.getElementById('track_chat_area').style.display = "block";
 
                 fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "updateCaseTracking", payload: { caseId: currentTrackCaseId, actionType: "lock", value1: hospName, value2: t } }) })
@@ -969,7 +1000,7 @@
                         <td style="border-bottom: 1px solid #ccc; padding: 15px; width: 140px;"><b>${caseId}</b><br><span style="font-size: 0.8em; color: #666;">${timesInfo}</span></td>
                         <td style="border-bottom: 1px solid #ccc; padding: 15px;">
                             <div style="display:flex; gap:8px; flex-wrap: wrap; margin-bottom: 8px;">
-                                <button class="btn-main" style="background:#6c757d;" onclick="openViewCaseModal('${caseId}')">📜 檢視完整病史與影像</button>
+                                <button class="btn-main" style="background:#6c757d;" onclick="openViewCaseModal('${caseId}')">📜 檢視完整病史</button>
                                 ${actionBtns}
                             </div>
                             <div style="font-size:0.9em;">狀態: <span style="color:#0056b3;">${c.hospStatus[loggedInHosp]}</span>${replyTimeStr} | 轉出端: ${intentText}</div>
@@ -1033,13 +1064,9 @@
         document.getElementById('vc_tpa').innerText = tpaStr;
         document.getElementById('vc_family').innerText = `${d.famSel||"-"} - ${d.famText||"-"}`;
 
-        const imgContainer = document.getElementById('vc_images_container'); imgContainer.innerHTML = "";
-        if (d.images && d.images.length > 0) {
-            d.images.forEach(img => {
-                if (img.type && img.type.startsWith('image/')) imgContainer.innerHTML += `<img src="${img.data}" class="img-preview">`;
-                else if (img.type && img.type.startsWith('video/')) imgContainer.innerHTML += `<video src="${img.data}" controls class="img-preview"></video><a href="${img.data}" download="${img.name}">💾 下載影片</a>`;
-            });
-        } else { imgContainer.innerHTML = "<span style='color:#999;'>未提供影像</span>"; }
+        // 🌟 因為我們改為連結到共用資料夾，這裡不再顯示圖片，而是提供連結
+        const imgContainer = document.getElementById('vc_images_container'); 
+        imgContainer.innerHTML = `<p style="margin-top:5px;"><a href="https://drive.google.com/drive/folders/${IMAGE_FOLDER_ID}" target="_blank" style="color:#0056b3; font-weight:bold;">📂 開啟 Google Drive 影像資料夾</a></p>`;
 
         document.getElementById('viewCaseModal').style.display = 'flex';
     }
