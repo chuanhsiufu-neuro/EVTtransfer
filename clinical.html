@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📝 臨床資訊與影像獨立表單</title>
+    <title>📝 臨床資訊獨立表單</title>
     <style>
         body { font-family: "Microsoft JhengHei", sans-serif; margin: 0; padding: 20px; background-color: #f4f7f6; color: #333; }
         .form-container { max-width: 800px; margin: 0 auto; background: white; padding: 25px 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
@@ -31,13 +31,6 @@
         .cb-label input { width: 16px; height: 16px; cursor: pointer;}
         .score-display { font-weight: bold; color: #d9534f; margin-left: 5px; }
         
-        /* 影像上傳區塊 */
-        .dropzone { border: 2px dashed #17a2b8; border-radius: 8px; background-color: #e8f4f8; padding: 25px 10px; text-align: center; cursor: pointer; transition: 0.2s; margin-top: 5px; }
-        .dropzone:hover { background-color: #d1ecf1; }
-        .dropzone .icon { font-size: 35px; display: block; margin-bottom: 8px; }
-        .file-list { list-style: none; padding: 0; margin-top: 10px; }
-        .file-list li { font-size: 0.95em; background: #f1f1f1; padding: 10px 15px; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #ddd;}
-        
         /* Modal (彈出視窗) 共用樣式 */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); align-items: center; justify-content: center; padding: 20px; box-sizing: border-box;}
         .modal-content { background-color: #fff; padding: 25px; border-radius: 8px; width: 100%; max-width: 450px; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto; box-sizing: border-box;}
@@ -57,15 +50,22 @@
         .tpa-dynamic-box { padding: 15px; border-radius: 6px; margin-top: 10px; }
         .tpa-yes { background-color: #e8f4f8; border: 1px dashed #17a2b8; }
         .tpa-no { background-color: #fdf5e6; border: 1px dashed #e67e22; }
+
+        /* 提示樣式 */
+        .info-banner { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; padding: 12px; border-radius: 6px; margin-bottom: 20px; font-weight: bold; text-align: center;}
     </style>
 </head>
 <body>
 
 <div class="form-container">
     <h2>
-        <div>📝 臨床資訊與影像表單 <span id="display_case_id" style="font-size: 0.6em; color: #dc3545;">(新個案草稿)</span></div>
+        <div>📝 臨床資訊表單 <span id="display_case_id" style="font-size: 0.6em; color: #dc3545;">(新個案草稿)</span></div>
         <button class="btn-main" style="background-color: #6c757d; font-size: 0.8em;" onclick="window.close()">取消關閉</button>
     </h2>
+
+    <div class="info-banner">
+        💡 提醒：為了確保系統極速運作，影像（CT/MRI）請於送出本表單後，直接上傳至系統建立的專屬 Google Drive 資料夾中。
+    </div>
 
     <div class="sub-title">1. 基本與時間資訊</div>
     <div class="req-row">
@@ -162,23 +162,12 @@
         </div>
     </div>
 
-    <div class="req-row">
+    <div class="req-row" style="margin-bottom: 25px;">
         <div class="req-group" style="flex: 0.6;"><label>決策家屬</label><select id="fam_sel"><option value="配偶">配偶</option><option value="子女">子女</option><option value="父母">父母</option><option value="其他">其他</option></select></div>
         <div class="req-group" style="flex: 1.4;"><label>家屬意願備註</label><input type="text" id="fam_text" placeholder="例如：同意轉院評估"></div>
     </div>
 
-    <div class="sub-title">4. 臨床影像提供</div>
-    <div class="req-group" style="margin-bottom: 25px;">
-        <div class="dropzone" onclick="document.getElementById('fileInput').click()">
-            <input type="file" id="fileInput" accept="image/*,video/*" multiple style="display: none;">
-            <span class="icon">📷</span>
-            <strong>點擊開啟相機 / 選取檔案</strong>
-            <div style="font-size: 0.85em; color: #666; margin-top: 5px;">(支援 JPG, PNG, MP4, MOV，檔案將隨表單一併存入暫存區)</div>
-        </div>
-        <ul id="filePreviewList" class="file-list"></ul>
-    </div>
-
-    <button class="btn-success" onclick="saveToLocal()">💾 儲存表單並返回主畫面</button>
+    <button class="btn-success" onclick="saveToLocal()">💾 儲存文字表單並返回主畫面</button>
 
 </div>
 
@@ -237,8 +226,6 @@
         const nowIso = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16);
         document.getElementById('onset').value = nowIso;
         document.getElementById('door').value = nowIso;
-        
-        document.getElementById('fileInput').addEventListener('change', handleFileSelect);
         loadFromLocal();
     };
 
@@ -292,38 +279,6 @@
         closeOcclusionModal();
     }
 
-    let pendingFiles = [];
-    function handleFileSelect(event) {
-        const files = Array.from(event.target.files);
-        files.forEach(file => {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                pendingFiles.push({ name: file.name, type: file.type, size: file.size, data: e.target.result });
-                renderFilePreview();
-            };
-            reader.readAsDataURL(file);
-        });
-        event.target.value = ''; 
-    }
-
-    function renderFilePreview() {
-        const list = document.getElementById('filePreviewList');
-        list.innerHTML = '';
-        pendingFiles.forEach((file, index) => {
-            let mbSize = (file.size / 1024 / 1024).toFixed(2) + " MB";
-            list.innerHTML += `
-                <li>
-                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex:1;">📎 ${file.name} <span style="color:#888; font-size:0.85em;">(${mbSize})</span></span>
-                    <span style="color:#dc3545; cursor:pointer; font-weight:bold; padding: 0 10px;" onclick="removeFile(${index})">✕</span>
-                </li>`;
-        });
-    }
-
-    function removeFile(index) {
-        pendingFiles.splice(index, 1);
-        renderFilePreview();
-    }
-
     function saveToLocal() {
         let pmhArr = [];
         document.querySelectorAll('.pmh-cb:checked').forEach(cb => pmhArr.push(cb.value));
@@ -353,8 +308,7 @@
             tpaNoNote: document.getElementById('tpa_no_note').value,
             
             famSel: document.getElementById('fam_sel').value,
-            famText: document.getElementById('fam_text').value,
-            images: pendingFiles
+            famText: document.getElementById('fam_text').value
         };
 
         localStorage.setItem('stroke_transfer_clinical_data', JSON.stringify(data));
@@ -369,7 +323,7 @@
 
         setTimeout(() => {
             if (!window.closed) {
-                alert("💡 提示：請手動關閉此分頁，回到主畫面讀取暫存資料即可！");
+                alert("💡 提示：請手動關閉此分頁，回到主畫面點擊【讀取暫存資料】即可！");
             }
         }, 500);
     }
@@ -414,11 +368,6 @@
                     document.querySelectorAll('.pmh-cb').forEach(cb => {
                         cb.checked = d.pmhList.includes(cb.value);
                     });
-                }
-
-                if(d.images) {
-                    pendingFiles = d.images;
-                    renderFilePreview();
                 }
 
                 calcNIHSS();
