@@ -1,766 +1,397 @@
 <!DOCTYPE html>
-
 <html lang="zh-TW">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>📝 臨床資訊獨立表單</title>
-
     <style>
-
         body { font-family: "Microsoft JhengHei", sans-serif; margin: 0; padding: 20px; background-color: #f4f7f6; color: #333; }
-
         .form-container { max-width: 800px; margin: 0 auto; background: white; padding: 25px 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-
         
-
         h2 { color: #0056b3; margin-top: 0; border-bottom: 3px solid #b8daff; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center;}
-
         .sub-title { background-color: #eef; padding: 8px 12px; margin: 20px 0 15px 0; border-radius: 4px; font-weight: bold; color: #004085; border-left: 4px solid #0056b3; font-size: 1.05em; }
 
-
-
         /* 表單排版 */
-
         .req-row { display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-start; margin-bottom: 15px; }
-
         .req-group { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 150px; }
-
         label { font-weight: bold; font-size: 0.95em; color: #444; display: flex; justify-content: space-between; align-items: center;}
-
         input[type="text"], input[type="number"], input[type="datetime-local"], select, textarea { padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; width: 100%; box-sizing: border-box; background-color: #fff; transition: 0.2s;}
-
         input:focus, textarea:focus, select:focus { border-color: #17a2b8; outline: none; box-shadow: 0 0 5px rgba(23, 162, 184, 0.3); }
-
-        
-
+      
         /* 按鈕設計 */
-
         .btn-main { background-color: #0056b3; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.95em; transition: 0.2s;}
-
         .btn-main:hover { background-color: #004085; }
-
         .btn-success { background-color: #28a745; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 1.1em; width: 100%; transition: 0.2s;}
-
         .btn-success:hover { background-color: #218838; }
-
         .btn-warning { background-color: #ffc107; color: #333; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.85em; }
 
-
-
         /* 複選框 (過去病史) */
-
         .cb-group { display: flex; flex-wrap: wrap; gap: 10px; padding: 12px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 6px; }
-
         .cb-label { display: flex; align-items: center; gap: 5px; cursor: pointer; font-size: 0.95em; font-weight: normal; }
-
         .cb-label input { width: 16px; height: 16px; cursor: pointer;}
-
         .score-display { font-weight: bold; color: #d9534f; margin-left: 5px; }
-
         
-
         /* Modal (彈出視窗) 共用樣式 */
-
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); align-items: center; justify-content: center; padding: 20px; box-sizing: border-box;}
-
         .modal-content { background-color: #fff; padding: 25px; border-radius: 8px; width: 100%; max-width: 450px; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto; box-sizing: border-box;}
-
         .close-btn { position: absolute; top: 15px; right: 20px; color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer; }
-
         
 
-        /* 症狀選擇專用樣式 */
-
+       /* 症狀選擇專用樣式 */
         .symp-row { margin-bottom: 12px; font-size: 15px; border-bottom: 1px dashed #ccc; padding-bottom: 10px; }
-
         .symp-row strong { color: #0056b3; display: inline-block; margin-bottom: 6px; font-size: 16px; }
-
         .symp-row label { margin-right: 12px; display: inline-flex; align-items: center; cursor: pointer; color: #333; }
-
         
-
         /* 血管阻塞位置專用樣式 */
-
         .occ-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 8px; align-items: center; text-align: center; border-bottom: 1px dashed #eee; padding: 10px 0; }
-
         .occ-name { text-align: left; font-weight: bold; color: #333; font-size: 15px; }
-
         .occ-row input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
 
-
-
         /* tPA 動態區塊樣式 */
-
         .tpa-dynamic-box { padding: 15px; border-radius: 6px; margin-top: 10px; }
-
         .tpa-yes { background-color: #e8f4f8; border: 1px dashed #17a2b8; }
-
         .tpa-no { background-color: #fdf5e6; border: 1px dashed #e67e22; }
 
-
-
         /* 提示樣式 */
-
         .info-banner { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; padding: 12px; border-radius: 6px; margin-bottom: 20px; font-weight: bold; text-align: center;}
-
     </style>
-
 </head>
-
 <body>
 
-
-
 <div class="form-container">
-
     <h2>
-
         <div>📝 臨床資訊表單 <span id="display_case_id" style="font-size: 0.6em; color: #dc3545;">(新個案草稿)</span></div>
-
-        <button class="btn-main" style="background-color: #6c757d; font-size: 0.8em;" onclick="window.close()">取消關閉</button>
-
+        <div style="display: flex; gap: 10px;">
+            <button class="btn-main" style="background-color: #dc3545; font-size: 0.8em;" onclick="if(confirm('確定要清空所有資料嗎？')){ localStorage.removeItem('stroke_transfer_clinical_data'); location.reload(); }">🗑️ 清空表單</button>
+            <button class="btn-main" style="background-color: #6c757d; font-size: 0.8em;" onclick="window.close()">取消關閉</button>
+        </div>
     </h2>
 
-
-
     <div class="info-banner">
-
         💡 提醒：影像（CT/MRI）請於送出本表單後，直接上傳至系統建立的專屬 Google Drive 資料夾中。
-
     </div>
-
-
 
     <div class="sub-title">1. 基本與時間資訊</div>
-
     <div class="req-row">
-
         <div class="req-group" style="flex: 0.5;"><label>年齡</label><input type="number" id="age" placeholder="歲"></div>
-
         <div class="req-group" style="flex: 0.5;"><label>性別</label><select id="gender"><option value="男">男</option><option value="女">女</option></select></div>
-
         <div class="req-group">
-
             <label>Pre-mRS</label>
-
             <select id="mrs">
-
                 <option value="0">0分(完全沒有症狀)</option>
-
                 <option value="1">1分(有症狀可工作)</option>
-
                 <option value="2">2分(輕度生活自理)</option>
-
                 <option value="3">3分(中度獨立可走)</option>
-
                 <option value="4">4分(中重度需扶走)</option>
-
                 <option value="5">5分(重度失能臥床)</option>
-
             </select>
-
         </div>
-
     </div>
-
     <div class="req-row">
-
         <div class="req-group"><label>發作/最後正常時間 (LKW)</label><input type="datetime-local" id="onset"></div>
-
         <div class="req-group"><label>急診檢傷時間 (Door)</label><input type="datetime-local" id="door"></div>
-
     </div>
-
-
 
     <div class="sub-title">2. 臨床表現與評估</div>
-
     <div class="req-row">
-
         <div class="req-group" style="flex: 1;">
 
-            <label>臨床病程 (Clinical course) <button class="btn-warning" type="button" onclick="openSymptomsModal()">📋 快速帶入症狀</button></label>
-
+           <label>臨床病程 (Clinical course) <button class="btn-warning" type="button" onclick="openSymptomsModal()">📋 快速帶入症狀</button></label>
             <textarea id="symptoms" rows="4" placeholder="例如: 右側無力 (MP: 2/5)..."></textarea>
-
         </div>
-
     </div>
-
     <div class="req-row">
-
         <div class="req-group" style="flex: 1;">
-
             <label>
-
                 懷疑阻塞位置 
-
                 <button class="btn-warning" type="button" onclick="openOcclusionModal()" style="background-color: #dc3545; color: white;">🫀 血管選單</button>
-
             </label>
-
             <input type="text" id="occlusion" placeholder="可點選上方按鈕帶入">
-
         </div>
-
         <div class="req-group" style="flex: 1;">
-
             <label>NIHSS 分數 <span id="nihss_display" class="score-display"></span></label>
-
             <input type="text" id="nihss" placeholder="輸入細項 (含X自動加總)" oninput="calcNIHSS()">
 
-        </div>
-
+       </div>
     </div>
 
-
-
     <div class="req-group" style="margin-bottom: 15px;">
-
         <label>過去病史 (可複選)</label>
 
-        <div class="cb-group">
-
+       <div class="cb-group">
             <label class="cb-label"><input type="checkbox" class="pmh-cb" value="DM"> DM</label>
-
             <label class="cb-label"><input type="checkbox" class="pmh-cb" value="HTN"> HTN</label>
-
             <label class="cb-label"><input type="checkbox" class="pmh-cb" value="Hyperlipidemia"> Hyperlipidemia</label>
-
             <label class="cb-label"><input type="checkbox" class="pmh-cb" value="AF"> AF</label>
-
             <label class="cb-label"><input type="checkbox" class="pmh-cb" value="CAD"> CAD</label>
-
             <label class="cb-label"><input type="checkbox" class="pmh-cb" value="ESRD"> ESRD</label>
-
             <label class="cb-label"><input type="checkbox" class="pmh-cb" value="Cancer"> Cancer</label>
-
             <input type="text" id="pmh_other" placeholder="其他..." style="flex: 1; min-width: 100px;">
-
         </div>
-
     </div>
-
-
 
     <div class="sub-title">3. 檢驗數據與處置</div>
-
     <div class="req-row">
-
         <div class="req-group" style="flex: 0.8;"><label>Lab: Cre</label><input type="text" id="cre" placeholder="數值"></div>
-
         <div class="req-group" style="flex: 1.2;"><label>其他檢驗 (INR, EKG...)</label><input type="text" id="lab_other" placeholder="選填"></div>
-
     </div>
-
     
-
     <div class="req-group" style="margin-bottom: 15px;">
-
         <label>處置: tPA</label>
-
         <div style="display: flex; gap: 20px; align-items: center; padding: 10px; border: 1px solid #ccc; border-radius: 6px;">
-
             <label class="cb-label"><input type="radio" name="tpa_status" value="有施打" onchange="toggleRtpa()"> 有施打</label>
-
             <label class="cb-label"><input type="radio" name="tpa_status" value="未施打" onchange="toggleRtpa()"> 未施打</label>
-
         </div>
-
         
-
         <div id="tpa_yes_wrap" class="req-row tpa-dynamic-box tpa-yes" style="display: none; align-items: flex-end; margin-bottom: 0;">
-
             <div class="req-group" style="flex: 0.8;">
-
                 <label style="font-size: 0.85em;">劑量</label>
-
                 <select id="tpa_dose">
-
                     <option value="0.9 mg/kg">0.9 mg/kg</option>
-
                     <option value="0.6 mg/kg">0.6 mg/kg</option>
-
                 </select>
-
             </div>
-
             <div class="req-group" style="flex: 1.2;">
-
                 <label style="font-size: 0.85em;">Bolus Time</label>
-
                 <input type="datetime-local" id="tpa_bolus_time">
-
             </div>
-
             <div class="req-group" style="flex: 1;">
-
                 <label style="font-size: 0.85em;">備註</label>
-
                 <input type="text" id="tpa_yes_note" placeholder="選填備註">
-
             </div>
-
         </div>
-
-
 
         <div id="tpa_no_wrap" class="req-row tpa-dynamic-box tpa-no" style="display: none; margin-bottom: 0;">
-
             <div class="req-group" style="flex: 1;">
-
                 <label style="font-size: 0.85em;">備註 (未打原因)</label>
-
                 <input type="text" id="tpa_no_note" placeholder="例如：超過黃金時間、家屬拒絕、有禁忌症...">
-
             </div>
-
         </div>
 
-    </div>
+   </div>
 
-
-
-    <div class="req-row" style="margin-bottom: 25px;">
-
+   <div class="req-row" style="margin-bottom: 25px;">
         <div class="req-group" style="flex: 0.6;"><label>決策家屬</label><select id="fam_sel"><option value="配偶">配偶</option><option value="子女">子女</option><option value="父母">父母</option><option value="其他">其他</option></select></div>
-
         <div class="req-group" style="flex: 1.4;"><label>家屬意願備註</label><input type="text" id="fam_text" placeholder="例如：同意轉院評估"></div>
-
     </div>
-
-
 
     <button class="btn-success" onclick="saveToLocal()">💾 儲存文字表單並返回主畫面</button>
 
-
-
 </div>
-
-
 
 <!-- 症狀選擇 Modal -->
-
 <div id="symptom-modal" class="modal" onclick="if(event.target===this) closeSymptomsModal()">
-
     <div class="modal-content">
-
         <span class="close-btn" onclick="closeSymptomsModal()">&times;</span>
-
         <h3 style="margin-top:0; color:#17a2b8; border-bottom:1px solid #eee; padding-bottom:10px;">勾選常見臨床症狀</h3>
-
         
-
         <div class="symp-row"><strong>1. Limb weakness:</strong> <br><label><input type="checkbox" name="symp_limb" value="RU"> RU</label> <label><input type="checkbox" name="symp_limb" value="LU"> LU</label> <label><input type="checkbox" name="symp_limb" value="RL"> RL</label> <label><input type="checkbox" name="symp_limb" value="LL"> LL</label></div>
-
         <div class="symp-row"><strong>2. Facial Palsy:</strong> <br><label><input type="checkbox" name="symp_face" value="Right"> Right</label> <label><input type="checkbox" name="symp_face" value="Left"> Left</label></div>
-
         <div class="symp-row"><strong>3. Speech/Swallowing:</strong> <br><label><input type="checkbox" name="symp_misc" value="Dysarthria"> Dysarthria</label> <label><input type="checkbox" name="symp_misc" value="Dysphagia"> Dysphagia</label></div>
-
         <div class="symp-row"><strong>4. Aphasia:</strong> <br><label><input type="checkbox" name="symp_aphasia" value="Motor"> Motor</label> <label><input type="checkbox" name="symp_aphasia" value="Sensory"> Sensory</label> <label><input type="checkbox" name="symp_aphasia" value="Mixed type"> Mixed</label></div>
-
         <div class="symp-row"><strong>5. Dizziness/Vertigo:</strong> <br><label><input type="checkbox" name="symp_misc" value="Dizziness"> Dizziness</label> <label><input type="checkbox" name="symp_misc" value="Vertigo"> Vertigo</label></div>
-
         <div class="symp-row" style="border-bottom:none;"><strong>6. Consciousness:</strong> <br><label><input type="checkbox" name="symp_misc" value="Coma"> Coma</label> <label><input type="checkbox" name="symp_misc" value="Drowsiness"> Drowsiness</label></div>
-
         
-
         <div style="margin-top:20px; display:flex; gap:10px; justify-content:flex-end;">
-
             <button class="btn-main" style="background:#7f8c8d;" type="button" onclick="closeSymptomsModal()">取消</button>
-
             <button class="btn-main" style="background:#ffc107; color:#333;" type="button" onclick="applySymptoms()">✅ 確認帶入</button>
-
         </div>
-
     </div>
-
 </div>
-
-
 
 <!-- 血管阻塞位置選擇 Modal -->
-
 <div id="occlusion-modal" class="modal" onclick="if(event.target===this) closeOcclusionModal()">
-
     <div class="modal-content">
-
         <span class="close-btn" onclick="closeOcclusionModal()">&times;</span>
 
-        <h3 style="margin-top:0; color:#dc3545; border-bottom:1px solid #eee; padding-bottom:10px;">🫀 勾選懷疑阻塞位置</h3>
-
+       <h3 style="margin-top:0; color:#dc3545; border-bottom:1px solid #eee; padding-bottom:10px;">🫀 勾選懷疑阻塞位置</h3>
         
-
         <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 8px; align-items: center; text-align: center; margin-bottom: 5px; padding-bottom: 5px; border-bottom: 2px solid #ccc;">
-
             <strong style="text-align: left; color: #555;">血管</strong>
-
             <strong style="color: #d9534f;">R (右)</strong>
-
             <strong style="color: #0056b3;">L (左)</strong>
-
             <strong style="color: #28a745;">Bil (雙側)</strong>
-
         </div>
 
 
-
-        <div class="occ-row"><span class="occ-name">MCA M1</span><input type="checkbox" name="occ_vessel" value="R't MCA M1"><input type="checkbox" name="occ_vessel" value="L't MCA M1"><input type="checkbox" name="occ_vessel" value="Bil MCA M1"></div>
-
+       <div class="occ-row"><span class="occ-name">MCA M1</span><input type="checkbox" name="occ_vessel" value="R't MCA M1"><input type="checkbox" name="occ_vessel" value="L't MCA M1"><input type="checkbox" name="occ_vessel" value="Bil MCA M1"></div>
         <div class="occ-row"><span class="occ-name">MCA M2</span><input type="checkbox" name="occ_vessel" value="R't MCA M2"><input type="checkbox" name="occ_vessel" value="L't MCA M2"><input type="checkbox" name="occ_vessel" value="Bil MCA M2"></div>
-
         <div class="occ-row"><span class="occ-name">ICA</span><input type="checkbox" name="occ_vessel" value="R't ICA"><input type="checkbox" name="occ_vessel" value="L't ICA"><input type="checkbox" name="occ_vessel" value="Bil ICA"></div>
-
         <div class="occ-row"><span class="occ-name">ACA</span><input type="checkbox" name="occ_vessel" value="R't ACA"><input type="checkbox" name="occ_vessel" value="L't ACA"><input type="checkbox" name="occ_vessel" value="Bil ACA"></div>
-
         <div class="occ-row"><span class="occ-name">VA</span><input type="checkbox" name="occ_vessel" value="R't VA"><input type="checkbox" name="occ_vessel" value="L't VA"><input type="checkbox" name="occ_vessel" value="Bil VA"></div>
-
         <div class="occ-row"><span class="occ-name">BA</span><input type="checkbox" name="occ_vessel" value="R't BA"><input type="checkbox" name="occ_vessel" value="L't BA"><input type="checkbox" name="occ_vessel" value="Bil BA"></div>
-
         <div class="occ-row" style="border-bottom: none;"><span class="occ-name">PCA</span><input type="checkbox" name="occ_vessel" value="R't PCA"><input type="checkbox" name="occ_vessel" value="L't PCA"><input type="checkbox" name="occ_vessel" value="Bil PCA"></div>
 
-
-
         <div style="margin-top:20px; display:flex; gap:10px; justify-content:flex-end;">
-
             <button class="btn-main" style="background:#7f8c8d;" type="button" onclick="closeOcclusionModal()">取消</button>
-
             <button class="btn-main" style="background:#ffc107; color:#333;" type="button" onclick="applyOcclusion()">✅ 確認帶入</button>
-
         </div>
-
     </div>
-
 </div>
 
-
-
 <script>
-
     let currentEditingCaseId = null;
 
-
-
     window.onload = function() {
-
         const nowIso = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-
         document.getElementById('onset').value = nowIso;
-
         document.getElementById('door').value = nowIso;
-
         loadFromLocal();
-
     };
 
-
-
     function calcNIHSS() {
-
         const val = document.getElementById('nihss').value; 
-
         let sum = 0, hasX = false;
-
         for (let c of val) { 
-
             if (/[0-9]/.test(c)) sum += parseInt(c); 
-
             else if (c.toUpperCase() === 'X') hasX = true; 
-
         }
-
         document.getElementById('nihss_display').innerText = val.trim() === "" ? "" : `(${hasX ? sum+'+X' : sum}分)`;
-
     }
 
 
-
-    function toggleRtpa() {
-
+   function toggleRtpa() {
         const status = document.querySelector('input[name="tpa_status"]:checked')?.value;
-
         document.getElementById('tpa_yes_wrap').style.display = (status === '有施打') ? 'flex' : 'none';
-
         document.getElementById('tpa_no_wrap').style.display = (status === '未施打') ? 'flex' : 'none';
-
     }
-
-
 
     function openSymptomsModal() { document.getElementById('symptom-modal').style.display = 'flex'; }
-
     function closeSymptomsModal() { document.getElementById('symptom-modal').style.display = 'none'; }
-
     function applySymptoms() {
-
         let phrases = [];
-
         const getVals = (name) => Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(el => el.value);
-
         
-
         let limb = getVals('symp_limb'); if(limb.length > 0) phrases.push(limb.join(', ') + ' limb weakness');
-
         let face = getVals('symp_face'); if(face.length > 0) phrases.push(face.join(', ') + ' facial palsy');
-
         let aphasia = getVals('symp_aphasia'); if(aphasia.length > 0) phrases.push(aphasia.join(', ') + ' aphasia');
-
         let misc = getVals('symp_misc'); if(misc.length > 0) phrases.push(misc.join(', '));
 
-
-
         if(phrases.length > 0) {
-
             const textarea = document.getElementById('symptoms');
-
             let newText = phrases.join(', ');
-
             newText = newText.charAt(0).toUpperCase() + newText.slice(1);
-
             textarea.value = textarea.value.trim() !== "" ? textarea.value.trim() + '\n' + newText : newText;
-
             document.querySelectorAll('#symptom-modal input[type="checkbox"]').forEach(cb => cb.checked = false);
-
         }
-
         closeSymptomsModal();
-
     }
-
-
 
     function openOcclusionModal() { document.getElementById('occlusion-modal').style.display = 'flex'; }
-
     function closeOcclusionModal() { document.getElementById('occlusion-modal').style.display = 'none'; }
-
     function applyOcclusion() {
-
         let checkedBoxes = Array.from(document.querySelectorAll('input[name="occ_vessel"]:checked')).map(cb => cb.value);
-
         if(checkedBoxes.length > 0) {
-
             const inputField = document.getElementById('occlusion');
-
             let newText = checkedBoxes.join(', ');
-
             inputField.value = inputField.value.trim() !== "" ? inputField.value.trim() + ', ' + newText : newText;
-
             document.querySelectorAll('input[name="occ_vessel"]').forEach(cb => cb.checked = false);
-
         }
-
         closeOcclusionModal();
-
     }
 
-
-
     function saveToLocal() {
-
         let pmhArr = [];
-
         document.querySelectorAll('.pmh-cb:checked').forEach(cb => pmhArr.push(cb.value));
-
-
 
         const tpaStatus = document.querySelector('input[name="tpa_status"]:checked')?.value || "";
 
-
-
         const data = {
-
             caseId: currentEditingCaseId, 
-
             age: document.getElementById('age').value,
-
             gender: document.getElementById('gender').value,
-
             mrs: document.getElementById('mrs').value,
-
             onset: document.getElementById('onset').value,
-
             door: document.getElementById('door').value,
-
             symptoms: document.getElementById('symptoms').value,
-
             occlusion: document.getElementById('occlusion').value,
-
             nihssRaw: document.getElementById('nihss').value,
-
             nihssScore: document.getElementById('nihss_display').innerText,
-
             pmhList: pmhArr,
-
             pmhOther: document.getElementById('pmh_other').value,
-
             cre: document.getElementById('cre').value,
-
             labOther: document.getElementById('lab_other').value,
-
             
-
             tpaStatus: tpaStatus,
-
             tpaDose: document.getElementById('tpa_dose').value,
-
             tpaBolusTime: document.getElementById('tpa_bolus_time').value,
-
             tpaYesNote: document.getElementById('tpa_yes_note').value,
-
             tpaNoNote: document.getElementById('tpa_no_note').value,
-
             
-
             famSel: document.getElementById('fam_sel').value,
-
             famText: document.getElementById('fam_text').value
-
         };
 
-
-
         localStorage.setItem('stroke_transfer_clinical_data', JSON.stringify(data));
-
         
-
         alert("✅ 表單已暫存成功！");
-
         
-
         try {
-
             window.close();
-
         } catch (e) {
-
             console.log("無法自動關閉");
-
         }
-
-
 
         setTimeout(() => {
-
             if (!window.closed) {
-
-                alert("💡 提示：請手動關閉此分頁，回到主畫面點擊【讀取暫存資料】即可！");
-
+               alert("💡 提示：請手動關閉此分頁，回到主畫面點擊【讀取暫存資料】即可！");
             }
 
-        }, 500);
-
+       }, 500);
     }
-
-
 
     function loadFromLocal() {
-
         const savedStr = localStorage.getItem('stroke_transfer_clinical_data');
-
         if(savedStr) {
-
             try {
-
                 const d = JSON.parse(savedStr);
-
                 
-
                 if (d.caseId) {
-
                     currentEditingCaseId = d.caseId;
-
                     document.getElementById('display_case_id').innerText = ` (正在編輯個案: ${d.caseId})`;
-
                     document.getElementById('display_case_id').style.color = "#28a745";
-
                 }
-
-
 
                 document.getElementById('age').value = d.age || "";
-
                 document.getElementById('gender').value = d.gender || "男";
-
                 document.getElementById('mrs').value = d.mrs || "0";
-
                 document.getElementById('onset').value = d.onset || "";
-
                 document.getElementById('door').value = d.door || "";
-
                 document.getElementById('symptoms').value = d.symptoms || "";
-
                 document.getElementById('occlusion').value = d.occlusion || "";
-
                 document.getElementById('nihss').value = d.nihssRaw || "";
-
                 document.getElementById('pmh_other').value = d.pmhOther || "";
-
                 document.getElementById('cre').value = d.cre || "";
-
                 document.getElementById('lab_other').value = d.labOther || "";
-
                 
-
                 if(d.tpaStatus) {
-
                     const radio = document.querySelector(`input[name="tpa_status"][value="${d.tpaStatus}"]`);
-
                     if(radio) radio.checked = true;
 
-                }
-
+               }
                 document.getElementById('tpa_dose').value = d.tpaDose || "0.9 mg/kg";
-
                 document.getElementById('tpa_bolus_time').value = d.tpaBolusTime || "";
-
                 document.getElementById('tpa_yes_note').value = d.tpaYesNote || "";
-
                 document.getElementById('tpa_no_note').value = d.tpaNoNote || "";
-
                 
-
                 document.getElementById('fam_sel').value = d.famSel || "配偶";
-
                 document.getElementById('fam_text').value = d.famText || "";
 
-
-
                 if(d.pmhList) {
-
                     document.querySelectorAll('.pmh-cb').forEach(cb => {
-
                         cb.checked = d.pmhList.includes(cb.value);
-
                     });
-
                 }
 
-
-
                 calcNIHSS();
-
                 rtpaStatus = document.querySelector('input[name="tpa_status"]:checked')?.value;
-
                 if(rtpaStatus) toggleRtpa();
-
             } catch (e) {
-
                 console.error("載入失敗", e);
-
             }
-
         }
-
     }
-
 </script>
-
-
 
 </body>
 
