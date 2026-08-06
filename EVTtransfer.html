@@ -137,7 +137,7 @@
                 <div id="form_status_desc" style="font-size: 0.85em; color: #666; margin-top: 5px;">請點擊按鈕開啟獨立表單填寫臨床資料，填妥後點擊「讀取暫存資料」。</div>
             </div>
             <div style="display: flex; gap: 5px; flex-wrap: wrap;">
-                <button class="btn-main" style="background:#17a2b8;" onclick="window.open('clinical.html', '_blank')">📝 開啟臨床表單</button>
+                <button class="btn-main" style="background:#17a2b8;" onclick="openNewClinicalForm()">📝 開啟臨床表單</button>
                 <button class="btn-warning" onclick="loadClinicalFromLocal()">🔄 讀取暫存資料</button>
             </div>
         </div>
@@ -423,7 +423,7 @@
     // ==========================================
     // ⚙️ 系統設定與 GAS API 網址
     // ==========================================
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbzp-2m5gG-7eXsOTFnM_bSsIApu-9CpAatw2NTA_faWByWbFHqAAilZJjBI6b07qLK0kg/exec"; 
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbwtY2ZnCKEbNT7bDGiTJhjB0rE0neTzAIskbipEFkdrojvAFPlKfopfHqNkoii-f_S_tg/exec"; 
 
     let hospitalsConfigData = {};
     let currentRosterData = {};
@@ -655,7 +655,50 @@
             } catch (e) { alert("❌ 資料讀取失敗"); }
         } else { alert("⚠️ 目前沒有暫存的臨床資料，請先開啟表單填寫。"); }
     }
+    
+   // ==========================================
+    // 🌟 智慧識別：開啟全新臨床表單，避免與舊個案殘留資料衝突
+    // ==========================================
+    function openNewClinicalForm() {
+        const savedStr = localStorage.getItem('stroke_transfer_clinical_data');
+        
+        if (savedStr) {
+            try {
+                let existingData = JSON.parse(savedStr);
+                // 判斷 1：如果裡面有 caseId，代表這是從「Tab 2 個案追蹤」留下來的舊資料
+                if (existingData.caseId) {
+                    localStorage.removeItem('stroke_transfer_clinical_data'); // 直接無聲清空
+                    pendingClinicalData = {};
+                    resetFormStatusCard();
+                } 
+                // 判斷 2：如果沒有 caseId，代表這是 Tab 1 填到一半還沒送出的「草稿」
+                else {
+                    let confirmClear = confirm("💡 系統偵測到您有一筆【尚未送出】的新個案草稿。\n\n👉 點擊【確定】：捨棄草稿，開啟全新空白表單\n👉 點擊【取消】：保留草稿，繼續編輯該病人資料");
+                    if (confirmClear) {
+                        localStorage.removeItem('stroke_transfer_clinical_data');
+                        pendingClinicalData = {};
+                        resetFormStatusCard();
+                    }
+                }
+            } catch (e) {
+                // 如果解析失敗，直接清空防呆
+                localStorage.removeItem('stroke_transfer_clinical_data');
+            }
+        }
+        
+        // 處理完暫存後，開啟表單網頁
+        window.open('clinical.html', '_blank');
+    }
 
+    // 重置 Tab 1 狀態卡的 UI 顯示
+    function resetFormStatusCard() {
+        const card = document.getElementById('form_status_card'); 
+        const title = document.getElementById('form_status_title');
+        card.classList.remove('filled'); 
+        title.innerText = "尚未讀取臨床資訊"; 
+        title.style.color = "#6c757d";
+    }
+    
     function editExistingClinical() {
         if(!currentTrackCaseId || !cases[currentTrackCaseId]) return alert("請先登入個案！");
         let currentData = cases[currentTrackCaseId].clinicalData || {};
