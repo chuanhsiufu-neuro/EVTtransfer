@@ -423,7 +423,7 @@
     // ==========================================
     // ⚙️ 系統設定與 GAS API 網址
     // ==========================================
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbwgwU6Jb-_ziz7dAro30JOyyDbvrHEOl0zmsep_asjd8b2bdASs-aYM0axWmLqyyA7PDg/exec"; 
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbygZ432SwTDj_RwkTBs6IY_Sq01cHcv7pbMtHiqHCeBp9olRTqfq1VxBPh5rt6zPWl3XA/exec"; 
 
     let hospitalsConfigData = {};
     let currentRosterData = {};
@@ -566,6 +566,18 @@
                 }
 
                 renderHospitalBoard(); renderQuickUpdateBoard();
+                // 🌟 網址導航解析：如果是從 Email 跳轉來的，自動切換至 Tab 3 並預選醫院
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('tab') === 'tab3') {
+                    switchTab('tab3');
+                    const urlHosp = urlParams.get('hosp');
+                    // 確認下拉選單中有這個醫院
+                    if (urlHosp && document.querySelector(`#login_hosp_name option[value="${urlHosp}"]`)) {
+                        document.getElementById('login_hosp_name').value = urlHosp;
+                        // 自動讓密碼框發光，醫師直接打密碼就能登入
+                        setTimeout(() => document.getElementById('login_hosp_pwd').focus(), 500);
+                    }
+                }
             } else { alert("雲端資料讀取失敗: " + resData.error); }
         })
         .catch(err => {
