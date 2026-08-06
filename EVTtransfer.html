@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>中風區域聯防轉診平台 v34 (極速上傳與班表收納版)</title>
+    <title>中風區域聯防轉診平台 v34 </title>
     <style>
         body { font-family: "Microsoft JhengHei", sans-serif; margin: 0; padding: 20px; background-color: #f0f2f5; color: #333; }
         .app-container { max-width: 1100px; margin: 0 auto; background: transparent; }
@@ -220,10 +220,10 @@
 
     <div class="disclaimer">
         此平台為新竹台大分院傅傳修醫師為協助桃竹苗地區轉診生成的網頁，<br>為了協助資訊傳遞，請注意避免輸入含病人個資之資訊 (如: 姓名/病歷號/電話等)，謝謝合作！
-        <div style="margin-top: 8px; font-size: 0.85em; color: #6c757d; font-weight: normal;">
-            (版本更新日期: V34 2026/08/06)
+        <div id="footer_version_display" style="margin-top: 8px; font-size: 0.85em; color: #6c757d; font-weight: normal;">
+            <!-- JS 會自動將 Title 與日期填入此處 -->
         </div>
-    </div>
+    </div
 
 </div>
 
@@ -423,7 +423,7 @@
     // ==========================================
     // ⚙️ 系統設定與 GAS API 網址
     // ==========================================
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbxkwKzR-L7n19VcWLzsRifPikFOwB7Hjgirq7zy-ISTf1lLpXCgVxqwyflFwf4wHKjTDQ/exec"; 
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbzp-2m5gG-7eXsOTFnM_bSsIApu-9CpAatw2NTA_faWByWbFHqAAilZJjBI6b07qLK0kg/exec"; 
 
     let hospitalsConfigData = {};
     let currentRosterData = {};
@@ -469,6 +469,12 @@
                 document.getElementById('set_hosp_status_text').value = defaultText;
             });
         });
+
+        // 🌟 自動抓取網頁 Title 與當天日期，填入置底宣告
+        const today = new Date();
+        const dateString = today.getFullYear() + "/" + String(today.getMonth() + 1).padStart(2, '0') + "/" + String(today.getDate()).padStart(2, '0');
+        const pageTitle = document.title;
+        document.getElementById('footer_version_display').innerText = `(版本資訊: ${pageTitle} | 當前日期: ${dateString})`;
     };
 
     function fetchRecentCasesFromGAS() {
