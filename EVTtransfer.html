@@ -423,7 +423,7 @@
     // ==========================================
     // ⚙️ 系統設定與 GAS API 網址
     // ==========================================
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbyEbGwzzPA_YdZn264mQoRLVX7c2aDFTd5a2l9WqN1mBVB9JY4ggcaiK_4PbQnQKGAWDw/exec"; 
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbwgwU6Jb-_ziz7dAro30JOyyDbvrHEOl0zmsep_asjd8b2bdASs-aYM0axWmLqyyA7PDg/exec"; 
 
     let hospitalsConfigData = {};
     let currentRosterData = {};
@@ -483,7 +483,15 @@
         .then(res => res.json())
         .then(resData => {
             if (resData.status === "success" && resData.data.cases) {
-                cases = resData.data.cases;
+                let newCases = resData.data.cases;
+                const now = Date.now();
+                // 🌟 保護機制：如果前端有剛建立不到 20 秒的個案（代表雲端可能還沒寫入），就保留它避免畫面閃爍消失
+                for (let cid in cases) {
+                    if (!newCases[cid] && (now - cases[cid].timestamp < 20000)) {
+                        newCases[cid] = cases[cid];
+                    }
+                }
+                cases = newCases;
                 renderQuickUpdateBoard();
                 if (currentTrackCaseId) renderTrackerDashboard();
                 if (loggedInHosp) renderHospitalCases();
@@ -889,6 +897,7 @@
         .then(res => res.json())
         .then(data => {
             if(data.status === "success") {
+                cases[caseId].clinicalData.folderUrl = data.data.folderUrl; // 將網址寫入暫存
                 document.getElementById('submit_result_area').innerHTML = `
                     <div style="text-align: center;">
                         <h3 style="color: #28a745; margin-bottom: 5px;">✅ 資訊與通知已秒速發送！</h3>
@@ -897,9 +906,11 @@
                         <a href="${data.data.folderUrl}" target="_blank" style="display: inline-block; background-color: #0056b3; color: white; padding: 15px 30px; border-radius: 8px; font-size: 1.2em; font-weight: bold; text-decoration: none; box-shadow: 0 4px 6px rgba(0,0,0,0.2); animation: pulse 1.5s infinite;">
                             📂 點此開啟專屬資料夾，並將影像拖曳進入
                         </a>
-                        <p style="font-size: 0.85em; color: #666; margin-top: 10px;">(上傳完成後，接收端醫院即可在信件中查看；鎖定目標醫院後，系統將自動為您搬運影像)</p>
+                        <p style="font-size: 0.85em; color: #666; margin-top: 10px;">(上傳完成後，接收端醫院即可在信件中查看)</p>
                     </div>
                 `;
+                // 強制在背景再刷一次最新資料
+                setTimeout(fetchRecentCasesFromGAS, 3000);
             } else { document.getElementById('submit_result_area').innerHTML = `❌ <strong>上傳發生錯誤：</strong> ${data.error}`; }
         })
         .catch(e => { document.getElementById('submit_result_area').innerHTML = `❌ <strong>網路連線錯誤，請檢查 GAS 網址是否正確。</strong>`; });
@@ -979,15 +990,17 @@
        if (c.finalDest) {
             chatArea.style.display = "flex"; chatArea.className = "chat-room-banner";
             let docLink = c.docUrl ? c.docUrl : "https://docs.google.com/document/u/0/?tgif=d";
+            let folderLink = c.clinicalData.folderUrl ? c.clinicalData.folderUrl : "#";
             chatArea.innerHTML = `
                 <div><strong style="color:#0056b3; font-size: 1.1em;">💬 已鎖定：${c.finalDest} (${c.lockTime})</strong></div>
-                <div style="display:flex; gap:10px;">
+                <div style="display:flex; gap:10px; flex-wrap: wrap;">
                     <button class="btn-success" onclick="quickUpdateLocation('${currentTrackCaseId}')">📍 更新 GPS</button>
+                    <!-- 🌟 新增的開啟影像資料夾按鈕 -->
+                    <button class="btn-main" style="background:#28a745;" onclick="window.open('${folderLink}', '_blank')">📂 開啟影像資料夾</button>
                     <button class="btn-main" style="background:#17a2b8;" onclick="window.open('${docLink}', '_blank')">📝 即時文字溝通 (Google Doc)</button>
                     <button class="btn-danger" onclick="cancelFinalDest('${currentTrackCaseId}', '${c.reqHospOut}')">❌ 取消</button>
                 </div>`;
         }
-
         c.targets.forEach(hospName => {
             const status = c.hospStatus[hospName]; 
             let statusClass = "eval";
