@@ -295,7 +295,24 @@
         <div class="req-group" style="margin-bottom: 10px;"><label>取栓醫師 Email</label><input type="email" id="addr_dr_email" placeholder="Email"></div>
         <div class="req-group" style="margin-bottom: 10px;"><label>取栓醫師 連絡電話</label><input type="text" id="addr_dr_phone" placeholder="電話"></div>
         <!-- 🌟 修正：將 ID 改為 addr_dr_lineid -->
-        <div class="req-group" style="margin-bottom: 10px;"><label>LINE ID</label><input type="text" id="addr_dr_lineid" placeholder="LINE 帳號 (提供給同仁加入用)"></div>
+        <div class="req-group" style="margin-bottom: 15px;">
+    <label>LINE ID</label>
+    <div style="display: flex; gap: 10px; align-items: center;">
+        <!-- 原本的輸入框 -->
+        <input type="text" id="addr_dr_lineid" placeholder="LINE 帳號 (提供給同仁加入用)" style="flex: 1; margin: 0;">
+        
+        <!-- 🌟 新增：加入小幫手快捷鈕 -->
+        <a href="https://line.me/R/ti/p/@964pltbx" target="_blank" style="display: inline-flex; align-items: center; justify-content: center; background-color: #06C755; color: white; padding: 6px 12px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; white-space: nowrap; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: 0.2s;">
+            <!-- 請將 src 替換為該圖片實際存放在網路上的網址 -->
+            <img src="您的圖片網址/image_5b16a3.png" alt="小幫手" style="width: 24px; height: 24px; margin-right: 8px; border-radius: 50%; background: white;">
+            加入小幫手
+            </a>
+        </div>
+        <!-- 貼心提示文字 -->
+        <small style="color: #6c757d; font-size: 12px; margin-top: 5px; display: block;">
+            💡 系統綁定前，請醫師先點擊右方按鈕 (或搜尋 ID: <b style="color:#0056b3;">@964pltbx</b>) 將小幫手加為好友，並在聊天室輸入「綁定 醫院名稱 醫師姓名」。
+        </small>
+    </div>
         <div class="req-row" style="margin-top: 15px; margin-bottom: 0;">
             <div class="req-group" style="flex: 1;">
                 <select id="addr_dr_selector" onchange="loadAddressBookDr()">
