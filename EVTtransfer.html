@@ -119,6 +119,30 @@
         <button class="tab-btn" onclick="switchTab('tab4')">4. 班表與系統設定</button>
     </div>
 
+<!-- Messenger 對話框 Modal -->
+<div class="modal fade" id="messengerModal" tabindex="-1" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="messengerTitle">即時溝通 (Messenger)</h5>
+        <!-- 關閉按鈕，點擊後回到平台 -->
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="stopChatPolling()"></button>
+      </div>
+      <div class="modal-body bg-light">
+        <!-- 顯示對話紀錄的區塊 -->
+        <div id="chatHistoryBox" class="p-3 mb-3 bg-white rounded" style="height: 350px; overflow-y: auto; border: 1px solid #dee2e6; white-space: pre-wrap; font-size: 0.95rem;">
+          載入中...
+        </div>
+        <!-- 訊息輸入區 -->
+        <div class="input-group">
+          <input type="text" id="chatInput" class="form-control" placeholder="請輸入訊息..." onkeypress="handleChatEnter(event)">
+          <button class="btn btn-primary" onclick="submitChatMessage()">送出</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
     <!-- ========================================== -->
     <!-- 分頁 1: 提出取栓需求 -->
     <!-- ========================================== -->
@@ -265,23 +289,24 @@
             </div>
         </div>
 
-        <div style="background: #e8f4f8; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #17a2b8;">
-            <h4 style="margin: 0 0 10px 0; color: #0056b3;">📞 取栓醫師通訊錄設定 (EVTDr1 ~ 5)</h4>
-            <div class="req-group" style="margin-bottom: 10px;"><label>取栓醫師姓名</label><input type="text" id="addr_dr_name" placeholder="姓名"></div>
-            <div class="req-group" style="margin-bottom: 10px;"><label>取栓醫師 Email</label><input type="email" id="addr_dr_email" placeholder="Email"></div>
-            <div class="req-group" style="margin-bottom: 10px;"><label>取栓醫師 連絡電話</label><input type="text" id="addr_dr_phone" placeholder="電話"></div>
-            
-            <div class="req-row" style="margin-top: 15px; margin-bottom: 0;">
-                <div class="req-group" style="flex: 1;">
-                    <select id="addr_dr_selector" onchange="loadAddressBookDr()">
-                        <option value="1">Dr 1</option><option value="2">Dr 2</option><option value="3">Dr 3</option><option value="4">Dr 4</option><option value="5">Dr 5</option>
-                    </select>
-                </div>
-                <div class="req-group" style="flex: 1;">
-                    <button class="btn-success" onclick="saveAddressBookDr()">儲存醫師資訊</button>
-                </div>
+    <div style="background: #e8f4f8; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #17a2b8;">
+        <h4 style="margin: 0 0 10px 0; color: #0056b3;">📞 取栓醫師通訊錄設定 </h4>
+        <div class="req-group" style="margin-bottom: 10px;"><label>取栓醫師姓名</label><input type="text" id="addr_dr_name" placeholder="姓名"></div>
+        <div class="req-group" style="margin-bottom: 10px;"><label>取栓醫師 Email</label><input type="email" id="addr_dr_email" placeholder="Email"></div>
+        <div class="req-group" style="margin-bottom: 10px;"><label>取栓醫師 連絡電話</label><input type="text" id="addr_dr_phone" placeholder="電話"></div>
+        <!-- 🌟 修正：將 ID 改為 addr_dr_lineid -->
+        <div class="req-group" style="margin-bottom: 10px;"><label>LINE ID</label><input type="text" id="addr_dr_lineid" placeholder="LINE 帳號 (提供給同仁加入用)"></div>
+        <div class="req-row" style="margin-top: 15px; margin-bottom: 0;">
+            <div class="req-group" style="flex: 1;">
+                <select id="addr_dr_selector" onchange="loadAddressBookDr()">
+                    <option value="1">Dr 1</option><option value="2">Dr 2</option><option value="3">Dr 3</option><option value="4">Dr 4</option><option value="5">Dr 5</option>
+                </select>
+            </div>
+            <div class="req-group" style="flex: 1;">
+                <button class="btn-success" onclick="saveAddressBookDr()">儲存醫師資訊</button>
             </div>
         </div>
+    </div>
 
         <button class="btn-main" style="width: 100%; padding: 12px; font-size: 1.1em;" onclick="saveHospSysSettings()">💾 儲存所有基本設定並關閉</button>
     </div>
@@ -755,27 +780,52 @@
     }
     function closeHospSysSettingsModal() { document.getElementById('hospSysSettingsModal').style.display = 'none'; }
     
-    function loadAddressBookDr() {
-        const hosp = hospitals.find(h => h.name === loggedInHosp);
-        const idx = document.getElementById('addr_dr_selector').value;
-        const dr = hosp.addressBook[idx] || { name: "", email: "", phone: "" };
-        document.getElementById('addr_dr_name').value = dr.name;
-        document.getElementById('addr_dr_email').value = dr.email;
-        document.getElementById('addr_dr_phone').value = dr.phone;
-    }
+    // 儲存醫師資訊 (覆蓋舊資料)
+function saveAddressBookDr() {
+    const hosp = hospitals.find(h => h.name === loggedInHosp);
+    const idx = document.getElementById('addr_dr_selector').value;
+    
+    // 🌟 將畫面上的 lineid 抓出來存入物件
+    hosp.addressBook[idx] = { 
+        name: document.getElementById('addr_dr_name').value, 
+        email: document.getElementById('addr_dr_email').value, 
+        phone: document.getElementById('addr_dr_phone').value,
+        lineId: document.getElementById('addr_dr_lineid').value 
+    };
+    
+    // 🌟 在 payload 中新增 lineId，準備送給 GAS
+    fetch(GAS_URL, {
+        method: 'POST',
+        body: JSON.stringify({ 
+            action: "updateAddressBook", 
+            payload: { 
+                hospName: loggedInHosp, 
+                drIndex: idx, 
+                name: hosp.addressBook[idx].name, 
+                email: hosp.addressBook[idx].email, 
+                phone: hosp.addressBook[idx].phone,
+                lineId: hosp.addressBook[idx].lineId
+            } 
+        })
+    }).catch(e => console.log("GAS 錯誤", e));
 
-    function saveAddressBookDr() {
-        const hosp = hospitals.find(h => h.name === loggedInHosp);
-        const idx = document.getElementById('addr_dr_selector').value;
-        hosp.addressBook[idx] = { name: document.getElementById('addr_dr_name').value, email: document.getElementById('addr_dr_email').value, phone: document.getElementById('addr_dr_phone').value };
-        
-        fetch(GAS_URL, {
-            method: 'POST',
-            body: JSON.stringify({ action: "updateAddressBook", payload: { hospName: loggedInHosp, drIndex: idx, name: hosp.addressBook[idx].name, email: hosp.addressBook[idx].email, phone: hosp.addressBook[idx].phone } })
-        }).catch(e => console.log("GAS 錯誤", e));
+    alert(`✅ Dr ${idx} 通訊錄已更新，系統將於背景同步雲端。`);
+}
 
-        alert(`✅ Dr ${idx} 通訊錄已更新，系統將於背景同步雲端。`);
-    }
+// 切換下拉選單時，把對應醫師的資料填回畫面上
+function loadAddressBookDr() {
+    const hosp = hospitals.find(h => h.name === loggedInHosp);
+    const idx = document.getElementById('addr_dr_selector').value;
+    
+    // 如果找不到資料就給空字串防呆
+    const drInfo = hosp.addressBook[idx] || { name: '', email: '', phone: '', lineId: '' };
+    
+    document.getElementById('addr_dr_name').value = drInfo.name || '';
+    document.getElementById('addr_dr_email').value = drInfo.email || '';
+    document.getElementById('addr_dr_phone').value = drInfo.phone || '';
+    // 🌟 讀取時，也要把 Line ID 顯示出來
+    document.getElementById('addr_dr_lineid').value = drInfo.lineId || ''; 
+}
 
     function saveHospSysSettings() {
         const hosp = hospitals.find(h => h.name === loggedInHosp);
@@ -1009,7 +1059,6 @@
                     <button class="btn-success" onclick="quickUpdateLocation('${currentTrackCaseId}')">📍 更新 GPS</button>
                     <!-- 🌟 新增的開啟影像資料夾按鈕 -->
                     <button class="btn-main" style="background:#28a745;" onclick="window.open('${folderLink}', '_blank')">📂 開啟影像資料夾</button>
-                    <button class="btn-main" style="background:#17a2b8;" onclick="window.open('${docLink}', '_blank')">📝 即時文字溝通 (Google Doc)</button>
                     <button class="btn-danger" onclick="cancelFinalDest('${currentTrackCaseId}', '${c.reqHospOut}')">❌ 取消</button>
                 </div>`;
         }
@@ -1057,6 +1106,85 @@
             }
         } 
     }
+
+    let chatPollInterval;
+let currentChatContext = { caseId: "", attempt: 1, senderType: "", senderName: "" };
+
+// 打開對話框並啟動輪詢 (需求端與取栓端共用此函數)
+// 範例呼叫：openMessenger('case123', 1, 'requester', '需求端');
+// 範例呼叫：openMessenger('case123', 1, 'evt', '台大新竹');
+function openMessenger(caseId, attempt, senderType, senderName) {
+  currentChatContext = { caseId, attempt, senderType, senderName };
+  
+  // 設定標題
+  document.getElementById('messengerTitle').innerText = 
+    senderType === 'requester' ? `與 取栓醫院 即時溝通 (第${attempt}次鎖定)` : `與 轉出醫院 即時溝通`;
+  
+  document.getElementById('chatHistoryBox').innerText = "載入對話紀錄中...";
+  document.getElementById('chatInput').value = "";
+  
+  var chatModal = new bootstrap.Modal(document.getElementById('messengerModal'));
+  chatModal.show();
+
+  // 立即刷新一次，並啟動每 3 秒輪詢更新
+  refreshChat();
+  chatPollInterval = setInterval(refreshChat, 3000);
+}
+
+// 關閉 Modal 時停止輪詢，避免浪費資源
+function stopChatPolling() {
+  if (chatPollInterval) {
+    clearInterval(chatPollInterval);
+  }
+}
+
+// 抓取最新對話紀錄
+function refreshChat() {
+  google.script.run.withSuccessHandler(function(history) {
+    let box = document.getElementById('chatHistoryBox');
+    let isScrolledToBottom = box.scrollHeight - box.clientHeight <= box.scrollTop + 10;
+    
+    box.innerText = history || "目前尚無對話紀錄，請直接在下方輸入訊息開始對話。";
+    
+    // 如果原本就在最底下，更新後自動滾動到底部
+    if (isScrolledToBottom) {
+      box.scrollTop = box.scrollHeight;
+    }
+  }).getChatHistory(currentChatContext.caseId, currentChatContext.attempt);
+}
+
+// 支援按 Enter 送出
+function handleChatEnter(event) {
+  if (event.key === "Enter") {
+    submitChatMessage();
+  }
+}
+
+// 送出訊息
+function submitChatMessage() {
+  let input = document.getElementById('chatInput');
+  let msg = input.value.trim();
+  if(!msg) return;
+
+  // 鎖定輸入框避免重複發送
+  input.disabled = true;
+  let payload = {
+    caseId: currentChatContext.caseId,
+    attempt: currentChatContext.attempt,
+    senderType: currentChatContext.senderType,
+    senderName: currentChatContext.senderName,
+    message: msg
+  };
+
+  google.script.run.withSuccessHandler(function(res) {
+    input.value = ""; 
+    input.disabled = false;
+    input.focus();
+    refreshChat(); // 送出成功後立即刷新畫面
+  }).sendMessage(payload);
+}
+
+    
     // 🌟 參數加入 caseId 與 cancelHospName
     function cancelFinalDest(caseId, cancelHospName) { 
         if(confirm(`確定要取消轉入 ${cases[caseId].finalDest} 嗎？\n(操作方：${cancelHospName})`)) { 
