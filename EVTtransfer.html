@@ -464,7 +464,7 @@
     // ==========================================
     // ⚙️ 系統設定與 GAS API 網址
     // ==========================================
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbxz3BoaVtD1aMtGkmObV5xuqj_B4CZDy9q4ZYEUKF5kn4e8A-I0hCl2xYAwMXAoDApb4Q/exec"; 
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyo7euRAXAG7XfPw5dEpzHFSG4FU-qxQxpSVJcZIn0cnu8zJrLECXJKfqJ3Zacrrjt9tg/exec"; 
 
     let hospitalsConfigData = {};
     let currentRosterData = {};
@@ -1072,8 +1072,11 @@ function loadAddressBookDr() {
                 <div><strong style="color:#0056b3; font-size: 1.1em;">💬 已鎖定：${c.finalDest} (${c.lockTime})</strong></div>
                 <div style="display:flex; gap:10px; flex-wrap: wrap;">
                     <button class="btn-success" onclick="quickUpdateLocation('${currentTrackCaseId}')">📍 更新 GPS</button>
-                    <!-- 🌟 新增的開啟影像資料夾按鈕 -->
                     <button class="btn-main" style="background:#28a745;" onclick="window.open('${folderLink}', '_blank')">📂 開啟影像資料夾</button>
+                    
+                    <!-- 🌟 新增這顆：Messenger 對話快捷鈕 -->
+                    <button class="btn-main" style="background:#17a2b8;" onclick="openMessenger('${currentTrackCaseId}', 1, 'requester', '需求端')">💬 開啟即時溝通</button>
+                    
                     <button class="btn-danger" onclick="cancelFinalDest('${currentTrackCaseId}', '${c.reqHospOut}')">❌ 取消</button>
                 </div>`;
         }
@@ -1248,15 +1251,17 @@ function submitChatMessage() {
                 let intentText = "評估中"; 
                 let actionBtns = `<button class="btn-main" style="background:#fd7e14;" onclick="openReplyModal('${caseId}')">🏥 回覆量能</button>`;
                 
-                if (c.finalDest) {
-                    if (c.finalDest === loggedInHosp) {
+                if (c.finalDest === loggedInHosp) {
                         intentText = `<span style="color:green; font-weight:bold;">✅ 已轉入本院 (${c.lockTime})</span>`;
                         let mapBtn = c.location ? `<button class="btn-main" style="background:#28a745;" onclick="window.open('https://www.google.com/maps/search/?api=1&query=${c.location.lat},${c.location.lng}', '_blank')">🗺️ GPS地圖</button>` : `<span style="font-size:0.85em; color:#888;">(尚未回報GPS)</span>`;
                         
-                        // 🌟 為接收醫院加入專屬的取消轉入按鈕
                         let cancelBtn = `<button class="btn-main" style="background:#dc3545;" onclick="cancelFinalDest('${caseId}', '${loggedInHosp}')">❌ 取消轉入</button>`;
                         
-                        actionBtns = `${mapBtn}  ${cancelBtn}`;
+                        // 🌟 新增這顆：Messenger 對話快捷鈕，並取代原本的 Google Doc
+                        let chatBtn = `<button class="btn-main" style="background:#17a2b8;" onclick="openMessenger('${caseId}', 1, 'evt', '${loggedInHosp}')">💬 即時文字溝通</button>`;
+                        
+                        // 把三顆按鈕組合起來
+                        actionBtns = `${mapBtn} ${chatBtn} ${cancelBtn}`;
                     } else { 
                         intentText = `<span style="color:red;">已轉至 ${c.finalDest}</span>`; actionBtns = ``; 
                     }
