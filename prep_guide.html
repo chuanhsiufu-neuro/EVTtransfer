@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>轉院取栓準備流程｜院際協作指引</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700;900&family=Noto+Sans+TC:wght@400;500;600;700;900&family=JetBrains+Mono:wght@500;700&display=swap');
+
+  :root{
+    --ink:      #0F2A2E;
+    --teal-900: #0B3A3F;
+    --teal-700: #0F5C61;
+    --teal-500: #17878A;
+    --teal-100: #E4F1EF;
+    --paper:    #F6F4EC;
+    --card:     #FFFFFF;
+    --amber:    #C7791F;
+    --amber-100:#FBEEDA;
+    --alert:    #B23A2E;
+    --alert-100:#FBE9E5;
+    --line:     #D8D3C3;
+    --mono: 'JetBrains Mono', monospace;
+    --serif: 'Noto Serif TC', serif;
+    --sans: 'Noto Sans TC', sans-serif;
+  }
+
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+  }
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(15,42,46,0.05) 1px, transparent 0);
+    background-size:22px 22px;
+    pointer-events:none;
+    z-index:0;
+  }
+
+  /* ---------- Pulse signature line ---------- */
+  .pulse-strip{
+    position:relative;
+    height:64px;
+    width:100%;
+    overflow:hidden;
+    background:var(--teal-900);
+  }
+  .pulse-strip svg{
+    position:absolute; top:50%; left:0;
+    width:200%; height:40px;
+    transform:translateY(-50%);
+    animation: pulse-scroll 9s linear infinite;
+  }
+  @keyframes pulse-scroll{
+    from{ transform:translate(0,-50%); }
+    to{ transform:translate(-50%,-50%); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .pulse-strip svg{ animation:none; }
+  }
+
+  header.hero{
+    position:relative;
+    z-index:1;
+    background:var(--teal-900);
+    color:#fff;
+    padding:56px 6vw 64px;
+  }
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:12.5px;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:#8FD4CE;
+    display:flex; align-items:center; gap:10px;
+    margin-bottom:22px;
+  }
+  .eyebrow::before{
+    content:"";
+    width:8px; height:8px; border-radius:50%;
+    background:#E5734F;
+    box-shadow:0 0 0 4px rgba(229,115,79,.25);
+    animation: blink 1.6s ease-in-out infinite;
+  }
+  @keyframes blink{ 0%,100%{opacity:1;} 50%{opacity:.35;} }
+
+  h1.title{
+    font-family:var(--serif);
+    font-weight:900;
+    font-size:clamp(30px, 5vw, 52px);
+    line-height:1.25;
+    margin:0 0 18px;
+    max-width:15ch;
+  }
+  h1.title em{
+    font-style:normal;
+    color:#8FD4CE;
+  }
+  .hero-sub{
+    font-size:16px;
+    color:#CFE7E4;
+    max-width:56ch;
+    margin:0 0 30px;
+  }
+  .hero-meta{
+    display:flex; flex-wrap:wrap; gap:14px 32px;
+    font-family:var(--mono);
+    font-size:13px;
+    color:#9FCFC9;
+    border-top:1px solid rgba(255,255,255,.18);
+    padding-top:22px;
+  }
+  .hero-meta strong{ color:#fff; font-weight:700; }
+
+  main{
+    position:relative; z-index:1;
+    max-width:920px;
+    margin:0 auto;
+    padding:0 6vw 100px;
+  }
+
+  /* ---------- Section headers ---------- */
+  .section{
+    margin-top:56px;
+  }
+  .section-head{
+    display:flex;
+    align-items:baseline;
+    gap:16px;
+    margin-bottom:22px;
+    padding-bottom:14px;
+    border-bottom:2px solid var(--teal-900);
+  }
+  .section-tag{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:.1em;
+    background:var(--teal-900);
+    color:#fff;
+    padding:4px 10px;
+    border-radius:3px;
+    white-space:nowrap;
+  }
+  .section-head h2{
+    font-family:var(--serif);
+    font-size:clamp(22px,3vw,28px);
+    font-weight:700;
+    margin:0;
+    color:var(--teal-900);
+  }
+  .section-desc{
+    font-size:14.5px;
+    color:#5B6B65;
+    margin:-10px 0 24px;
+  }
+
+  /* ---------- Checklist cards ---------- */
+  .checklist{
+    display:grid;
+    gap:12px;
+  }
+  .check-item{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-left:4px solid var(--teal-500);
+    border-radius:8px;
+    padding:16px 20px;
+    display:flex;
+    gap:16px;
+    align-items:flex-start;
+    box-shadow:0 1px 2px rgba(15,42,46,.04);
+  }
+  .check-mark{
+    flex:none;
+    width:26px; height:26px;
+    border-radius:50%;
+    background:var(--teal-100);
+    color:var(--teal-700);
+    display:flex; align-items:center; justify-content:center;
+    font-size:15px; font-weight:700;
+    margin-top:1px;
+  }
+  .check-text{ font-size:15.5px; }
+  .check-text .label{
+    font-weight:700;
+    color:var(--teal-900);
+  }
+  .check-text .detail{
+    color:#4A5652;
+    display:block;
+    margin-top:2px;
+    font-size:14px;
+  }
+  .phone-pill{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-family:var(--mono);
+    font-weight:700;
+    color:var(--teal-700);
+    background:var(--teal-100);
+    padding:2px 10px;
+    border-radius:20px;
+    font-size:13.5px;
+    margin-top:6px;
+  }
+
+  /* prep row - three compact chips for IV / gown / catheter */
+  .prep-row{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(190px,1fr));
+    gap:12px;
+    margin-bottom:26px;
+  }
+  .prep-chip{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:18px;
+    text-align:left;
+  }
+  .prep-chip .n{
+    font-family:var(--mono);
+    font-size:11px;
+    color:#8A9490;
+    letter-spacing:.08em;
+    display:block;
+    margin-bottom:6px;
+  }
+  .prep-chip .v{
+    font-family:var(--serif);
+    font-weight:700;
+    color:var(--teal-900);
+    font-size:17px;
+  }
+
+  /* ---------- Family disclosure numbered list ---------- */
+  .disclosure{
+    counter-reset:d;
+    display:grid;
+    gap:14px;
+  }
+  .d-item{
+    counter-increment:d;
+    position:relative;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:18px 20px 18px 62px;
+  }
+  .d-item::before{
+    content: counter(d);
+    position:absolute;
+    left:18px; top:18px;
+    width:28px; height:28px;
+    border-radius:50%;
+    background:var(--teal-900);
+    color:#fff;
+    font-family:var(--mono);
+    font-weight:700;
+    font-size:14px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .d-item p{ margin:0; font-size:15.5px; }
+  .d-item.warn{
+    border-left:4px solid var(--amber);
+    background:var(--amber-100);
+  }
+  .d-item.warn::before{ background:var(--amber); }
+  .d-item.critical{
+    border-left:4px solid var(--alert);
+    background:var(--alert-100);
+  }
+  .d-item.critical::before{ background:var(--alert); }
+  .d-item.critical p strong{ color:var(--alert); }
+
+  /* ---------- Branch decision box ---------- */
+  .branches{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px;
+    margin-top:26px;
+  }
+  @media (max-width:640px){ .branches{ grid-template-columns:1fr; } }
+  .branch{
+    border-radius:10px;
+    padding:20px;
+    border:1px solid var(--line);
+  }
+  .branch h3{
+    margin:0 0 8px;
+    font-family:var(--serif);
+    font-size:16.5px;
+  }
+  .branch p{ margin:0; font-size:14.5px; color:#4A5652; }
+  .branch.no-transfer{ background:#FDF3EF; border-color:#E7C6B8; }
+  .branch.no-transfer h3{ color:#A6472E; }
+  .branch.local-care{ background:var(--teal-100); border-color:#BFDEDA; }
+  .branch.local-care h3{ color:var(--teal-700); }
+
+  /* ---------- Alert banner (final call to action) ---------- */
+  .final-alert{
+    margin-top:56px;
+    background:var(--teal-900);
+    color:#fff;
+    border-radius:14px;
+    padding:30px 28px;
+    position:relative;
+    overflow:hidden;
+  }
+  .final-alert::after{
+    content:"";
+    position:absolute; right:-40px; top:-40px;
+    width:160px; height:160px;
+    border-radius:50%;
+    background:radial-gradient(circle, rgba(229,115,79,.35), transparent 70%);
+  }
+  .final-alert .tag{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:.14em;
+    color:#E5734F;
+    display:block;
+    margin-bottom:10px;
+  }
+  .final-alert h3{
+    font-family:var(--serif);
+    font-size:20px;
+    margin:0 0 10px;
+  }
+  .final-alert ul{
+    margin:0; padding-left:20px;
+    font-size:15px; color:#D9EEEC;
+  }
+  .final-alert li{ margin-bottom:4px; }
+
+  footer{
+    position:relative; z-index:1;
+    text-align:center;
+    padding:36px 6vw 60px;
+    font-family:var(--mono);
+    font-size:12px;
+    color:#8A9490;
+  }
+
+  @media print{
+    .pulse-strip{ display:none; }
+    body::before{ display:none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="eyebrow">院際協作 · 時間即腦組織</div>
+  <h1 class="title">轉院取栓準備<br><em>暨家屬病情說明</em></h1>
+  <p class="hero-sub">整合轉出端交班要項與轉入端出發前準備，提供醫療團隊快速核對、向家屬完整說明病情。</p>
+  <div class="hero-meta">
+    <span>轉入醫院 <strong id="hospNameDisplay">目標醫院</strong></span>
+    <span>急診轉診專線 <strong id="hospPhoneDisplay">03-4941234 #3100</strong></span>
+    <span>適用對象 <strong>疑似大血管阻塞 · 機械取栓評估</strong></span>
+  </div>
+</header>
+
+<div class="pulse-strip" aria-hidden="true">
+  <svg viewBox="0 0 400 40" preserveAspectRatio="none">
+    <polyline points="0,20 40,20 55,20 65,4 75,36 85,20 100,20 140,20 155,20 165,4 175,36 185,20 200,20 240,20 255,20 265,4 275,36 285,20 300,20 340,20 355,20 365,4 375,36 385,20 400,20"
+      fill="none" stroke="#4FBBB5" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  </svg>
+</div>
+
+<main>
+
+  <!-- SECTION 1: 轉出醫院端 -->
+  <section class="section">
+    <div class="section-head">
+      <span class="section-tag">轉出端</span>
+      <h2>合作醫院轉介流程</h2>
+    </div>
+    <p class="section-desc">病患轉出前，請依序完成以下五項交班與準備工作。</p>
+
+    <div class="checklist">
+      <div class="check-item">
+        <span class="check-mark">✓</span>
+        <span class="check-text">
+          <span class="label">完成院際急診轉診交班</span>
+          <span class="phone-pill" id="checklistPhone">☎ TEL 03-4941234 #3100</span>
+        </span>
+      </div>
+      <div class="check-item">
+        <span class="check-mark">✓</span>
+        <span class="check-text">
+          <span class="label">主要決策者務必到院</span>
+          <span class="detail">確保可即時決策的家屬同步在場，避免評估後延誤。</span>
+        </span>
+      </div>
+      <div class="check-item">
+        <span class="check-mark">✓</span>
+        <span class="check-text"><span class="label">更換病人服</span></span>
+      </div>
+      <div class="check-item">
+        <span class="check-mark">✓</span>
+        <span class="check-text"><span class="label">左手 20 號 IV 留置針</span></span>
+      </div>
+      <div class="check-item">
+        <span class="check-mark">✓</span>
+        <span class="check-text"><span class="label">放置尿管</span></span>
+      </div>
+    </div>
+
+    <div class="branches">
+      <div class="branch no-transfer">
+        <h3>若家屬決定不轉院</h3>
+        <p>請立即於群組通知，解除待命狀態。</p>
+      </div>
+      <div class="branch local-care">
+        <h3>若不需特殊處置，家屬希望就近治療</h3>
+        <p>優先聯繫貴院，安排後續照護事宜。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 2: 轉入醫院端 -->
+  <section class="section">
+    <div class="section-head">
+      <span class="section-tag">轉入端</span>
+      <h2>病患離院出發前注意事項</h2>
+    </div>
+    <p class="section-desc">一、請提前準備下列三項處置：</p>
+
+    <div class="prep-row">
+      <div class="prep-chip">
+        <span class="n">PREP 01</span>
+        <span class="v">左側 IV cath #20</span>
+      </div>
+      <div class="prep-chip">
+        <span class="n">PREP 02</span>
+        <span class="v">更換病人服</span>
+      </div>
+      <div class="prep-chip">
+        <span class="n">PREP 03</span>
+        <span class="v">放置尿管</span>
+      </div>
+    </div>
+
+    <p class="section-desc">二、請向家屬完整告知以下病情與風險：</p>
+
+    <div class="disclosure">
+      <div class="d-item warn">
+        <p><strong>若有需要，將重做 Brain CTA</strong>，此檢查使用顯影劑，可能造成腎功能惡化。</p>
+      </div>
+      <div class="d-item">
+        <p>轉院後將重新評估病情，<strong>不一定會執行取栓手術</strong>。</p>
+      </div>
+      <div class="d-item">
+        <p>執行取栓手術過程中<strong>可能需要插管</strong>。</p>
+      </div>
+      <div class="d-item critical">
+        <p><strong>請可以做決定的家屬務必「隨救護車前來」</strong>，以利現場即時溝通與簽署同意。</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="final-alert">
+    <span class="tag">出發通知規範</span>
+    <h3>轉送流程中的兩個關鍵動作</h3>
+    <ul>
+      <li>救護車 <strong>出發後</strong>，立即於群組通知全體待命人員。</li>
+      <li>若行程 <strong>取消</strong>，請同步告知群組，以解除待命狀態。</li>
+    </ul>
+  </div>
+
+</main>
+
+<footer>
+  院際轉診協作指引 · 內部醫療溝通使用 · 請依各院最新版本規範為準
+</footer>
+
+<script>
+  // 💡 自動根據網址帶入的醫院參數來顯示對應名稱與急診電話
+  // 範例網址：prep_guide.html?hospital=林口長庚
+  const urlParams = new URLSearchParams(window.location.search);
+  const hospital = urlParams.get('hospital');
+
+  // 您可以在此設定各醫院的對應急診電話
+  const hospitalPhones = {
+    "新竹台大": "03-5326151 #5200",
+    "東元醫院": "03-5521000 #2111",
+    "新竹中國": "03-5360533 #2200",
+    "大千醫院": "037-357125 #3100",
+    "聯新國際": "03-4941234 #3100",
+    "林口長庚": "03-3281200 #2500"
+  };
+
+  if (hospital && hospitalPhones[hospital]) {
+    document.getElementById('hospNameDisplay').innerText = hospital;
+    document.getElementById('hospPhoneDisplay').innerText = hospitalPhones[hospital];
+    document.getElementById('checklistPhone').innerText = "☎ TEL " + hospitalPhones[hospital];
+  } else if (hospital) {
+    document.getElementById('hospNameDisplay').innerText = hospital;
+  }
+</script>
+
+</body>
+</html>
