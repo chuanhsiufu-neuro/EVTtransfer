@@ -312,7 +312,7 @@
 <!-- 分頁 4 -->
 <div id="tab4" class="tab-content">
     
-    <!-- 📅 班表管理卡片 -->
+    <!-- 📅 時間與第一線排班指示 -->
     <div style="background: var(--teal-100); border-left: 5px solid var(--teal-500); padding: 20px; border-radius: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; box-shadow: 0 2px 8px rgba(11,58,63,0.05);">
         <div>
             <div style="font-size: 1.15em; font-weight: bold; color: var(--teal-700); margin-bottom: 8px; font-family: var(--sans);">
@@ -322,16 +322,52 @@
                 📍 區域聯防排班 - 第一線優先聯絡醫院：<span id="priority_hosp_display">載入中...</span>
             </div>
         </div>
-        <button class="btn-custom btn-theme-primary" style="padding: 12px 24px; font-size: 1.1em;" onclick="openHospRosterModal()">📅 Excel 班表管理</button>
+        <button class="btn-custom btn-theme-info py-2 px-4" style="font-size: 1.05em;" onclick="fetchDataFromGAS()">🔄 重新同步最新看板與排班資料</button>
+    </div>
+
+    <!-- 📅 查詢與管理班表區塊 (拉回主頁面直接顯示) -->
+    <div style="background: var(--paper); border: 1px solid var(--line); padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+        <h4 style="color: var(--teal-700); margin-top: 0; margin-bottom: 15px; font-family: var(--serif); font-size: 1.2em; border-bottom: 2px solid var(--teal-100); padding-bottom: 10px;">📅 Excel 班表查詢與上傳</h4>
+        
+        <div class="req-row" style="align-items: flex-end;">
+            <div class="req-group" style="flex: 2;">
+                <label style="color: var(--teal-700);">🔍 查詢今日班表</label>
+                <select id="roster_query_hosp_sel" onchange="queryTodayRoster()">
+                    <option value="">-- 請選擇醫院 --</option>
+                    <option value="1st Line 優先排班表">1st Line 優先排班表</option><option value="新竹台大">新竹台大</option><option value="東元醫院">東元醫院</option><option value="新竹中國">新竹中國</option><option value="大千醫院">大千醫院</option><option value="聯新國際">聯新國際</option><option value="林口長庚">林口長庚</option>
+                </select>
+            </div>
+            <div class="req-group" style="flex: 1;">
+                <button class="btn-custom btn-theme-primary w-100" style="padding: 10px;" onclick="downloadRosterTemplate()">📥 下載班表範本</button>
+            </div>
+        </div>
+
+        <!-- 查詢結果表格 (預設隱藏，選擇後浮現) -->
+        <div id="query_roster_result" style="display:none; overflow-x: auto; margin-top: 15px; margin-bottom: 20px;">
+            <table class="neuro-duty-table" style="margin-top: 0; min-width: 100%;">
+                <thead><tr><th>醫院</th><th>08:00~12:00</th><th>12:00~17:00</th><th>夜間</th></tr></thead>
+                <tbody id="query_roster_tbody"></tbody>
+            </table>
+        </div>
+
+        <div style="border-top: 1px dashed var(--line); padding-top: 15px; margin-top: 15px;">
+            <label style="display:block; margin-bottom: 8px; font-weight:bold; color:var(--teal-700);">📤 上傳當月班表 (支援 CSV)</label>
+            <div class="req-row" style="margin-bottom: 0;">
+                <div class="req-group" style="flex: 2;">
+                    <input type="file" id="roster_file_input" accept=".csv" style="padding: 8px; border: 1px solid var(--line); border-radius: 8px; width: 100%; box-sizing: border-box; background: #fff;">
+                </div>
+                <div class="req-group" style="flex: 1;">
+                    <button class="btn-custom btn-theme-success w-100" style="padding: 10px;" onclick="uploadRosterCsv()">上傳並自動附加</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- ⚙️ 系統同步與設定提示卡片 -->
-    <div style="background: var(--paper); border: 1px dashed var(--teal-500); border-radius: 10px; padding: 24px; text-align: center;">
-        <h4 style="color: var(--teal-700); margin-top: 0; margin-bottom: 10px; font-family: var(--serif); font-size: 1.2em;">系統狀態與更新</h4>
-        <p style="color: var(--ink); font-size: 0.95em; margin-bottom: 20px;">
+    <div style="background: var(--paper); border: 1px dashed var(--teal-500); border-radius: 10px; padding: 20px; text-align: center;">
+        <p style="color: var(--ink); font-size: 0.95em; margin-bottom: 0;">
             💡 提示：若需修改「醫院專屬通訊錄」或「LINE 群組設定」，請至 <strong>分頁 3</strong> 登入您的醫院後，點擊「⚙️ 系統設定」。
         </p>
-        <button class="btn-custom btn-theme-info py-2 px-4" style="font-size: 1.05em;" onclick="fetchDataFromGAS()">🔄 重新同步最新看板與排班資料</button>
     </div>
 
 </div>
@@ -491,36 +527,6 @@
         </div>
         
         <button class="btn-custom btn-theme-primary w-100 py-3 fs-6" onclick="saveHospSysSettings()">💾 儲存所有基本設定並關閉</button>
-    </div>
-</div>
-
-<!-- ★ Excel 班表 Modal ★ -->
-<div id="hospRosterModal" class="modal">
-    <div class="modal-content" style="max-width: 500px;">
-        <span class="close-btn" onclick="closeHospRosterModal()">&times;</span>
-        <h2 style="color: var(--teal-700); margin-top: 0; border-bottom: 2px solid var(--teal-100); padding-bottom: 10px;">📅 Excel 班表</h2>
-        
-        <div style="margin-bottom: 20px; border-bottom: 1px dashed var(--line); padding-bottom: 20px;">
-            <label style="display:block; margin-bottom: 8px; font-weight:bold; color:var(--teal-700);">🔍 查詢今日班表</label>
-            <select id="roster_query_hosp_sel" style="width: 100%; padding: 8px; margin-bottom: 10px;" onchange="queryTodayRoster()">
-                <option value="">-- 請選擇醫院 --</option>
-                <option value="1st Line 優先排班表">1st Line 優先排班表</option><option value="新竹台大">新竹台大</option><option value="東元醫院">東元醫院</option><option value="新竹中國">新竹中國</option><option value="大千醫院">大千醫院</option><option value="聯新國際">聯新國際</option><option value="林口長庚">林口長庚</option>
-            </select>
-            <div id="query_roster_result" style="display:none; overflow-x: auto; margin-top: 10px;">
-                <table class="neuro-duty-table" style="margin-top: 0; min-width: 100%;"><thead><tr><th>醫院</th><th>08:00~12:00</th><th>12:00~17:00</th><th>夜間</th></tr></thead><tbody id="query_roster_tbody"></tbody></table>
-            </div>
-        </div>
-        
-        <div style="margin-bottom: 20px; border-bottom: 1px dashed var(--line); padding-bottom: 20px;">
-            <label style="display:block; margin-bottom: 8px; font-weight:bold; color:var(--teal-700);">📥 下載範本</label>
-            <button class="btn-custom btn-theme-info w-100 py-2" onclick="downloadRosterTemplate()">📥 下載班表命名範本 (醫院名稱_YYYYMM.csv)</button>
-        </div>
-        
-        <div style="margin-bottom: 10px;">
-            <label style="display:block; margin-bottom: 8px; font-weight:bold; color:var(--teal-700);">📤 上傳當月班表 (支援 CSV)</label>
-            <input type="file" id="roster_file_input" accept=".csv" style="width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid var(--line); border-radius: 8px; box-sizing: border-box;">
-            <button class="btn-custom btn-theme-success w-100 py-2" onclick="uploadRosterCsv()">上傳並自動附加</button>
-        </div>
     </div>
 </div>
 
@@ -930,14 +936,16 @@
             const base64Data = e.target.result; const btn = event.target; const originalText = btn.innerText; btn.innerText = "⏳ 正在分析與上傳，請稍候..."; btn.disabled = true;
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "uploadRoster", payload: { filename: fileName, csvContent: base64Data } }) }).then(res => res.json()).then(data => {
                 btn.innerText = originalText; btn.disabled = false;
-                if (data.status === "success") { alert(data.data.message); fetchDataFromGAS(); closeHospRosterModal(); } else { alert("上傳失敗: " + data.error); }
+                if (data.status === "success") { 
+                    alert(data.data.message); 
+                    fetchDataFromGAS(); 
+                    // 這裡原本的 closeHospRosterModal(); 已經安全移除
+                    document.getElementById('roster_file_input').value = ""; // 順便幫您加一行：上傳成功後清空選擇的檔案
+                } else { alert("上傳失敗: " + data.error); }
             }).catch(err => { alert("上傳發生錯誤，請檢查網路連線。"); btn.innerText = originalText; btn.disabled = false; console.log(err); });
         };
         reader.readAsDataURL(file);
     }
-
-    function openHospRosterModal() { document.getElementById('roster_query_hosp_sel').value = ""; document.getElementById('query_roster_result').style.display = "none"; document.getElementById('hospRosterModal').style.display = 'flex'; }
-    function closeHospRosterModal() { document.getElementById('hospRosterModal').style.display = 'none'; }
 
     function queryTodayRoster() {
         const hospName = document.getElementById('roster_query_hosp_sel').value; const resDiv = document.getElementById('query_roster_result'); const tbody = document.getElementById('query_roster_tbody');
