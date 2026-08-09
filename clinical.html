@@ -117,6 +117,45 @@
         .tpa-no { background-color: var(--amber-100); border: 1px dashed var(--amber); }
 
         .info-banner { background-color: var(--amber-100); color: #8A5A13; border: 1px solid var(--amber); padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-weight: bold; text-align: center; }
+        /* ========================================== */
+        /* 📱 手機版專屬響應式設計 (RWD)              */
+        /* ========================================== */
+        
+        @media screen and (max-width: 600px) {
+            /* 讓輸入框與按鈕群組在手機上自動變成上下排列，不再左右硬擠 */
+            .req-group, .btn-group { 
+                min-width: 100% !important; 
+                flex: 1 1 100% !important;
+            }
+            
+            /* 讓 .req-row 的排版變成直向堆疊 */
+            .req-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            /* 調整標題大小避免過大佔空間 */
+            h1 { font-size: 1.6em !important; }
+            h2 { font-size: 1.3em !important; }
+            
+            /* 卡片內部間距微調，讓手機畫面更緊湊 */
+            .app-container { padding: 10px !important; }
+            .section-header { padding: 10px !important; }
+        }
+
+        /* 📱 手機直向閱讀提示遮罩 (若希望使用者盡量拿橫的填寫，可取消這段的註解) */
+        /*
+        #landscape-warning { display: none; }
+        @media screen and (max-width: 768px) and (orientation: portrait) {
+            #landscape-warning {
+                display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background-color: var(--teal-900); color: white; z-index: 9999;
+                flex-direction: column; justify-content: center; align-items: center; text-align: center;
+                padding: 20px;
+            }
+            .app-container { display: none; } 
+        }
+        */
     </style>
 </head>
 <body>
