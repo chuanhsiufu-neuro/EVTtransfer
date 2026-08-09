@@ -173,25 +173,31 @@
         h1, h2, h3 { font-family: var(--serif); }
         code, .cid, #system_live_clock { font-family: var(--mono); }
 
-        /* 🌟 分頁 4 班表查詢的點擊區塊樣式 */
+        /* 🌟 分頁 4 班表查詢的點擊區塊樣式 (無圓圈按鈕版) */
         .roster-radio-label {
-            border-color: var(--teal-500) !important; /* 統一使用 #17878A 深綠邊框 */
+            border: 2px solid var(--teal-500);
+            background-color: var(--card);
+            color: var(--teal-700);
             cursor: pointer;
             transition: 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+            display: inline-block;
+            padding: 8px 18px;
+            border-radius: 8px;
+            margin: 0;
         }
         .roster-radio-label:hover {
-            background-color: var(--teal-100) !important;
+            background-color: var(--teal-100);
             transform: translateY(-1px);
         }
+        /* 隱藏預設的單選圓圈 */
         .roster-radio-label input[type="radio"] {
-            accent-color: var(--teal-700);
-            cursor: pointer;
-            width: 16px;
-            height: 16px;
-            margin: 0;
+            display: none;
+        }
+        /* 點選啟動時反轉為深底白字 */
+        .roster-radio-label.active {
+            background-color: var(--teal-700) !important;
+            color: white !important;
+            border-color: var(--teal-700) !important;
         }
     </style>
 </head>
@@ -344,9 +350,11 @@
             </div>
         </div>
         
-        <!-- 🌟 新的按鈕排版區 -->
-        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <button class="btn-custom btn-theme-info" style="padding: 10px 14px; font-size: 1.1em;" onclick="fetchDataFromGAS()" title="重新同步">🔄</button>
+       <!-- 🌟 新的按鈕排版區 -->
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+            
+            <!-- 🌟 改為與即時看板一致的純圖示、帶旋轉特效的更新按鈕 -->
+            <button style="background: none; border: none; cursor: pointer; font-size: 1.5em; padding: 4px 8px; transition: 0.2s; display: flex; align-items: center; justify-content: center;" onclick="fetchDataFromGAS()" title="重新同步最新看板與排班資料" onmouseover="this.style.transform='rotate(180deg)'" onmouseout="this.style.transform='rotate(0deg)'">🔄</button>
             <button class="btn-custom btn-theme-primary" style="padding: 10px 14px;" onclick="downloadRosterTemplate()">📥 下載班表範本</button>
             <button class="btn-custom btn-theme-success" style="padding: 10px 14px;" onclick="openUploadRosterModal()">📤 上傳班表</button>
         </div>
@@ -354,11 +362,11 @@
 
     <!-- 📅 查詢班表區塊 -->
     <div style="background: var(--paper); border: 1px solid var(--line); padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-        <h4 style="color: var(--teal-700); margin-top: 0; margin-bottom: 15px; font-family: var(--serif); font-size: 1.2em; border-bottom: 2px solid var(--teal-100); padding-bottom: 10px;">📅 Excel 班表查詢</h4>
+        <!-- 🌟 合併精簡後的標題 -->
+        <h4 style="color: var(--teal-700); margin-top: 0; margin-bottom: 15px; font-family: var(--serif); font-size: 1.2em; border-bottom: 2px solid var(--teal-100); padding-bottom: 10px;">🔍 點選醫院查詢今日班表</h4>
         
         <div style="margin-bottom: 15px;">
-            <label style="color: var(--teal-700); font-weight: bold; margin-bottom: 8px; display: block;">🔍 點選醫院查詢今日班表</label>
-            <div id="roster_query_hospitals_container" style="display: flex; gap: 12px; flex-wrap: wrap; padding: 12px; background: var(--teal-100); border: 1px dashed var(--teal-500); border-radius: 8px;">
+            <div id="roster_query_hospitals_container" style="display: flex; gap: 10px; flex-wrap: wrap; padding: 15px; background: var(--teal-100); border: 1px dashed var(--teal-500); border-radius: 8px;">
                 <span style="color:#5B6B65;">載入中...</span>
             </div>
         </div>
@@ -779,21 +787,20 @@
                     for(let i=1; i<=5; i++) { hObj.addressBook[i] = config.doctors[i-1] || { name: "", email: "", phone: "", lineId: "" }; }
                     hospitals.push(hObj); selLogin.innerHTML += `<option value="${hName}">${hName}</option>`; selSet.innerHTML += `<option value="${hName}">${hName}</option>`;
                 }
-                // 🌟 修改：將顯示文字改為「區域聯防排班」
+                // 🌟 第一個預設按鈕 (拿掉內聯 color，讓 CSS 控制白字)
                 const rosterContainer = document.getElementById('roster_query_hospitals_container');
-                rosterContainer.innerHTML = `<label class="p-2 border rounded bg-white roster-radio-label"><input type="radio" name="roster_query_hosp_radio" value="1st Line 優先排班表" onchange="queryTodayRoster()"> <span class="fw-bold" style="color: var(--ink);">區域聯防排班</span></label>`;
+                rosterContainer.innerHTML = `<label class="roster-radio-label"><input type="radio" name="roster_query_hosp_radio" value="1st Line 優先排班表" onchange="queryTodayRoster()"> <span class="fw-bold">區域聯防排班</span></label>`;
 
                 const statusOrder = { "green": 1, "orange": 2, "red": 3 };
                 let sortedHospitals = [...hospitals].sort((a, b) => statusOrder[a.status] - statusOrder[b.status]);
                 
                 sortedHospitals.forEach(h => {
-                    // 分頁 1 的動態生成 (依燈號變換顏色)
                     let colorCode = h.status === 'green' ? '#28a745' : (h.status === 'orange' ? '#fd7e14' : '#dc3545');
                     let isChecked = (h.status === 'green' || h.status === 'orange') ? 'checked' : '';
                     container.innerHTML += `<label class="p-2 border rounded bg-white" style="border-color: ${colorCode} !important; cursor: pointer;"><input type="checkbox" class="target-hosp-cb" value="${h.name}" ${isChecked}> <span class="fw-bold">${h.name}</span> <span style="color:${colorCode}; font-size:0.9em;">(${h.statusText})</span></label>`;
                     
-                    // 🌟 2. 新增：分頁 4 的動態生成 (統一深綠色邊框，不受燈號影響)
-                    rosterContainer.innerHTML += `<label class="p-2 border rounded bg-white roster-radio-label"><input type="radio" name="roster_query_hosp_radio" value="${h.name}" onchange="queryTodayRoster()"> <span class="fw-bold" style="color: var(--ink);">${h.name}</span></label>`;
+                    // 🌟 其他醫院按鈕 (拿掉內聯 color，改套用純潔的 label)
+                    rosterContainer.innerHTML += `<label class="roster-radio-label"><input type="radio" name="roster_query_hosp_radio" value="${h.name}" onchange="queryTodayRoster()"> <span class="fw-bold">${h.name}</span></label>`;
                 });
 
                 if (currentRosterData['1st Line 優先排班表']) document.getElementById('priority_hosp_display').innerText = currentRosterData['1st Line 優先排班表'].activeName;
@@ -996,10 +1003,16 @@
     }
 
     function queryTodayRoster() {
-        // 🌟 改為抓取目前被選中的 radio 按鈕的值
-        const selectedOpt = document.querySelector('input[name="roster_query_hosp_radio"]:checked');
-        const hospName = selectedOpt ? selectedOpt.value : "";
+        // 🌟 清除所有按鈕的反深色狀態
+        document.querySelectorAll('.roster-radio-label').forEach(lbl => lbl.classList.remove('active'));
         
+        // 🌟 找到被選中的那一顆 radio，幫它的外框加上深色 active 狀態
+        const selectedOpt = document.querySelector('input[name="roster_query_hosp_radio"]:checked');
+        if (selectedOpt) {
+            selectedOpt.closest('.roster-radio-label').classList.add('active');
+        }
+        
+        const hospName = selectedOpt ? selectedOpt.value : "";
         const resDiv = document.getElementById('query_roster_result'); 
         const tbody = document.getElementById('query_roster_tbody');
         
