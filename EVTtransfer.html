@@ -199,47 +199,10 @@
             color: white !important;
             border-color: var(--teal-700) !important;
         }
-        /* 📱 手機直向閱讀提示遮罩 */
-        #landscape-warning { display: none; }
-        @media screen and (max-width: 768px) and (orientation: portrait) {
-            #landscape-warning {
-                display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-                background-color: var(--teal-900); color: white; z-index: 9999;
-                flex-direction: column; justify-content: center; align-items: center; text-align: center;
-                padding: 20px;
-            }
-            /* 隱藏主程式，強迫使用者轉向 */
-            .app-container { display: none; } 
-        }
-        /* 讓表格與列表能橫向滑動，不被擠壓 */
-        .table-responsive-custom {
-            width: 100%;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch; /* 讓 iOS 滑動更順暢 */
-        }
-        /* 給表格一個最小安全寬度，例如低於 600px 就不再壓縮，而是出現卷軸 */
-        .neuro-duty-table, #hosp_cases_tbody {
-            min-width: 650px; 
-        }
-        /* 📱 小螢幕/手機版專屬調整 */
-        @media screen and (max-width: 600px) {
-            /* 讓輸入框自動變成上下排列，不再左右硬擠 */
-            .req-group { 
-                min-width: 100% !important; 
-            }
-            /* 讓頂部大標題稍微縮小，避免佔據太多空間 */
-            h1 { font-size: 1.6em !important; }
-            /* 卡片內部間距微調 */
-            .tab-content, .modal-content { padding: 15px !important; }
-        }
     </style>
 </head>
 <body>
-<div id="landscape-warning">
-    <div style="font-size: 3em; margin-bottom: 15px;">🔄</div>
-    <h2 style="color: var(--teal-100);">請將手機轉為橫向</h2>
-    <p style="font-size: 1.1em; opacity: 0.9;">本平台包含較多臨床表格與排班資訊，<br>轉為橫向閱讀能獲得最佳體驗！</p>
-</div>
+
 <div class="app-container">
     
     <!-- 🌟 頂部大氣橫幅 (內含呼吸燈、說明文字與底部流動波形線) -->
@@ -293,7 +256,7 @@
     <div class="sub-header">A. 基本聯絡資訊</div>
     <div class="req-row">
         <div class="req-group"><label>1. 提出需求醫院</label><input type="text" id="req_hosp_out" placeholder=""></div>
-        <div class="req-group"><label>2. 醫師電話 (作為追蹤密碼)</label><input type="tel" id="req_doc_phone" value="0912345678"></div>
+        <div class="req-group"><label>2. 醫師電話 (作為追蹤密碼)</label><input type="tel" id="req_doc_phone" placeholder="請輸入聯絡電話"></div>
         <div class="req-group"><label>3. e-mail (取栓回饋用)</label><input type="email" id="req_doc_email" placeholder="example@email.com"></div>
     </div>
 
@@ -328,7 +291,7 @@
 <div id="tab2" class="tab-content">
     <div class="req-row">
         <div class="req-group"><label>個案代碼</label><input type="text" id="track_case_id"></div>
-        <div class="req-group"><label>密碼(電話)</label><input type="password" id="track_phone" value="0912345678"></div>
+        <div class="req-group"><label>密碼(電話)</label><input type="password" id="track_phone" placeholder="請輸入追蹤密碼(電話)"></div>
         <div class="req-group" style="justify-content: flex-end;"><button class="btn-custom btn-theme-primary" onclick="loginTracker()">🔍 登入</button></div>
     </div>
     <div id="track_dashboard" style="display: none; margin-top: 20px;">
@@ -351,7 +314,7 @@
 <div id="tab3" class="tab-content">
     <div id="hosp_login_area" class="req-row">
         <div class="req-group"><label>醫院</label><select id="login_hosp_name"><option>載入中...</option></select></div>
-        <div class="req-group"><label>密碼 (預設 admin)</label><input type="password" id="login_hosp_pwd" value="admin"></div>
+        <div class="req-group"><label>密碼</label><input type="password" id="login_hosp_pwd" placeholder="請輸入醫院密碼"></div>
         <div class="req-group" style="justify-content: flex-end;"><button class="btn-custom btn-theme-primary" onclick="loginHospital()">登入</button></div>
     </div>
     <div id="hosp_dashboard" style="display: none;">
@@ -367,12 +330,9 @@
             <button class="btn-custom btn-theme-secondary" onclick="logoutHospital()">登出</button>
         </div>
     </div>
-    <!-- 找到這個 table 並在外面包一層，或者直接加 class -->
-    <div class="table-responsive-custom">
-        <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
-            <tbody id="hosp_cases_tbody"></tbody>
-        </table>
-    </div>
+    <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+        <tbody id="hosp_cases_tbody"></tbody>
+    </table>
 </div>
 </div>
 
@@ -550,7 +510,7 @@
                 <div class="req-group"><label>LINE 群組連結</label><input type="text" id="sys_set_line"></div>
             </div>
             <div class="req-group" style="margin-bottom: 10px;"><label>Google Drive 專屬資料夾 ID (Folder)</label><input type="text" id="sys_set_folder" placeholder="例如: 1mKrQfQWL_oIHu0YVyXycBTd8lZXG5GX2"></div>
-            <div class="req-group" style="margin-bottom: 10px;"><label>登入密碼修改</label><input type="password" id="sys_set_pwd" placeholder="若不修改請留空 (預設 admin)"></div>
+            <div class="req-group" style="margin-bottom: 10px;"><label>登入密碼修改</label><input type="password" id="sys_set_pwd" placeholder="若不修改請留空"></div>
             
             <div class="req-row" style="align-items: flex-end; border-top: 1px dashed var(--line); padding-top: 10px;">
                 <div class="req-group" style="flex: 2;"><label style="color:var(--amber);">覆寫今日值班醫師 (強制取代班表)</label><input type="text" id="sys_set_today_dr" placeholder="輸入醫師姓名"></div>
@@ -591,7 +551,7 @@
         <span class="close-btn" onclick="closeHospSettingsModal()">&times;</span>
         <h2 style="color: #0F5C61; margin-top: 0; border-bottom: 2px solid #E3E9E5; padding-bottom: 10px;">⚙️ 更新醫院量能狀態</h2>
         <div class="req-group" style="margin-bottom: 15px;"><label>設定醫院</label><select id="set_hosp_name" disabled></select></div>
-        <div class="req-group" style="margin-bottom: 15px;"><label>管理員密碼</label><input type="password" id="set_hosp_pwd" placeholder="輸入密碼 (預設 admin)"></div>
+        <div class="req-group" style="margin-bottom: 15px;"><label>管理員密碼</label><input type="password" id="set_hosp_pwd" placeholder="請輸入管理員密碼"></div>
         <label>目前量能燈號設定：</label>
         <div class="toggle-group" id="status_toggles">
             <button class="toggle-btn green" data-val="green">可取栓</button>
@@ -1115,15 +1075,9 @@
     }
 
     function submitCase() {
-        const phone = document.getElementById('req_doc_phone').value; 
-        const email = document.getElementById('req_doc_email').value; 
-        const hospOut = document.getElementById('req_hosp_out').value;
-        
-        let targets = []; 
-        document.querySelectorAll('.target-hosp-cb:checked').forEach(cb => targets.push(cb.value));
-        
-        if (targets.length === 0) return alert("請勾選醫院！"); 
-        if (Object.keys(pendingClinicalData).length === 0) return alert("請先開啟臨床表單填寫並讀取暫存！");
+        const phone = document.getElementById('req_doc_phone').value; const email = document.getElementById('req_doc_email').value; const hospOut = document.getElementById('req_hosp_out').value;
+        let targets = []; document.querySelectorAll('.target-hosp-cb:checked').forEach(cb => targets.push(cb.value));
+        if (targets.length === 0) return alert("請勾選醫院！"); if (Object.keys(pendingClinicalData).length === 0) return alert("請先開啟臨床表單填寫並讀取暫存！");
 
         // 🌟 統一使用台灣本地當下的真實日期與時間（與班表脫鉤）
         const now = new Date();
@@ -1157,7 +1111,7 @@
         .then(res => res.json()).then(data => {
             if(data.status === "success") {
                 cases[caseId].clinicalData.folderUrl = data.data.folderUrl; 
-                document.getElementById('submit_result_area').innerHTML = `<div class="text-center"><h3 class="text-success mb-2">✅ 資訊與通知已秒速發送！</h3><p class="fs-5 text-primary fw-bold mb-3">個案代碼：${caseId}</p><p class="text-danger fw-bold fs-5 mb-2">⚠️ 最後一步：請點擊下方按鈕上傳臨床影像 ⚠️</p><a href="${data.data.folderUrl}" target="_blank" class="btn btn-primary btn-lg fw-bold shadow">📂 點此開啟專屬資料夾，並將影像拖曳進入</a><p class="text-muted small mt-2">(上傳完成後，接收端醫院即可在信件中查看)</p></div>`;
+                document.getElementById('submit_result_area').innerHTML = `<div class="text-center"><h3 class="text-success mb-2">✅ 資訊與通知已秒速發送！</h3><p class="fs-5 text-primary fw-bold mb-3">個案代碼：${caseId}</p><p class="text-danger fw-bold fs-5 mb-2">⚠️ 最後一步 : 請點擊下方按鈕上傳臨床影像 ⚠️</p><a href="${data.data.folderUrl}" target="_blank" class="btn btn-primary btn-lg fw-bold shadow">📂 點此開啟專屬資料夾，並將影像拖曳進入</a><p class="text-muted small mt-2">(上傳完成後，接收端醫院即可在信件中查看)</p></div>`;
                 setTimeout(fetchRecentCasesFromGAS, 3000);
             } else { 
                 document.getElementById('submit_result_area').innerHTML = `❌ <strong>上傳發生錯誤：</strong> ${data.error}`; 
@@ -1477,7 +1431,8 @@
     function loginHospital() {
         const hospName = document.getElementById('login_hosp_name').value; const hosp = hospitals.find(h => h.name === hospName);
         if (!hosp) return alert("醫院資料載入中，請稍後再試。");
-        if (document.getElementById('login_hosp_pwd').value === (hosp.loginPwd || "admin") || document.getElementById('login_hosp_pwd').value === "admin") {
+        // 🌟 移除預設密碼限制，只核對資料庫中的真實密碼
+        if (document.getElementById('login_hosp_pwd').value === hosp.loginPwd) {
             loggedInHosp = hospName; document.getElementById('hosp_login_area').style.display = 'none'; document.getElementById('hosp_dashboard').style.display = 'block'; document.getElementById('disp_login_hosp').innerText = loggedInHosp; renderHospitalCases();
         } else { alert(`❌ 密碼錯誤！`); }
     }
