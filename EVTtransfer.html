@@ -870,10 +870,25 @@ let payloadClinicalData = JSON.parse(JSON.stringify(pendingClinicalData));
     }
     
     function openPrepGuide(caseId) {
-        // 您可以將這裡替換成您專屬的注意事項 HTML 網頁連結，或是 Google 雲端硬碟的 SOP 圖片/PDF 檔案連結
-        const guideUrl = "prep_guide.html"; // 或是寫死您的雲端檔案網址
+        // 1. 取得該個案目前選擇或鎖定的目標醫院名稱
+        // (請根據您前端 cases 物件的實際欄位名稱調整，例如 cases[caseId].finalDest 或 cases[caseId].chosenHosp)
+        let targetHosp = "";
         
-        // 彈出一個小視窗供醫護快速查閱
+        if (typeof cases !== 'undefined' && cases[caseId]) {
+            // 嘗試抓取目前已確定的轉入醫院，或最後選擇的醫院
+            targetHosp = cases[caseId].finalDest || cases[caseId].location || "";
+            
+            // 如果物件裡面沒有，也可以從畫面上的 DOM 元素或全域變數尋找，以下為保險的預設防呆
+        }
+
+        // 2. 組合成帶有醫院參數的網址
+        // 如果您的 prep_guide.html 放在同一個 GitHub Pages 專案底下
+        let guideUrl = "prep_guide.html";
+        if (targetHosp) {
+            guideUrl += `?hospital=${encodeURIComponent(targetHosp)}`;
+        }
+        
+        // 3. 彈出小視窗供醫護快速查閱
         window.open(guideUrl, '_blank', 'width=600,height=700,top=100,left=200');
     }
     
