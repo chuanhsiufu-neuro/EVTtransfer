@@ -276,7 +276,7 @@
                     <option value="">請選擇</option><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option>
                 </select>
             </div>
-            <div class="req-group"><label>Disposition</label><input type="text" id="fb_disposition" placeholder="例如: 出院 / 轉院 / 死亡..."></div>
+            <div class="req-group"><label>Desposition</label><input type="text" id="fb_desposition" placeholder="例如: 出院 / 轉院 / 死亡..."></div>
         </div>
         
         <!-- 🌟 新增：拖曳上傳圖檔區塊 -->
@@ -1044,7 +1044,7 @@
         document.getElementById('fb_door').value = door; document.getElementById('fb_doorout').value = doorOut; document.getElementById('fb_arrival').value = arrival;
         document.getElementById('fb_dido').value = calculateTimeDiffStr(door, doorOut); 
         
-        document.getElementById('fb_puncture').value = ""; document.getElementById('fb_recanalization').value = ""; document.getElementById('fb_dtp').value = ""; document.getElementById('fb_dtr').value = ""; document.getElementById('fb_mtici').value = ""; document.getElementById('fb_complication').value = ""; document.getElementById('fb_mrs').value = ""; document.getElementById('fb_disposition').value = "";
+        document.getElementById('fb_puncture').value = ""; document.getElementById('fb_recanalization').value = ""; document.getElementById('fb_dtp').value = ""; document.getElementById('fb_dtr').value = ""; document.getElementById('fb_mtici').value = ""; document.getElementById('fb_complication').value = ""; document.getElementById('fb_mrs').value = ""; document.getElementById('fb_desposition').value = "";
 
         // 清空之前的圖檔預覽
         feedbackImages = [];
@@ -1065,7 +1065,7 @@
             puncture: document.getElementById('fb_puncture').value, recanalization: document.getElementById('fb_recanalization').value,
             dtp: document.getElementById('fb_dtp').value, dtr: document.getElementById('fb_dtr').value,
             mTICI: document.getElementById('fb_mtici').value, complication: document.getElementById('fb_complication').value,
-            dischargeMRS: document.getElementById('fb_mrs').value, disposition: document.getElementById('fb_disposition').value,
+            dischargeMRS: document.getElementById('fb_mrs').value, desposition: document.getElementById('fb_desposition').value,
             closeTime: formatDateTime(),
             images: feedbackImages // 🌟 將圖檔打包進去
         };
