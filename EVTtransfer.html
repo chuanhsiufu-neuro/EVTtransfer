@@ -299,6 +299,7 @@
         <div class="skeleton-card"><div class="skeleton-bar w-60"></div><div class="skeleton-pill"></div><div class="skeleton-bar w-100"></div><div class="skeleton-bar w-80"></div><div class="skeleton-bar w-40"></div></div>
         <div class="skeleton-card"><div class="skeleton-bar w-60"></div><div class="skeleton-pill"></div><div class="skeleton-bar w-100"></div><div class="skeleton-bar w-80"></div><div class="skeleton-bar w-40"></div></div>
         <div class="skeleton-card"><div class="skeleton-bar w-60"></div><div class="skeleton-pill"></div><div class="skeleton-bar w-100"></div><div class="skeleton-bar w-80"></div><div class="skeleton-bar w-40"></div></div>
+        <div class="skeleton-card"><div class="skeleton-bar w-60"></div><div class="skeleton-pill"></div><div class="skeleton-bar w-100"></div><div class="skeleton-bar w-80"></div><div class="skeleton-bar w-40"></div></div>
     </div>
 
     <div class="section-header" style="border-bottom-color: var(--teal-500); color: var(--teal-500);">
@@ -829,9 +830,10 @@
     function fetchDataFromGAS() {
         if (!GAS_URL) return alert("尚未設定 GAS URL！");
         
-        // 🌟 重新整理或載入時，先秀出動態骨架屏
+        // 🌟 這裡同步改為四個 skeleton-card
         document.getElementById('hospital_status_board').innerHTML = `
             <div class="loading-caption"><span class="dot"></span><span class="dot"></span><span class="dot"></span>&nbsp;正在從雲端載入各醫院即時量能</div>
+            <div class="skeleton-card"><div class="skeleton-bar w-60"></div><div class="skeleton-pill"></div><div class="skeleton-bar w-100"></div><div class="skeleton-bar w-80"></div><div class="skeleton-bar w-40"></div></div>
             <div class="skeleton-card"><div class="skeleton-bar w-60"></div><div class="skeleton-pill"></div><div class="skeleton-bar w-100"></div><div class="skeleton-bar w-80"></div><div class="skeleton-bar w-40"></div></div>
             <div class="skeleton-card"><div class="skeleton-bar w-60"></div><div class="skeleton-pill"></div><div class="skeleton-bar w-100"></div><div class="skeleton-bar w-80"></div><div class="skeleton-bar w-40"></div></div>
             <div class="skeleton-card"><div class="skeleton-bar w-60"></div><div class="skeleton-pill"></div><div class="skeleton-bar w-100"></div><div class="skeleton-bar w-80"></div><div class="skeleton-bar w-40"></div></div>
