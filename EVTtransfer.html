@@ -452,7 +452,7 @@
 </div>
 
 <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycby68J1GruO44RTngKvkM-z9jMp2XMNCgBnl302S_M2-juPKfHrF8lWRApmjzs4-TfMS/exec"; 
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbw8-uOoAHPsb1Xc2CLzE7T2x3YOjPS_4ZNLhTfwtnWy4qxXYwRWBs6mOFbsLhOOmo_A4Q/exec"; 
 
     let hospitalsConfigData = {}; let currentRosterData = {}; let hospitals = []; 
     let cases = {}; let currentTrackCaseId = null; let loggedInHosp = null;
@@ -691,6 +691,30 @@
         const card = document.getElementById('form_status_card'); const title = document.getElementById('form_status_title');
         card.classList.remove('filled'); title.innerText = "尚未讀取臨床資訊"; title.style.color = "#6c757d";
     }
+    // ==========================================
+    // 💡 自動帶入今天日期作為「追蹤個案編號」前綴 (例如: 20260809-)
+    // ==========================================
+    function prefillTodayDate() {
+        let today = new Date();
+        let yyyy = today.getFullYear();
+        // getMonth() 回傳 0-11，所以要加 1；padStart(2, '0') 確保單數月份前面會補零
+        let mm = String(today.getMonth() + 1).padStart(2, '0');
+        let dd = String(today.getDate()).padStart(2, '0');
+        
+        // 組合出今天的日期字串，並在後面加上一槓
+        let dateString = yyyy + mm + dd + "-"; 
+    
+        // 抓取追蹤個案的輸入框
+        let trackInput = document.getElementById('track_case_id'); 
+        
+        // 如果輸入框存在，且裡面是空的，就幫醫師把日期填進去
+        if (trackInput && !trackInput.value) {
+            trackInput.value = dateString;
+        }
+    }
+    
+    // 確保網頁一載入完成，就立刻執行自動填入功能
+    window.addEventListener('load', prefillTodayDate);
     
     function editExistingClinical() {
         if(!currentTrackCaseId || !cases[currentTrackCaseId]) return alert("請先登入個案！");
@@ -919,7 +943,7 @@ let payloadClinicalData = JSON.parse(JSON.stringify(pendingClinicalData));
         if (cases[id] && cases[id].phone === pwd) { currentTrackCaseId = id; document.getElementById('track_dashboard').style.display = 'block'; renderTrackerDashboard(); } else { alert("代碼或密碼錯誤！"); }
     }
 
-    function renderTrackerDashboard() {
+   function renderTrackerDashboard() {
         const c = cases[currentTrackCaseId]; 
         document.getElementById('disp_track_id').innerHTML = `${currentTrackCaseId} <span style="font-size: 0.7em; color: #666; font-weight: normal;">${getCaseTimeStr(c)}</span>`;
         const container = document.getElementById('track_list_container'); const chatArea = document.getElementById('track_chat_area');
@@ -933,7 +957,13 @@ let payloadClinicalData = JSON.parse(JSON.stringify(pendingClinicalData));
             let btnDepart = c.departTime ? `<button class="btn-recorded" onclick="undoTime('${currentTrackCaseId}', 'depart')">已出發 ${c.departTime} ↺</button>` : `<button class="btn-warning" onclick="markTime('${currentTrackCaseId}', 'depart')">🚑 記錄出發</button>`;
             let btnArrive = c.arriveTime ? `<button class="btn-recorded" onclick="undoTime('${currentTrackCaseId}', 'arrive')">已抵達 ${c.arriveTime} ↺</button>` : `<button class="btn-danger" onclick="markTime('${currentTrackCaseId}', 'arrive')">🏥 記錄抵達</button>`;
 
-            // 🌟 修正重點：在這裡加入「🚨 注意事項」按鈕
+            // 🌟 防呆重點：如果已經出發或抵達，就不允許取消！隱藏取消按鈕
+            let cancelBtnHtml = "";
+            if (!c.departTime && !c.arriveTime) {
+                cancelBtnHtml = `<button class="btn-danger" onclick="cancelFinalDest('${currentTrackCaseId}', '${c.reqHospOut}')">❌ 取消</button>`;
+            }
+
+            // 🌟 將所有按鈕組合輸出 (包含動態判斷的取消按鈕)
             chatArea.innerHTML = `
                 <div style="width: 100%; margin-bottom: 5px;">
                     <strong style="color:#0056b3; font-size: 1.1em;">💬 已鎖定：${c.finalDest} (${c.lockTime})</strong>
@@ -945,10 +975,11 @@ let payloadClinicalData = JSON.parse(JSON.stringify(pendingClinicalData));
                     <button class="btn-main" style="background:#28a745;" onclick="window.open('${folderLink}', '_blank')">📂 開啟影像</button>
                     <button class="btn-main" style="background:#17a2b8;" onclick="openMessenger('${currentTrackCaseId}', 1, 'requester', '需求端')">💬 即時溝通</button>
                     <button class="btn-main" style="background-color:#ffc107; color:#333;" onclick="openPrepGuide('${currentTrackCaseId}')" title="出發前準備與注意事項">🚨 注意事項</button>
-                    <button class="btn-danger" onclick="cancelFinalDest('${currentTrackCaseId}', '${c.reqHospOut}')">❌ 取消</button>
+                    ${cancelBtnHtml} <!-- 🌟 只有在還沒出發時，才顯示取消按鈕 -->
                 </div>`;
         }
         
+        // --- 這裡以下是印出「各醫院回覆量能狀態」的迴圈，不要動它 ---
         c.targets.forEach(hospName => {
             const status = c.hospStatus[hospName]; 
             let statusClass = "eval";
