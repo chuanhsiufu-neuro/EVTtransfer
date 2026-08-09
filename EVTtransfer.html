@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>中風區域聯防轉診平台 v39 </title>
+    <title>中風區域聯防轉診平台 v40 </title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -229,7 +229,7 @@
 <!-- 彈出視窗群 (Modals)                        -->
 <!-- ========================================== -->
 
-<!-- ★ 🌟 全新升級：LINE 風格的 Messenger 對話框 Modal ★ -->
+<!-- ★ LINE 風格的 Messenger 對話框 Modal ★ -->
 <div id="messengerModal" class="modal" style="align-items: center; padding-top: 0; z-index: 2000;">
     <div class="modal-content" style="max-width: 500px; padding: 0; overflow: hidden; display: flex; flex-direction: column; height: 85vh; max-height: 650px; background-color: #8bbccf;">
         <div style="background-color: #0056b3; color: white; padding: 15px; position: relative; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 10;">
@@ -246,7 +246,7 @@
     </div>
 </div>
 
-<!-- ★ 🌟 全新升級：個案回饋與結案 Modal ★ -->
+<!-- ★ 🌟 個案回饋與結案 Modal ★ -->
 <div id="feedbackModal" class="modal" style="align-items: center; padding-top: 0;">
     <div class="modal-content" style="max-width: 600px; text-align: left; margin-bottom: 0;">
         <span class="close-btn" onclick="closeFeedbackModal()">&times;</span>
@@ -257,7 +257,8 @@
         <div class="req-row">
             <div class="req-group"><label>Door Time (轉出端)</label><input type="text" id="fb_door" readonly style="background:#e9ecef;"></div>
             <div class="req-group"><label>Door-out Time</label><input type="text" id="fb_doorout" readonly style="background:#e9ecef;"></div>
-            <div class="req-group"><label>DIDO (分)</label><input type="number" id="fb_dido" placeholder="請填寫分鐘數"></div>
+            <!-- 🌟 修改為 text 欄位，由系統自動填入 DIDO 計算結果 -->
+            <div class="req-group"><label>DIDO</label><input type="text" id="fb_dido" placeholder="系統自動計算..."></div>
         </div>
 
         <!-- 第二列 -->
@@ -488,7 +489,7 @@
     // ==========================================
     // ⚙️ 系統設定與 GAS API 網址
     // ==========================================
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbxegPMiu6IHm_2VJhuEXQ5Q1_23M3k66ZHym8TCPnbOwFigg7_P_Jmc59YjZi0EnYyz5g/exec"; 
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbx-9d8sHLtgMsj7TrHO3uNzc8DYZQ-MoI2dNEoQXKQGB9xqM-xtXnZC8uq-KPV-YiIKgA/exec"; 
 
     let hospitalsConfigData = {};
     let currentRosterData = {};
@@ -500,6 +501,57 @@
     let currentReplyCaseId = null;
     let pendingClinicalData = {}; 
     let editingHospStatus = "green";
+
+    // 🌟 時間格式化：處理 Google 表單可能自帶的 .000Z，加回 +8 小時
+    function formatClinicalTime(timeStr) {
+        if (!timeStr) return "";
+        if (typeof timeStr === 'string' && (timeStr.includes('T') || timeStr.includes('Z'))) {
+            let d = new Date(timeStr);
+            if (!isNaN(d.getTime())) {
+                const MM = String(d.getMonth() + 1).padStart(2, '0'); 
+                const DD = String(d.getDate()).padStart(2, '0');
+                const HH = String(d.getHours()).padStart(2, '0'); 
+                const mm = String(d.getMinutes()).padStart(2, '0');
+                if (d.getFullYear() === 1899) return `${HH}:${mm}`;
+                return `${MM}/${DD} ${HH}:${mm}`;
+            }
+        }
+        return String(timeStr).replace('T', ' ').replace('.000Z', '');
+    }
+
+    // 🌟 自動計算兩個時間字串 (格式: MM/dd HH:mm) 的相差時間
+    function calculateTimeDiffStr(startTimeStr, endTimeStr) {
+        if (!startTimeStr || !endTimeStr) return "";
+        function parseStr(str) {
+            let match = str.match(/(\d{2})\/(\d{2}) (\d{2}):(\d{2})/);
+            if (match) {
+                let y = new Date().getFullYear();
+                return new Date(y, parseInt(match[1])-1, parseInt(match[2]), parseInt(match[3]), parseInt(match[4])).getTime();
+            }
+            let matchTime = str.match(/^(\d{2}):(\d{2})$/);
+            if (matchTime) {
+                let d = new Date();
+                d.setHours(parseInt(matchTime[1]), parseInt(matchTime[2]), 0, 0);
+                return d.getTime();
+            }
+            return null;
+        }
+
+        let t1 = parseStr(startTimeStr);
+        let t2 = parseStr(endTimeStr);
+
+        if (!t1 || !t2) return "";
+        
+        let diffMs = t2 - t1;
+        if (diffMs < 0) return "時間順序異常"; 
+
+        let totalMins = Math.floor(diffMs / 60000);
+        let h = Math.floor(totalMins / 60);
+        let m = totalMins % 60;
+        
+        if (h > 0) return `${h}小時${m}分`;
+        else return `${m}分鐘`;
+    }
 
     function formatDateTime(d = new Date()) {
         const MM = String(d.getMonth() + 1).padStart(2, '0'); const DD = String(d.getDate()).padStart(2, '0');
@@ -1099,9 +1151,7 @@
                 <div style="display:flex; gap:10px; flex-wrap: wrap;">
                     <button class="btn-success" onclick="quickUpdateLocation('${currentTrackCaseId}')">📍 更新 GPS</button>
                     <button class="btn-main" style="background:#28a745;" onclick="window.open('${folderLink}', '_blank')">📂 開啟影像資料夾</button>
-                    
                     <button class="btn-main" style="background:#17a2b8;" onclick="openMessenger('${currentTrackCaseId}', 1, 'requester', '需求端')">💬 開啟即時溝通</button>
-                    
                     <button class="btn-danger" onclick="cancelFinalDest('${currentTrackCaseId}', '${c.reqHospOut}')">❌ 取消</button>
                 </div>`;
         }
@@ -1142,9 +1192,6 @@
         } 
     }
 
-    // ==========================================
-    // 即時溝通模組
-    // ==========================================
     let chatPollInterval;
     let currentChatContext = { caseId: "", attempt: 1, senderType: "", senderName: "" };
 
@@ -1239,9 +1286,6 @@
         }).catch(e => { console.log("發送失敗", e); input.disabled = false; });
     }
 
-    // ==========================================
-    // 取消轉入與強制瞬間同步
-    // ==========================================
     function cancelFinalDest(caseId, cancelHospName) { 
         if(confirm(`確定要取消轉入 ${cases[caseId].finalDest} 嗎？\n(操作方：${cancelHospName})`)) { 
             let t = formatDateTime();
@@ -1275,9 +1319,7 @@
         } 
     }
 
-    // ==========================================
     // 🌟 新增：結案與個案回饋表單
-    // ==========================================
     let currentFeedbackCaseId = null;
 
     function openFeedbackModal(caseId) {
@@ -1285,14 +1327,19 @@
         const c = cases[caseId];
         document.getElementById('fb_case_display').innerText = caseId;
         
-        let door = (c.clinicalData && c.clinicalData.door) ? c.clinicalData.door.replace('T', ' ') : "";
+        // 🌟 修正時間格式化呼叫
+        let door = (c.clinicalData && c.clinicalData.door) ? formatClinicalTime(c.clinicalData.door) : "";
         let doorOut = c.departTime || "";
         let arrival = c.arriveTime || "";
         
         document.getElementById('fb_door').value = door;
         document.getElementById('fb_doorout').value = doorOut;
         document.getElementById('fb_arrival').value = arrival;
-        document.getElementById('fb_dido').value = ""; 
+        
+        // 🌟 自動計算 DIDO (Door to Door-out)
+        let didoResult = calculateTimeDiffStr(door, doorOut);
+        document.getElementById('fb_dido').value = didoResult; 
+        
         document.getElementById('fb_puncture').value = "";
         document.getElementById('fb_recanalization').value = "";
         document.getElementById('fb_dtp').value = "";
@@ -1361,14 +1408,12 @@
         for (let caseId in cases) {
             const c = cases[caseId];
             if (c.targets.includes(loggedInHosp)) {
-                // 如果目前還是結案前狀態
                 if (c.hospStatus[loggedInHosp] === "尚未讀取個案") c.hospStatus[loggedInHosp] = "評估中";
                 
                 let intentText = "評估中"; 
                 let actionBtns = `<button class="btn-main" style="background:#fd7e14;" onclick="openReplyModal('${caseId}')">🏥 回覆量能</button>`;
                 
                 if (c.finalDest === loggedInHosp) {
-                        // 🌟 連動轉出端資訊：如果已經抵達或已經出發，文字跟著改變
                         if (c.arriveTime) {
                             intentText = `<span style="color:#17a2b8; font-weight:bold;">🏥 已抵達本院 (${c.arriveTime})</span>`;
                         } else if (c.departTime) {
@@ -1380,7 +1425,6 @@
                         let mapBtn = c.location ? `<button class="btn-main" style="background:#28a745;" onclick="window.open('https://www.google.com/maps/search/?api=1&query=${c.location.lat},${c.location.lng}', '_blank')">🗺️ GPS地圖</button>` : `<span style="font-size:0.85em; color:#888;">(尚未回報GPS)</span>`;
                         let chatBtn = `<button class="btn-main" style="background:#17a2b8;" onclick="openMessenger('${caseId}', 1, 'evt', '${loggedInHosp}')">💬 即時文字溝通</button>`;
                         
-                        // 🌟 若已抵達，將取消按鈕替換成結案回饋按鈕
                         if (c.arriveTime) {
                             let feedbackBtn = `<button class="btn-main" style="background:#ffc107; color:#333;" onclick="openFeedbackModal('${caseId}')">📝 個案回饋與結案</button>`;
                             actionBtns = `${mapBtn} ${chatBtn} ${feedbackBtn}`;
@@ -1447,8 +1491,11 @@
         document.getElementById('vc_hosp').innerText = c.reqHospOut || document.getElementById('req_hosp_out').value || "未填寫";
         document.getElementById('vc_phone').innerText = c.phone || "-";
         document.getElementById('vc_patient').innerText = `${d.age||"-"}歲 ${d.gender||"-"}, mRS: ${d.mrs||"-"}`;
-        document.getElementById('vc_onset').innerText = d.onset ? d.onset.replace('T', ' ') : "-";
-        document.getElementById('vc_door').innerText = d.door ? d.door.replace('T', ' ') : "-";
+        
+        // 🌟 更新這裡的顯示格式
+        document.getElementById('vc_onset').innerText = d.onset ? formatClinicalTime(d.onset) : "-";
+        document.getElementById('vc_door').innerText = d.door ? formatClinicalTime(d.door) : "-";
+        
         document.getElementById('vc_occlusion').innerText = d.occlusion || "-"; 
         document.getElementById('vc_nihss').innerText = `${d.nihssRaw||"-"} ${d.nihssScore||""}`;
         
@@ -1459,8 +1506,10 @@
         document.getElementById('vc_lab').innerText = `Cre: ${d.cre||"-"} / 其他: ${d.labOther||"-"}`;
         
         let tpaStr = d.tpaStatus || "未填寫";
-        if(d.tpaStatus === '有施打') tpaStr += ` (${d.tpaDose||""}, Bolus: ${d.tpaBolusTime?d.tpaBolusTime.replace('T',' '):"-"}, 備註: ${d.tpaYesNote||"-"})`;
+        // 🌟 更新 tpaBolusTime 的顯示格式
+        if(d.tpaStatus === '有施打') tpaStr += ` (${d.tpaDose||""}, Bolus: ${d.tpaBolusTime ? formatClinicalTime(d.tpaBolusTime) : "-"}, 備註: ${d.tpaYesNote||"-"})`;
         else if(d.tpaStatus === '未施打') tpaStr += ` (原因: ${d.tpaNoNote||"-"})`;
+        
         document.getElementById('vc_tpa').innerText = tpaStr;
         document.getElementById('vc_family').innerText = `${d.famSel||"-"} - ${d.famText||"-"}`;
 
