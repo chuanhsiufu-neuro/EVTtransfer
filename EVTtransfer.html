@@ -638,7 +638,7 @@
 </div>
     
 <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbxuTx85Qvl7yQ2Rf91Q75C9W5B7ZOnFf1limsahlGPdE42QHb2YrTMmwO2cOiEOutzrpw/exec"; 
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxVlsWgD2Nv-zqCGWLC3yBmYIjHScI5xX8VCqfL6mWOPZGJ5Q0E5X3k8ub6UwCtwxXSRQ/exec"; 
 
     let hospitalsConfigData = {}; let currentRosterData = {}; let hospitals = []; 
     let cases = {}; let currentTrackCaseId = null; let loggedInHosp = null;
@@ -1194,7 +1194,7 @@
                 ${btnArrive}
                 <button class="btn-custom btn-theme-success" onclick="quickUpdateLocation('${currentTrackCaseId}')">📍 更新 GPS</button>
                 <button class="btn-custom btn-theme-success" onclick="window.open('${folderLink}', '_blank')">📂 開啟影像</button>
-                <button class="btn-custom btn-theme-info" onclick="openMessenger('${currentTrackCaseId}', 1, 'requester', '需求端')">💬 即時溝通</button>
+                <button class="btn-custom btn-theme-info" onclick="openMessenger('${currentTrackCaseId}', 1, 'requester', '${c.reqHospOut}')">💬 即時溝通</button>
                 <button class="btn-custom btn-theme-warning" onclick="openPrepGuide('${currentTrackCaseId}')" title="出發前準備與注意事項">🚨 注意事項</button>
                 ${cancelBtnHtml}
             </div>`;
