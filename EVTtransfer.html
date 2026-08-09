@@ -299,7 +299,6 @@
         <div class="skeleton-card"><div class="skeleton-bar w-60"></div><div class="skeleton-pill"></div><div class="skeleton-bar w-100"></div><div class="skeleton-bar w-80"></div><div class="skeleton-bar w-40"></div></div>
         <div class="skeleton-card"><div class="skeleton-bar w-60"></div><div class="skeleton-pill"></div><div class="skeleton-bar w-100"></div><div class="skeleton-bar w-80"></div><div class="skeleton-bar w-40"></div></div>
         <div class="skeleton-card"><div class="skeleton-bar w-60"></div><div class="skeleton-pill"></div><div class="skeleton-bar w-100"></div><div class="skeleton-bar w-80"></div><div class="skeleton-bar w-40"></div></div>
-        <div class="skeleton-card"><div class="skeleton-bar w-60"></div><div class="skeleton-pill"></div><div class="skeleton-bar w-100"></div><div class="skeleton-bar w-80"></div><div class="skeleton-bar w-40"></div></div>
     </div>
 
     <div class="section-header" style="border-bottom-color: var(--teal-500); color: var(--teal-500);">
@@ -836,8 +835,7 @@
             <div class="skeleton-card"><div class="skeleton-bar w-60"></div><div class="skeleton-pill"></div><div class="skeleton-bar w-100"></div><div class="skeleton-bar w-80"></div><div class="skeleton-bar w-40"></div></div>
             <div class="skeleton-card"><div class="skeleton-bar w-60"></div><div class="skeleton-pill"></div><div class="skeleton-bar w-100"></div><div class="skeleton-bar w-80"></div><div class="skeleton-bar w-40"></div></div>
             <div class="skeleton-card"><div class="skeleton-bar w-60"></div><div class="skeleton-pill"></div><div class="skeleton-bar w-100"></div><div class="skeleton-bar w-80"></div><div class="skeleton-bar w-40"></div></div>
-            <div class="skeleton-card"><div class="skeleton-bar w-60"></div><div class="skeleton-pill"></div><div class="skeleton-bar w-100"></div><div class="skeleton-bar w-80"></div><div class="skeleton-bar w-40"></div></div>
-        `;
+         `;
 
         fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "fetchActiveData" }) })
         .then(res => res.json()).then(resData => {
@@ -1080,10 +1078,8 @@
     }
 
     function queryTodayRoster() {
-        // 🌟 清除所有按鈕的反深色狀態
         document.querySelectorAll('.roster-radio-label').forEach(lbl => lbl.classList.remove('active'));
         
-        // 🌟 找到被選中的那一顆 radio，幫它的外框加上深色 active 狀態
         const selectedOpt = document.querySelector('input[name="roster_query_hosp_radio"]:checked');
         if (selectedOpt) {
             selectedOpt.closest('.roster-radio-label').classList.add('active');
@@ -1097,9 +1093,9 @@
         resDiv.style.display = 'block';
         if (currentRosterData[hospName]) {
             const r = currentRosterData[hospName]; 
-            // 🌟 醫院名稱維持 var(--teal-700) 粗體，三個時段改用醒目的黃色 (#F1C40F) 做出強烈對比
+            // 🌟 醫院名稱與三個時段全部統一使用亮黃色 (#F1C40F)
             tbody.innerHTML = `<tr>
-                <td style="color: var(--teal-700); font-weight: bold;">${hospName}</td>
+                <td style="color: #F1C40F; font-weight: bold;">${hospName}</td>
                 <td style="color: #F1C40F; font-weight: bold;">${r.m || "-"}</td>
                 <td style="color: #F1C40F; font-weight: bold;">${r.a || "-"}</td>
                 <td style="color: #F1C40F; font-weight: bold;">${r.n || "-"}</td>
