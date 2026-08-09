@@ -1097,8 +1097,13 @@
         resDiv.style.display = 'block';
         if (currentRosterData[hospName]) {
             const r = currentRosterData[hospName]; 
-            // 🌟 採用與「現在時間」一致的綠色粗體風格 (${hospName})
-            tbody.innerHTML = `<tr><td style="color: var(--teal-700); font-weight: bold;">${hospName}</td><td>${r.m || "-"}</td><td>${r.a || "-"}</td><td>${r.n || "-"}</td></tr>`;
+            // 🌟 醫院名稱維持 var(--teal-700) 粗體，三個時段改用醒目的黃色 (#F1C40F) 做出強烈對比
+            tbody.innerHTML = `<tr>
+                <td style="color: var(--teal-700); font-weight: bold;">${hospName}</td>
+                <td style="color: #F1C40F; font-weight: bold;">${r.m || "-"}</td>
+                <td style="color: #F1C40F; font-weight: bold;">${r.a || "-"}</td>
+                <td style="color: #F1C40F; font-weight: bold;">${r.n || "-"}</td>
+            </tr>`;
         } else { 
             tbody.innerHTML = `<tr><td colspan="4" class="text-muted text-center">無排班資料</td></tr>`; 
         }
