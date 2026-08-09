@@ -485,28 +485,30 @@
 </footer>
 
 <script>
-  // 💡 自動根據網址帶入的醫院參數來顯示對應名稱與急診電話
-  // 範例網址：prep_guide.html?hospital=林口長庚
+  // 💡 自動根據網址帶入的醫院名稱與電話參數來顯示
   const urlParams = new URLSearchParams(window.location.search);
   const hospital = urlParams.get('hospital');
+  const customPhone = urlParams.get('phone'); // 接收從主系統傳過來的即時電話
 
-  // 您可以在此設定各醫院的對應急診電話
+  // 備用對應表 (萬一沒傳參數時的防呆)
   const hospitalPhones = {
-    "新竹台大": "03-5326151 #5200",
-    "東元醫院": "03-5521000 #2111",
-    "新竹中國": "03-5360533 #2200",
-    "大千醫院": "037-357125 #3100",
+    "新竹台大": "03-5326151 #524207",
+    "東元醫院": "03-5527000 #1156/#1131 / 0965116016",
+    "新竹中國": "03-5580558 #1181",
+    "大千醫院": "037-357125 總機轉急診",
     "聯新國際": "03-4941234 #3100",
-    "林口長庚": "03-3281200 #2500"
+    "林口長庚": "03-3281200 總機轉急診"
   };
 
-  if (hospital && hospitalPhones[hospital]) {
-    document.getElementById('hospNameDisplay').innerText = hospital;
-    document.getElementById('hospPhoneDisplay').innerText = hospitalPhones[hospital];
-    document.getElementById('checklistPhone').innerText = "☎ TEL " + hospitalPhones[hospital];
-  } else if (hospital) {
+  // 優先採用系統傳過來的電話，若無則從備用表抓，再沒有就顯示預設字串
+  let finalPhone = customPhone || (hospital && hospitalPhones[hospital]) || "03-4941234 #3100";
+
+  if (hospital) {
     document.getElementById('hospNameDisplay').innerText = hospital;
   }
+  
+  document.getElementById('hospPhoneDisplay').innerText = finalPhone;
+  document.getElementById('checklistPhone').innerText = "☎ TEL " + finalPhone;
 </script>
 
 </body>
