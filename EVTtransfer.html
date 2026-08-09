@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>中風區域聯防轉診平台 v40 </title>
+    <title>中風區域聯防轉診平台 v41 </title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -191,6 +191,8 @@
                 <h3 style="color: #0056b3; margin:0;"><span id="disp_login_hosp"></span> - 收到的需求</h3>
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                     <button class="btn-main" style="background:#28a745;" onclick="fetchRecentCasesFromGAS()">🔄 立即更新</button>
+                    <!-- 🌟 新增：下載品管月報按鈕 -->
+                    <button class="btn-main" style="background:#6f42c1;" onclick="openReportModal()">📥 下載品管月報</button>
                     <button class="btn-main" style="background:#17a2b8;" onclick="openHospSysSettingsModal()">⚙️ 系統設定 (含通訊錄)</button>
                     <button class="btn-main" onclick="logoutHospital()" style="background:#6c757d;">登出</button>
                 </div>
@@ -246,22 +248,19 @@
     </div>
 </div>
 
-<!-- ★ 🌟 個案回饋與結案 Modal ★ -->
+<!-- ★ 個案回饋與結案 Modal ★ -->
 <div id="feedbackModal" class="modal" style="align-items: center; padding-top: 0;">
     <div class="modal-content" style="max-width: 600px; text-align: left; margin-bottom: 0;">
         <span class="close-btn" onclick="closeFeedbackModal()">&times;</span>
         <h2 style="color: #ffc107; margin-top: 0; border-bottom: 2px solid #eee; padding-bottom: 10px; text-shadow: 1px 1px 1px rgba(0,0,0,0.1);">📝 個案回饋與結案</h2>
         <p style="font-size: 1.05em; color: #555;">個案編號：<strong id="fb_case_display" style="color:#0056b3;"></strong></p>
 
-        <!-- 第一列 -->
         <div class="req-row">
             <div class="req-group"><label>Door Time (轉出端)</label><input type="text" id="fb_door" readonly style="background:#e9ecef;"></div>
             <div class="req-group"><label>Door-out Time</label><input type="text" id="fb_doorout" readonly style="background:#e9ecef;"></div>
-            <!-- 🌟 修改為 text 欄位，由系統自動填入 DIDO 計算結果 -->
             <div class="req-group"><label>DIDO</label><input type="text" id="fb_dido" placeholder="系統自動計算..."></div>
         </div>
 
-        <!-- 第二列 -->
         <div class="req-row" style="flex-wrap: wrap;">
             <div class="req-group" style="min-width: 100px;"><label>Arrival Time</label><input type="text" id="fb_arrival" readonly style="background:#e9ecef;"></div>
             <div class="req-group" style="min-width: 100px;"><label>Puncture Time</label><input type="text" id="fb_puncture" placeholder="時間或文字"></div>
@@ -270,7 +269,6 @@
             <div class="req-group" style="min-width: 80px;"><label>DTR (分)</label><input type="number" id="fb_dtr" placeholder="Arrival to Recan."></div>
         </div>
         
-        <!-- 第三列 -->
         <div class="req-row">
             <div class="req-group"><label>mTICI</label>
                 <select id="fb_mtici">
@@ -280,7 +278,6 @@
             <div class="req-group"><label>Complication</label><input type="text" id="fb_complication" placeholder="例如: 無 / ICH / SAH..."></div>
         </div>
 
-        <!-- 第四列 -->
         <div class="req-row">
             <div class="req-group"><label>Discharge mRS</label>
                 <select id="fb_mrs">
@@ -291,6 +288,22 @@
         </div>
 
         <button class="btn-success" style="width: 100%; padding: 12px; font-size: 1.1em; margin-top: 15px;" onclick="submitFeedback()">💾 紀錄時間並送出結案</button>
+    </div>
+</div>
+
+<!-- ★ 月報表下載 Modal ★ -->
+<div id="reportModal" class="modal" style="align-items: center; padding-top: 0;">
+    <div class="modal-content" style="max-width: 400px; text-align: left; margin-bottom: 0;">
+        <span class="close-btn" onclick="closeReportModal()">&times;</span>
+        <h2 style="color: #6f42c1; margin-top: 0; border-bottom: 2px solid #eee; padding-bottom: 10px;">📊 下載品管月報表</h2>
+        <div class="req-group" style="margin-bottom: 15px;">
+            <label>請選擇報表月份：</label>
+            <select id="report_month_select" style="width: 100%; padding: 8px;">
+                <!-- 選項由 JS 自動生成 -->
+            </select>
+        </div>
+        <div style="font-size: 0.85em; color: #666; margin-bottom: 15px;">💡 系統將自動彙整 <b><span id="report_hosp_display"></span></b> 在該月份成功轉入且結案的資訊，合併三個分頁為一份完整的 Excel(CSV) 檔案。</div>
+        <button class="btn-main" id="btn_download_report" style="width: 100%; padding: 12px; font-size: 1.1em; background: #6f42c1;" onclick="executeDownloadReport()">📥 產生並下載</button>
     </div>
 </div>
 
@@ -489,7 +502,7 @@
     // ==========================================
     // ⚙️ 系統設定與 GAS API 網址
     // ==========================================
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbxegPMiu6IHm_2VJhuEXQ5Q1_23M3k66ZHym8TCPnbOwFigg7_P_Jmc59YjZi0EnYyz5g/exec"; 
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbz7hI4rBuv7pL_pkc8kweWlBwzXlcN5RWYP_zcC3SBD29opLL3cGbtZXkd6ALEbX6AX3Q/exec"; 
 
     let hospitalsConfigData = {};
     let currentRosterData = {};
@@ -502,7 +515,6 @@
     let pendingClinicalData = {}; 
     let editingHospStatus = "green";
 
-    // 🌟 時間格式化：處理 Google 表單可能自帶的 .000Z，加回 +8 小時
     function formatClinicalTime(timeStr) {
         if (!timeStr) return "";
         if (typeof timeStr === 'string' && (timeStr.includes('T') || timeStr.includes('Z'))) {
@@ -519,7 +531,6 @@
         return String(timeStr).replace('T', ' ').replace('.000Z', '');
     }
 
-    // 🌟 自動計算兩個時間字串 (格式: MM/dd HH:mm) 的相差時間
     function calculateTimeDiffStr(startTimeStr, endTimeStr) {
         if (!startTimeStr || !endTimeStr) return "";
         function parseStr(str) {
@@ -541,7 +552,6 @@
         let t2 = parseStr(endTimeStr);
 
         if (!t1 || !t2) return "";
-        
         let diffMs = t2 - t1;
         if (diffMs < 0) return "時間順序異常"; 
 
@@ -984,6 +994,58 @@
         } else { tbody.innerHTML = `<tr><td colspan="4" style="color:#aaa; text-align:center;">無排班資料</td></tr>`; }
     }
 
+    // 🌟 月報表下載彈出視窗處理
+    function openReportModal() {
+        if (!loggedInHosp) return alert("請先登入醫院！");
+        document.getElementById('report_hosp_display').innerText = loggedInHosp;
+
+        const sel = document.getElementById('report_month_select');
+        sel.innerHTML = "";
+        let now = new Date();
+        for (let i = 0; i < 12; i++) {
+            let d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            let val = d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0');
+            let text = `${d.getFullYear()} 年 ${d.getMonth() + 1} 月`;
+            sel.innerHTML += `<option value="${val}">${text}</option>`;
+        }
+        document.getElementById('reportModal').style.display = 'flex';
+    }
+
+    function closeReportModal() { document.getElementById('reportModal').style.display = 'none'; }
+
+    function executeDownloadReport() {
+        let month = document.getElementById('report_month_select').value;
+        let btn = document.getElementById('btn_download_report');
+        let origText = btn.innerText;
+        btn.innerText = "⏳ 報表產生中...";
+        btn.disabled = true;
+
+        fetch(GAS_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                action: "downloadMonthlyReport",
+                payload: { month: month, hospName: loggedInHosp }
+            })
+        }).then(res => res.json()).then(data => {
+            btn.innerText = origText; btn.disabled = false;
+            if (data.status === "success") {
+                if (!data.data.csvContent) {
+                    alert("⚠️ " + data.data.message);
+                } else {
+                    const blob = new Blob([data.data.csvContent], { type: 'text/csv;charset=utf-8;' });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement("a");
+                    link.href = url;
+                    link.setAttribute("download", `${loggedInHosp}_${month}_品管月報表.csv`);
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    closeReportModal();
+                }
+            } else { alert("下載失敗: " + data.error); }
+        }).catch(e => { alert("網路連線錯誤"); btn.innerText = origText; btn.disabled = false; console.log(e); });
+    }
+
     function openHospSettingsModal(hospName) {
         document.getElementById('set_hosp_name').value = hospName; document.getElementById('set_hosp_pwd').value = ""; 
         const hosp = hospitals.find(h => h.name === hospName); 
@@ -1319,7 +1381,6 @@
         } 
     }
 
-    // 🌟 新增：結案與個案回饋表單
     let currentFeedbackCaseId = null;
 
     function openFeedbackModal(caseId) {
@@ -1327,7 +1388,6 @@
         const c = cases[caseId];
         document.getElementById('fb_case_display').innerText = caseId;
         
-        // 🌟 修正時間格式化呼叫
         let door = (c.clinicalData && c.clinicalData.door) ? formatClinicalTime(c.clinicalData.door) : "";
         let doorOut = c.departTime || "";
         let arrival = c.arriveTime || "";
@@ -1336,7 +1396,6 @@
         document.getElementById('fb_doorout').value = doorOut;
         document.getElementById('fb_arrival').value = arrival;
         
-        // 🌟 自動計算 DIDO (Door to Door-out)
         let didoResult = calculateTimeDiffStr(door, doorOut);
         document.getElementById('fb_dido').value = didoResult; 
         
@@ -1407,7 +1466,14 @@
         const tbody = document.getElementById('hosp_cases_tbody'); tbody.innerHTML = "";
         for (let caseId in cases) {
             const c = cases[caseId];
+            
             if (c.targets.includes(loggedInHosp)) {
+                
+                // 🌟 過濾掉已結案的個案
+                if (c.hospStatus[loggedInHosp] && c.hospStatus[loggedInHosp].includes("已結案")) {
+                    continue; 
+                }
+
                 if (c.hospStatus[loggedInHosp] === "尚未讀取個案") c.hospStatus[loggedInHosp] = "評估中";
                 
                 let intentText = "評估中"; 
@@ -1492,7 +1558,6 @@
         document.getElementById('vc_phone').innerText = c.phone || "-";
         document.getElementById('vc_patient').innerText = `${d.age||"-"}歲 ${d.gender||"-"}, mRS: ${d.mrs||"-"}`;
         
-        // 🌟 更新這裡的顯示格式
         document.getElementById('vc_onset').innerText = d.onset ? formatClinicalTime(d.onset) : "-";
         document.getElementById('vc_door').innerText = d.door ? formatClinicalTime(d.door) : "-";
         
@@ -1506,7 +1571,6 @@
         document.getElementById('vc_lab').innerText = `Cre: ${d.cre||"-"} / 其他: ${d.labOther||"-"}`;
         
         let tpaStr = d.tpaStatus || "未填寫";
-        // 🌟 更新 tpaBolusTime 的顯示格式
         if(d.tpaStatus === '有施打') tpaStr += ` (${d.tpaDose||""}, Bolus: ${d.tpaBolusTime ? formatClinicalTime(d.tpaBolusTime) : "-"}, 備註: ${d.tpaYesNote||"-"})`;
         else if(d.tpaStatus === '未施打') tpaStr += ` (原因: ${d.tpaNoNote||"-"})`;
         
