@@ -315,7 +315,7 @@
     <div id="hosp_login_area" class="req-row">
         <div class="req-group"><label>醫院</label><select id="login_hosp_name"><option>載入中...</option></select></div>
         <div class="req-group"><label>密碼</label><input type="password" id="login_hosp_pwd" placeholder="請輸入醫院密碼"></div>
-        <div class="req-group" style="justify-content: flex-end;"><button class="btn-custom btn-theme-primary" onclick="loginHospital()">登入</button></div>
+        <div class="req-group" style="justify-content: flex-end;"><button class="btn-custom btn-theme-primary" onclick="loginHospital()">🔍 登入</button></div>
     </div>
     <div id="hosp_dashboard" style="display: none;">
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
@@ -1020,7 +1020,8 @@
         resDiv.style.display = 'block';
         if (currentRosterData[hospName]) {
             const r = currentRosterData[hospName]; 
-            tbody.innerHTML = `<tr><td style="color:#ecf0f1; font-weight:normal;">${hospName}</td><td style="color:#f1c40f;">${r.m}</td><td style="color:#f1c40f;">${r.a}</td><td style="color:#f1c40f;">${r.n}</td></tr>`;
+            // 🌟 採用與「現在時間」一致的綠色粗體風格 (${hospName})
+            tbody.innerHTML = `<tr><td style="color: var(--teal-700); font-weight: bold;">${hospName}</td><td>${r.m || "-"}</td><td>${r.a || "-"}</td><td>${r.n || "-"}</td></tr>`;
         } else { 
             tbody.innerHTML = `<tr><td colspan="4" class="text-muted text-center">無排班資料</td></tr>`; 
         }
