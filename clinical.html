@@ -4,205 +4,293 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📝 臨床資訊獨立表單</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
     <style>
-        body { font-family: "Microsoft JhengHei", sans-serif; margin: 0; padding: 20px; background-color: #f4f7f6; color: #333; }
-        .form-container { max-width: 800px; margin: 0 auto; background: white; padding: 25px 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;700;900&family=Noto+Sans+TC:wght@400;500;600;700;900&family=JetBrains+Mono:wght@500;700&display=swap');
+
+        :root {
+            --ink:        #0F2A2E;
+            --teal-900:   #0B3A3F;
+            --teal-700:   #0F5C61;
+            --teal-500:   #17878A;
+            --teal-100:   #E4F1EF;
+            --paper:      #F4F6F4;
+            --card:       #FFFFFF;
+            --amber:      #C7791F;
+            --amber-100:  #FBEEDA;
+            --alert:      #B23A2E;
+            --alert-100:  #FBE9E5;
+            --success:    #2F8F5B;
+            --success-100:#E4F3EA;
+            --line:       #DCE4E0;
+            --serif: 'Noto Serif TC', serif;
+            --sans:  'Noto Sans TC', "Microsoft JhengHei", sans-serif;
+            --mono:  'JetBrains Mono', monospace;
+        }
+
+        /* 🌟 呼吸燈閃爍動畫 */
+        @keyframes pulse-dot {
+            0% { transform: scale(0.95); opacity: 0.8; box-shadow: 0 0 0 0 rgba(199, 121, 31, 0.7); }
+            70% { transform: scale(1.05); opacity: 1; box-shadow: 0 0 0 6px rgba(199, 121, 31, 0); }
+            100% { transform: scale(0.95); opacity: 0.8; box-shadow: 0 0 0 0 rgba(199, 121, 31, 0); }
+        }
+        .pulse-dot {
+            width: 10px; height: 10px; background-color: #C7791F; border-radius: 50%; display: inline-block;
+            animation: pulse-dot 2s infinite ease-in-out; margin-right: 6px; vertical-align: middle;
+        }
+
+        /* 🌟 底部心電圖/脈搏動態流動線條 */
+        .pulse-line {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 4px;
+            background: linear-gradient(90deg, transparent, #17878A, #BFE0DC, #17878A, transparent);
+            background-size: 200% 100%;
+            animation: wave-flow 4s linear infinite;
+        }
+        @keyframes wave-flow {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        body { font-family: var(--sans); margin: 0; padding: 20px; background-color: var(--paper); color: var(--ink); line-height: 1.65; }
+        .form-container { max-width: 800px; margin: 0 auto; background: var(--card); padding: 30px; border-radius: 14px; box-shadow: 0 4px 20px rgba(11,58,63,0.08); }
         
-        h2 { color: #0056b3; margin-top: 0; border-bottom: 3px solid #b8daff; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center;}
-        .sub-title { background-color: #eef; padding: 8px 12px; margin: 20px 0 15px 0; border-radius: 4px; font-weight: bold; color: #004085; border-left: 4px solid #0056b3; font-size: 1.05em; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;}
+        .sub-header { font-family: var(--serif); background-color: var(--teal-100); padding: 10px 14px; margin: 22px 0 14px 0; border-radius: 8px; font-weight: 700; color: var(--teal-700); border-left: 4px solid var(--teal-700); font-size: 1.05em; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;}
 
         /* 表單排版 */
         .req-row { display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-start; margin-bottom: 15px; }
         .req-group { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 150px; }
-        label { font-weight: bold; font-size: 0.95em; color: #444; display: flex; justify-content: space-between; align-items: center;}
-        input[type="text"], input[type="number"], input[type="datetime-local"], select, textarea { padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; width: 100%; box-sizing: border-box; background-color: #fff; transition: 0.2s;}
-        input:focus, textarea:focus, select:focus { border-color: #17a2b8; outline: none; box-shadow: 0 0 5px rgba(23, 162, 184, 0.3); }
+        label { font-weight: 700; font-size: 0.95em; color: var(--ink); display: flex; justify-content: space-between; align-items: center;}
+        input[type="text"], input[type="number"], input[type="datetime-local"], select, textarea { padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; font-size: 15px; width: 100%; box-sizing: border-box; background-color: #fff; font-family: var(--sans); transition: 0.2s;}
+        input:focus, textarea:focus, select:focus { border-color: var(--teal-500); outline: none; box-shadow: 0 0 0 3px rgba(23,135,138,0.15); }
        
-        /* 按鈕設計 */
-        .btn-main { background-color: #0056b3; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.95em; transition: 0.2s;}
-        .btn-main:hover { background-color: #004085; }
-        .btn-success { background-color: #28a745; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 1.1em; width: 100%; transition: 0.2s;}
-        .btn-success:hover { background-color: #218838; }
-        .btn-warning { background-color: #ffc107; color: #333; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.85em; }
-        .btn-combo { background-color: #e83e8c; color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9em; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);}
-        .btn-combo:hover { background-color: #c82333; transform: translateY(-1px);}
-
-        /* 複選框 (過去病史/影像) */
-        .cb-group { display: flex; flex-wrap: wrap; gap: 10px; padding: 12px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 6px; }
-        .cb-label { display: flex; align-items: center; gap: 5px; cursor: pointer; font-size: 0.95em; font-weight: normal; }
-        .cb-label input { width: 16px; height: 16px; cursor: pointer;}
-        .score-display { font-weight: bold; color: #d9534f; margin-left: 5px; }
+        /* 按鈕設計：全面對齊全站 .btn-custom 系列與深綠色系 */
+        .btn-custom { padding: 8px 14px; border-radius: 8px; font-weight: 700; font-size: 0.9em; border: none; cursor: pointer; transition: 0.2s; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+        .btn-custom:hover { opacity: 0.88; transform: translateY(-1px); }
+        .btn-theme-primary   { background-color: var(--teal-700); color: white; }
+        .btn-theme-success   { background-color: var(--teal-700); color: white; } /* 底部儲存改為深綠色底白色字 */
+        .btn-theme-warning   { background-color: var(--amber); color: white; }
+        .btn-theme-danger    { background-color: var(--alert); color: white; }
+        .btn-theme-info      { background-color: var(--teal-500); color: white; }
+        .btn-theme-secondary { background-color: #5B6B65; color: white; }
+        .btn-theme-dark      { background-color: var(--teal-700); color: white; } 
+        /* 套餐、血管選單按鈕改為深綠色 */
+        /* 新增自定義按鈕顏色 */
+        .btn-theme-darkred   { background-color: #8B0000; color: white; }
+        .btn-theme-darkred:hover { background-color: #A00000; color: white; }
         
-        /* Modal (彈出視窗) 共用樣式 */
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); align-items: center; justify-content: center; padding: 20px; box-sizing: border-box;}
-        .modal-content { background-color: #fff; padding: 25px; border-radius: 8px; width: 100%; max-width: 500px; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto; box-sizing: border-box;}
-        .close-btn { position: absolute; top: 15px; right: 20px; color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .btn-theme-darkbrown { background-color: #5C4033; color: white; }
+        .btn-theme-darkbrown:hover { background-color: #6E4D40; color: white; }
+
+        /* 確保套餐按鈕字體與大小同血管選單 */
+        .btn-custom.btn-theme-dark {
+            font-family: var(--sans);
+            font-size: 0.9em;
+            font-weight: 700;
+        }
+
+        /* 複選框群組 */
+        .cb-group { display: flex; flex-wrap: wrap; gap: 12px; padding: 12px 15px; background: var(--paper); border: 1px solid var(--line); border-radius: 8px; }
+        .cb-label { display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.95em; font-weight: normal; color: var(--ink); }
+        .cb-label input { width: 17px; height: 17px; cursor: pointer; accent-color: var(--teal-700);}
+        .score-display { font-family: var(--mono); font-weight: bold; color: var(--alert); margin-left: 5px; }
         
-       /* 症狀選擇專用樣式 */
-        .symp-row { margin-bottom: 12px; font-size: 15px; border-bottom: 1px dashed #ccc; padding-bottom: 12px; line-height: 1.6;}
-        .symp-row strong { color: #0056b3; display: inline-block; margin-bottom: 6px; font-size: 16px; }
-        .symp-row label { margin-right: 12px; display: inline-flex; align-items: center; cursor: pointer; color: #333; font-weight: normal; }
-        .symp-row input[type="checkbox"] { margin-right: 4px; width: 15px; height: 15px; cursor: pointer; }
-        .side-label { display: inline-block; width: 105px; font-weight: bold; color: #555; }
+        /* Modal 共用樣式 */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(11,58,63,0.55); align-items: center; justify-content: center; padding: 20px; box-sizing: border-box;}
+        .modal-content { background-color: #fff; padding: 28px; border-radius: 12px; width: 100%; max-width: 550px; position: relative; box-shadow: 0 10px 30px rgba(11,58,63,0.25); max-height: 90vh; overflow-y: auto; box-sizing: border-box;}
+        .close-btn { position: absolute; top: 15px; right: 20px; color: #94A29D; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .close-btn:hover { color: var(--teal-700); }
+        
+        /* Modal 內部排版統一字體 */
+        .modal-content h3 { font-family: var(--serif); color: var(--teal-700); border-bottom: 2px solid var(--teal-100); padding-bottom: 10px; margin-top: 0; }
+        .symp-row { margin-bottom: 14px; font-size: 15px; border-bottom: 1px dashed var(--line); padding-bottom: 14px; line-height: 1.6; }
+        .symp-row strong { font-family: var(--serif); color: var(--teal-700); display: inline-block; margin-bottom: 6px; font-size: 1.05em; }
+        .symp-row label { margin-right: 14px; display: inline-flex; align-items: center; cursor: pointer; color: var(--ink); font-weight: normal; }
+        .symp-row input[type="checkbox"] { margin-right: 5px; width: 16px; height: 16px; cursor: pointer; accent-color: var(--teal-700); }
+        .side-label { display: inline-block; width: 105px; font-weight: bold; color: #5B6B65; }
 
-        /* tPA 動態區塊樣式 */
-        .tpa-dynamic-box { padding: 15px; border-radius: 6px; margin-top: 10px; }
-        .tpa-yes { background-color: #e8f4f8; border: 1px dashed #17a2b8; }
-        .tpa-no { background-color: #fdf5e6; border: 1px dashed #e67e22; }
+        /* tPA 動態區塊 */
+        .tpa-dynamic-box { padding: 16px; border-radius: 8px; margin-top: 10px; }
+        .tpa-yes { background-color: var(--teal-100); border: 1px dashed var(--teal-500); }
+        .tpa-no { background-color: var(--amber-100); border: 1px dashed var(--amber); }
 
-        /* 提示樣式 */
-        .info-banner { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; padding: 12px; border-radius: 6px; margin-bottom: 20px; font-weight: bold; text-align: center;}
+        .info-banner { background-color: var(--amber-100); color: #8A5A13; border: 1px solid var(--amber); padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-weight: bold; text-align: center; }
     </style>
 </head>
 <body>
 
-<div class="form-container">
-    <h2>
-        <div>📝 臨床資訊表單 <span id="display_case_id" style="font-size: 0.6em; color: #dc3545;">(新個案草稿)</span></div>
-        <div style="display: flex; gap: 10px;">
-            <button class="btn-main" style="background-color: #dc3545; font-size: 0.8em;" onclick="if(confirm('確定要清空所有資料嗎？')){ localStorage.removeItem('stroke_transfer_clinical_data'); location.reload(); }">🗑️ 清空表單</button>
-            <button class="btn-main" style="background-color: #6c757d; font-size: 0.8em;" onclick="window.close()">取消關閉</button>
-        </div>
-    </h2>
-
-    <div class="sub-title">1. 基本與時間資訊</div>
-    <div class="req-row">
-        <div class="req-group" style="flex: 0.5;"><label>年齡</label><input type="number" id="age" placeholder="歲"></div>
-        <div class="req-group" style="flex: 0.5;"><label>性別</label><select id="gender"><option value="男">男</option><option value="女">女</option></select></div>
-        <div class="req-group">
-            <label>Pre-mRS</label>
-            <select id="mrs">
-                <option value="0">0分(完全沒有症狀)</option>
-                <option value="1">1分(有症狀可工作)</option>
-                <option value="2">2分(輕度生活自理)</option>
-                <option value="3">3分(中度獨立可走)</option>
-                <option value="4">4分(中重度需扶走)</option>
-                <option value="5">5分(重度失能臥床)</option>
-            </select>
-        </div>
-    </div>
-    <div class="req-row">
-        <div class="req-group"><label>發作/最後正常時間 (LKW)</label><input type="datetime-local" id="onset"></div>
-        <div class="req-group"><label>急診檢傷時間 (Door)</label><input type="datetime-local" id="door"></div>
-    </div>
-
-    <div class="sub-title">
-        <span>2. 臨床表現與評估</span>
-        <div style="display: flex; gap: 8px;">
-            <button class="btn-combo" type="button" onclick="applyCombo('L_MCA')">L't MCA 套餐</button>
-            <button class="btn-combo" type="button" onclick="applyCombo('R_MCA')">R't MCA 套餐</button>
-            <button class="btn-combo" type="button" onclick="applyCombo('BAO')">BAO 套餐</button>
-        </div>
-    </div>
-    <div class="req-row">
-        <div class="req-group" style="flex: 1;">
-           <label>臨床病程 (Clinical course) <button class="btn-warning" type="button" onclick="openSymptomsModal()">📋 勾選症狀細項</button></label>
-            <textarea id="symptoms" rows="4" placeholder="可點選上方按鈕帶入常見套餐，或手動輸入..."></textarea>
-        </div>
-    </div>
-    <div class="req-row">
-        <div class="req-group" style="flex: 1;">
-            <label>
-                懷疑阻塞位置 
-                <button class="btn-warning" type="button" onclick="openOcclusionModal()" style="background-color: #dc3545; color: white;">🫀 血管選單</button>
-            </label>
-            <input type="text" id="occlusion" placeholder="可點選上方按鈕帶入">
-        </div>
-        <div class="req-group" style="flex: 1;">
-            <label>NIHSS 分數 <span id="nihss_display" class="score-display"></span></label>
-            <input type="text" id="nihss" placeholder="輸入細項 (含X自動加總)" oninput="calcNIHSS()">
-       </div>
-    </div>
-
-    <div class="req-group" style="margin-bottom: 15px;">
-        <label>過去病史 (可複選)</label>
-       <div class="cb-group">
-            <label class="cb-label"><input type="checkbox" class="pmh-cb" value="DM"> DM</label>
-            <label class="cb-label"><input type="checkbox" class="pmh-cb" value="HTN"> HTN</label>
-            <label class="cb-label"><input type="checkbox" class="pmh-cb" value="Hyperlipidemia"> Hyperlipidemia</label>
-            <label class="cb-label"><input type="checkbox" class="pmh-cb" value="AF"> AF</label>
-            <label class="cb-label"><input type="checkbox" class="pmh-cb" value="CAD"> CAD</label>
-            <label class="cb-label"><input type="checkbox" class="pmh-cb" value="ESRD"> ESRD</label>
-            <label class="cb-label"><input type="checkbox" class="pmh-cb" value="Cancer"> Cancer</label>
-            <input type="text" id="pmh_other" placeholder="其他..." style="flex: 1; min-width: 100px;">
-        </div>
-    </div>
-
-    <div class="sub-title">3. 檢驗數據與處置</div>
-    <div class="req-row">
-        <div class="req-group" style="flex: 0.8;"><label>Lab: Cre</label><input type="text" id="cre" placeholder="數值"></div>
-        <div class="req-group" style="flex: 1.2;"><label>其他檢驗 (INR, EKG...)</label><input type="text" id="lab_other" placeholder="選填"></div>
-    </div>
+<div class="app-container" style="max-width: 800px; margin: 0 auto;">
     
-    <div class="req-group" style="margin-bottom: 15px;">
-        <label>處置: tPA</label>
-        <div style="display: flex; gap: 20px; align-items: center; padding: 10px; border: 1px solid #ccc; border-radius: 6px;">
-            <label class="cb-label"><input type="radio" name="tpa_status" value="有施打" onchange="toggleRtpa()"> 有施打</label>
-            <label class="cb-label"><input type="radio" name="tpa_status" value="未施打" onchange="toggleRtpa()"> 未施打</label>
-        </div>
+    <!-- 🌟 頂部大氣橫幅 (含呼吸燈與標題) -->
+    <div style="background-color: var(--teal-900); color: #ffffff; padding: 32px 28px 40px 28px; border-radius: 14px; margin-bottom: 25px; box-shadow: 0 4px 20px rgba(11,58,63,0.15); position: relative; overflow: hidden;">
         
-        <div id="tpa_yes_wrap" class="req-row tpa-dynamic-box tpa-yes" style="display: none; align-items: flex-end; margin-bottom: 0;">
-            <div class="req-group" style="flex: 0.8;">
-                <label style="font-size: 0.85em;">劑量</label>
-                <select id="tpa_dose">
-                    <option value="0.9 mg/kg">0.9 mg/kg</option>
-                    <option value="0.6 mg/kg">0.6 mg/kg</option>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px;">
+            <div>
+                <div style="font-size: 0.85em; letter-spacing: 0.1em; color: var(--teal-100); opacity: 0.9; margin-bottom: 10px; font-weight: 600; display: flex; align-items: center;">
+                    <span class="pulse-dot"></span> 院際協作 &nbsp;·&nbsp; 時間即腦組織
+                </div>
+                
+                <h1 style="font-family: var(--serif); font-size: 2.1em; font-weight: 900; margin: 0 0 6px 0; color: #ffffff; line-height: 1.25;">
+                    臨床資訊表單 <span id="display_case_id" style="font-size: 0.6em; color: #E4F1EF; font-weight: normal;">(新個案草稿)</span>
+                </h1>
+                
+                <p style="font-size: 0.95em; color: var(--teal-100); margin: 0; opacity: 0.9; line-height: 1.5;">
+                    填寫腦中風患者急性期臨床評估與處置資料，確保轉診資訊精準無縫對接。
+                </p>
+            </div>
+
+            <!-- 右上角精簡圖示按鈕 (垃圾桶改為深咖啡色) -->
+            <div style="display: flex; gap: 6px;">
+                <button class="btn-custom btn-theme-darkbrown" style="padding: 6px 10px;" onclick="if(confirm('確定要清空所有資料嗎？')){ localStorage.removeItem('stroke_transfer_clinical_data'); location.reload(); }" title="清空表單">🗑️</button>
+                <button class="btn-custom btn-theme-secondary" style="padding: 6px 10px;" onclick="window.close()" title="取消關閉">✕</button>
+            </div>
+        </div>
+
+        <div class="pulse-line"></div>
+    </div>
+
+    <div class="form-container" style="box-shadow: none; padding: 0; background: transparent;">
+
+        <div class="sub-header">1. 基本與時間資訊</div>
+        <div class="req-row">
+            <div class="req-group" style="flex: 0.5;"><label>年齡</label><input type="number" id="age" placeholder="歲"></div>
+            <div class="req-group" style="flex: 0.5;"><label>性別</label><select id="gender"><option value="男">男</option><option value="女">女</option></select></div>
+            <div class="req-group">
+                <label>Pre-mRS</label>
+                <select id="mrs">
+                    <option value="0">0分(完全沒有症狀)</option>
+                    <option value="1">1分(有症狀可工作)</option>
+                    <option value="2">2分(輕度生活自理)</option>
+                    <option value="3">3分(中度獨立可走)</option>
+                    <option value="4">4分(中重度需扶走)</option>
+                    <option value="5">5分(重度失能臥床)</option>
                 </select>
             </div>
-            <div class="req-group" style="flex: 1.2;">
-                <label style="font-size: 0.85em;">Bolus Time</label>
-                <input type="datetime-local" id="tpa_bolus_time">
+        </div>
+        <div class="req-row">
+            <div class="req-group"><label>發作/最後正常時間 (LKW)</label><input type="datetime-local" id="onset"></div>
+            <div class="req-group"><label>急診檢傷時間 (Door)</label><input type="datetime-local" id="door"></div>
+        </div>
+
+        <div class="sub-header">
+            <span>2. 臨床表現與評估</span>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                <button class="btn-custom btn-theme-dark" type="button" onclick="applyCombo('L_MCA')">L't MCA 套餐</button>
+                <button class="btn-custom btn-theme-dark" type="button" onclick="applyCombo('R_MCA')">R't MCA 套餐</button>
+                <button class="btn-custom btn-theme-dark" type="button" onclick="applyCombo('BAO')">BAO 套餐</button>
+            </div>
+        </div>
+        <div class="req-row">
+            <div class="req-group" style="flex: 1;">
+               <label>臨床病程 (Clinical course) <button class="btn-custom btn-theme-dark" type="button" onclick="openSymptomsModal()">📋 勾選症狀細項</button></label>
+                <textarea id="symptoms" rows="4" placeholder="可點選上方按鈕帶入常見套餐，或手動輸入..."></textarea>
+            </div>
+        </div>
+        <div class="req-row">
+            <div class="req-group" style="flex: 1;">
+                <label>
+                    懷疑阻塞位置 
+                    <button class="btn-custom btn-theme-dark" type="button" onclick="openOcclusionModal()">🫀 血管選單</button>
+                </label>
+                <input type="text" id="occlusion" placeholder="可點選上方按鈕帶入">
             </div>
             <div class="req-group" style="flex: 1;">
-                <label style="font-size: 0.85em;">備註</label>
-                <input type="text" id="tpa_yes_note" placeholder="選填備註">
+                <label>NIHSS 分數 <span id="nihss_display" class="score-display"></span></label>
+                <input type="text" id="nihss" placeholder="輸入細項 (含X自動加總)" oninput="calcNIHSS()">
+           </div>
+        </div>
+
+        <div class="req-group" style="margin-bottom: 15px;">
+            <label>過去病史 (可複選)</label>
+           <div class="cb-group">
+                <label class="cb-label"><input type="checkbox" class="pmh-cb" value="DM"> DM</label>
+                <label class="cb-label"><input type="checkbox" class="pmh-cb" value="HTN"> HTN</label>
+                <label class="cb-label"><input type="checkbox" class="pmh-cb" value="Hyperlipidemia"> Hyperlipidemia</label>
+                <label class="cb-label"><input type="checkbox" class="pmh-cb" value="AF"> AF</label>
+                <label class="cb-label"><input type="checkbox" class="pmh-cb" value="CAD"> CAD</label>
+                <label class="cb-label"><input type="checkbox" class="pmh-cb" value="ESRD"> ESRD</label>
+                <label class="cb-label"><input type="checkbox" class="pmh-cb" value="Cancer"> Cancer</label>
+                <input type="text" id="pmh_other" placeholder="其他..." style="flex: 1; min-width: 100px;">
             </div>
         </div>
 
-        <div id="tpa_no_wrap" class="req-row tpa-dynamic-box tpa-no" style="display: none; margin-bottom: 0;">
-            <div class="req-group" style="flex: 1;">
-                <label style="font-size: 0.85em;">備註 (未打原因)</label>
-                <input type="text" id="tpa_no_note" placeholder="例如：超過黃金時間、家屬拒絕、有禁忌症...">
+        <div class="sub-header">3. 檢驗數據與處置</div>
+        <div class="req-row">
+            <div class="req-group" style="flex: 0.8;"><label>Lab: Cre</label><input type="text" id="cre" placeholder="數值"></div>
+            <div class="req-group" style="flex: 1.2;"><label>其他檢驗 (INR, EKG...)</label><input type="text" id="lab_other" placeholder="選填"></div>
+        </div>
+        
+        <div class="req-group" style="margin-bottom: 15px;">
+            <label>處置: tPA</label>
+            <div style="display: flex; gap: 20px; align-items: center; padding: 12px 15px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper);">
+                <label class="cb-label"><input type="radio" name="tpa_status" value="有施打" onchange="toggleRtpa()"> 有施打</label>
+                <label class="cb-label"><input type="radio" name="tpa_status" value="未施打" onchange="toggleRtpa()"> 未施打</label>
+            </div>
+            
+            <div id="tpa_yes_wrap" class="req-row tpa-dynamic-box tpa-yes" style="display: none; align-items: flex-end; margin-bottom: 0;">
+                <div class="req-group" style="flex: 0.8;">
+                    <label style="font-size: 0.85em;">劑量</label>
+                    <select id="tpa_dose">
+                        <option value="0.9 mg/kg">0.9 mg/kg</option>
+                        <option value="0.6 mg/kg">0.6 mg/kg</option>
+                    </select>
+                </div>
+                <div class="req-group" style="flex: 1.2;">
+                    <label style="font-size: 0.85em;">Bolus Time</label>
+                    <input type="datetime-local" id="tpa_bolus_time">
+                </div>
+                <div class="req-group" style="flex: 1;">
+                    <label style="font-size: 0.85em;">備註</label>
+                    <input type="text" id="tpa_yes_note" placeholder="選填備註">
+                </div>
+            </div>
+
+            <div id="tpa_no_wrap" class="req-row tpa-dynamic-box tpa-no" style="display: none; margin-bottom: 0;">
+                <div class="req-group" style="flex: 1;">
+                    <label style="font-size: 0.85em;">備註 (未打原因)</label>
+                    <input type="text" id="tpa_no_note" placeholder="例如：超過黃金時間、家屬拒絕、有禁忌症...">
+                </div>
+            </div>
+       </div>
+
+       <div class="req-row" style="margin-bottom: 25px;">
+            <div class="req-group" style="flex: 0.6;"><label>決策家屬</label><select id="fam_sel"><option value="配偶">配偶</option><option value="子女">子女</option><option value="父母">父母</option><option value="其他">其他</option></select></div>
+            <div class="req-group" style="flex: 1.4;"><label>家屬意願備註</label><input type="text" id="fam_text" placeholder="例如：同意轉院評估"></div>
+        </div>
+
+        <div class="sub-header" style="background-color: var(--teal-100); color: var(--teal-700); border-left-color: var(--teal-700);">
+            4. 影像上傳
+        </div>
+        <div class="info-banner" style="margin-top: 10px;">
+            💡 提醒：影像（CT/MRI）請於送出本表單後，直接上傳至系統建立的專屬 Google Drive 資料夾中。
+        </div>
+        <div class="req-group" style="margin-bottom: 25px;">
+            <label>已完成之影像檢查 (可複選)</label>
+            <div class="cb-group">
+                <label class="cb-label"><input type="checkbox" class="img-cb" value="Brain NCCT"> Brain NCCT</label>
+                <label class="cb-label"><input type="checkbox" class="img-cb" value="Brain CTA/CTP"> Brain CTA/CTP</label>
+                <label class="cb-label"><input type="checkbox" class="img-cb" value="Brain MRI"> Brain MRI</label>
             </div>
         </div>
-   </div>
 
-   <div class="req-row" style="margin-bottom: 25px;">
-        <div class="req-group" style="flex: 0.6;"><label>決策家屬</label><select id="fam_sel"><option value="配偶">配偶</option><option value="子女">子女</option><option value="父母">父母</option><option value="其他">其他</option></select></div>
-        <div class="req-group" style="flex: 1.4;"><label>家屬意願備註</label><input type="text" id="fam_text" placeholder="例如：同意轉院評估"></div>
-    </div>
+        <button class="btn-custom btn-theme-success w-100 py-3 fs-5" onclick="saveToLocal()">💾 儲存文字表單並返回主畫面</button>
 
-    <!-- 🌟 新增：4. 影像上傳 區塊 -->
-    <div class="sub-title" style="background-color: #f3e5f5; color: #6f42c1; border-left-color: #6f42c1;">
-        4. 影像上傳
     </div>
-    <div class="info-banner" style="margin-top: 10px;">
-        💡 提醒：影像（CT/MRI）請於送出本表單後，直接上傳至系統建立的專屬 Google Drive 資料夾中。
-    </div>
-    <div class="req-group" style="margin-bottom: 25px;">
-        <label>已完成之影像檢查 (可複選)</label>
-        <div class="cb-group">
-            <label class="cb-label"><input type="checkbox" class="img-cb" value="Brain NCCT"> Brain NCCT</label>
-            <label class="cb-label"><input type="checkbox" class="img-cb" value="Brain CTA/CTP"> Brain CTA/CTP</label>
-            <label class="cb-label"><input type="checkbox" class="img-cb" value="Brain MRI"> Brain MRI</label>
-        </div>
-    </div>
-
-    <button class="btn-success" onclick="saveToLocal()">💾 儲存文字表單並返回主畫面</button>
-
 </div>
 
 <!-- 症狀選擇 Modal -->
 <div id="symptom-modal" class="modal" onclick="if(event.target===this) closeSymptomsModal()">
     <div class="modal-content">
         <span class="close-btn" onclick="closeSymptomsModal()">&times;</span>
-        <h3 style="margin-top:0; color:#17a2b8; border-bottom:1px solid #eee; padding-bottom:10px;">勾選細項臨床症狀</h3>
+        <h3>勾選細項臨床症狀</h3>
         
         <div class="symp-row">
-            <div style="display: flex; align-items: center; margin-bottom: 6px;">
+            <div style="display: flex; align-items: center; margin-bottom: 8px;">
                 <strong style="margin-bottom: 0;">1. Weakness / Numbness:</strong>
-                <button type="button" style="margin-left: 10px; padding: 2px 8px; font-size: 0.8em; background-color: #d9534f; color: white; border: none; border-radius: 4px; cursor: pointer; transition: 0.2s;" onclick="checkSide('L')">L 全選</button>
-                <button type="button" style="margin-left: 5px; padding: 2px 8px; font-size: 0.8em; background-color: #0056b3; color: white; border: none; border-radius: 4px; cursor: pointer; transition: 0.2s;" onclick="checkSide('R')">R 全選</button>
+                <button type="button" class="btn-custom btn-theme-danger py-1 px-2 ms-2 fs-7" onclick="checkSide('L')">L 全選</button>
+                <button type="button" class="btn-custom btn-theme-primary py-1 px-2 ms-1 fs-7" onclick="checkSide('R')">R 全選</button>
             </div>
             
             <span class="side-label">Facial palsy:</span> 
@@ -270,16 +358,15 @@
                 <label><input type="checkbox" value="dizziness"> dizziness</label> 
                 <label><input type="checkbox" value="nausea/vomiting"> nausea/vomiting</label>
             </div>
-            
             <div style="margin-top:5px;">
                 <label><input type="checkbox" value="drowsiness"> drowsiness</label> 
                 <label><input type="checkbox" value="coma"> coma</label>
             </div>
         </div>
         
-        <div style="margin-top:20px; display:flex; gap:10px; justify-content:flex-end; border-top: 1px solid #eee; padding-top: 15px;">
-            <button class="btn-main" style="background:#7f8c8d;" type="button" onclick="closeSymptomsModal()">取消</button>
-            <button class="btn-main" style="background:#ffc107; color:#333;" type="button" onclick="applySymptoms()">✅ 帶入勾選症狀</button>
+        <div style="margin-top:20px; display:flex; gap:10px; justify-content:flex-end; border-top: 1px solid var(--line); padding-top: 15px;">
+            <button class="btn-custom btn-theme-secondary" type="button" onclick="closeSymptomsModal()">取消</button>
+            <button class="btn-custom btn-theme-dark" type="button" onclick="applySymptoms()">✅ 帶入勾選症狀</button>
         </div>
     </div>
 </div>
@@ -288,17 +375,17 @@
 <div id="occlusion-modal" class="modal" onclick="if(event.target===this) closeOcclusionModal()">
     <div class="modal-content">
         <span class="close-btn" onclick="closeOcclusionModal()">&times;</span>
-       <h3 style="margin-top:0; color:#dc3545; border-bottom:1px solid #eee; padding-bottom:10px;">🫀 勾選懷疑阻塞位置 (可分段複選)</h3>
+       <h3>🫀 勾選懷疑阻塞位置 (可分段複選)</h3>
         
         <div class="symp-row">
-            <strong style="color: #555;">1. 側別 (Side):</strong><br>
+            <strong style="color: #5B6B65;">1. 側別 (Side):</strong><br>
             <label><input type="checkbox" name="occ_vessel" value="L't"> Left</label>
             <label><input type="checkbox" name="occ_vessel" value="R't"> Right</label>
             <label><input type="checkbox" name="occ_vessel" value="Bil"> Bilateral</label>
         </div>
 
         <div class="symp-row">
-            <strong style="color: #0056b3;">2. 前循環 (Anterior):</strong><br>
+            <strong style="color: var(--teal-700);">2. 前循環 (Anterior):</strong><br>
             <label><input type="checkbox" name="occ_vessel" value="MCA"> MCA</label>
             <label><input type="checkbox" name="occ_vessel" value="ICA"> ICA</label>
             <label><input type="checkbox" name="occ_vessel" value="CCA"> CCA</label>
@@ -306,15 +393,15 @@
         </div>
 
         <div class="symp-row" style="border-bottom: none;">
-            <strong style="color: #28a745;">3. 後循環 (Posterior):</strong><br>
+            <strong style="color: var(--success);">3. 後循環 (Posterior):</strong><br>
             <label><input type="checkbox" name="occ_vessel" value="BA"> BA</label>
             <label><input type="checkbox" name="occ_vessel" value="VA"> VA</label>
             <label><input type="checkbox" name="occ_vessel" value="PCA"> PCA</label>
         </div>
 
-        <div style="margin-top:20px; display:flex; gap:10px; justify-content:flex-end;">
-            <button class="btn-main" style="background:#7f8c8d;" type="button" onclick="closeOcclusionModal()">取消</button>
-            <button class="btn-main" style="background:#ffc107; color:#333;" type="button" onclick="applyOcclusion()">✅ 確認帶入</button>
+        <div style="margin-top:20px; display:flex; gap:10px; justify-content:flex-end; border-top: 1px solid var(--line); padding-top: 15px;">
+            <button class="btn-custom btn-theme-darkred" type="button" onclick="closeOcclusionModal()">取消</button>
+            <button class="btn-custom btn-theme-secondary" type="button" onclick="applyOcclusion()">✅ 確認帶入</button>
         </div>
     </div>
 </div>
@@ -415,7 +502,6 @@
         let pmhArr = [];
         document.querySelectorAll('.pmh-cb:checked').forEach(cb => pmhArr.push(cb.value));
         
-        // 🌟 收集影像打勾選項
         let imgArr = [];
         document.querySelectorAll('.img-cb:checked').forEach(cb => imgArr.push(cb.value));
 
@@ -446,7 +532,6 @@
             famSel: document.getElementById('fam_sel').value,
             famText: document.getElementById('fam_text').value,
             
-            // 🌟 將陣列轉換成字串儲存至 images 欄位
             images: imgArr.join(', ')
         };
 
@@ -476,7 +561,7 @@
                 if (d.caseId) {
                     currentEditingCaseId = d.caseId;
                     document.getElementById('display_case_id').innerText = ` (正在編輯個案: ${d.caseId})`;
-                    document.getElementById('display_case_id').style.color = "#28a745";
+                    document.getElementById('display_case_id').style.color = "#A8E6CF";
                 }
 
                 document.getElementById('age').value = d.age || "";
@@ -509,7 +594,6 @@
                     });
                 }
                 
-                // 🌟 讀取影像打勾狀態
                 if(d.images) {
                     let savedImgs = d.images.split(', ');
                     document.querySelectorAll('.img-cb').forEach(cb => {
@@ -518,7 +602,7 @@
                 }
 
                 calcNIHSS();
-                rtpaStatus = document.querySelector('input[name="tpa_status"]:checked')?.value;
+                let rtpaStatus = document.querySelector('input[name="tpa_status"]:checked')?.value;
                 if(rtpaStatus) toggleRtpa();
             } catch (e) {
                 console.error("載入失敗", e);
