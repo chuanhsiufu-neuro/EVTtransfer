@@ -27,7 +27,7 @@
         .btn-combo { background-color: #e83e8c; color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9em; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);}
         .btn-combo:hover { background-color: #c82333; transform: translateY(-1px);}
 
-        /* 複選框 (過去病史) */
+        /* 複選框 (過去病史/影像) */
         .cb-group { display: flex; flex-wrap: wrap; gap: 10px; padding: 12px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 6px; }
         .cb-label { display: flex; align-items: center; gap: 5px; cursor: pointer; font-size: 0.95em; font-weight: normal; }
         .cb-label input { width: 16px; height: 16px; cursor: pointer;}
@@ -64,10 +64,6 @@
             <button class="btn-main" style="background-color: #6c757d; font-size: 0.8em;" onclick="window.close()">取消關閉</button>
         </div>
     </h2>
-
-    <div class="info-banner">
-        💡 提醒：影像（CT/MRI）請於送出本表單後，直接上傳至系統建立的專屬 Google Drive 資料夾中。
-    </div>
 
     <div class="sub-title">1. 基本與時間資訊</div>
     <div class="req-row">
@@ -174,6 +170,22 @@
    <div class="req-row" style="margin-bottom: 25px;">
         <div class="req-group" style="flex: 0.6;"><label>決策家屬</label><select id="fam_sel"><option value="配偶">配偶</option><option value="子女">子女</option><option value="父母">父母</option><option value="其他">其他</option></select></div>
         <div class="req-group" style="flex: 1.4;"><label>家屬意願備註</label><input type="text" id="fam_text" placeholder="例如：同意轉院評估"></div>
+    </div>
+
+    <!-- 🌟 新增：4. 影像上傳 區塊 -->
+    <div class="sub-title" style="background-color: #f3e5f5; color: #6f42c1; border-left-color: #6f42c1;">
+        4. 影像上傳
+    </div>
+    <div class="info-banner" style="margin-top: 10px;">
+        💡 提醒：影像（CT/MRI）請於送出本表單後，直接上傳至系統建立的專屬 Google Drive 資料夾中。
+    </div>
+    <div class="req-group" style="margin-bottom: 25px;">
+        <label>已完成之影像檢查 (可複選)</label>
+        <div class="cb-group">
+            <label class="cb-label"><input type="checkbox" class="img-cb" value="Brain NCCT"> Brain NCCT</label>
+            <label class="cb-label"><input type="checkbox" class="img-cb" value="Brain CTA/CTP"> Brain CTA/CTP</label>
+            <label class="cb-label"><input type="checkbox" class="img-cb" value="Brain MRI"> Brain MRI</label>
+        </div>
     </div>
 
     <button class="btn-success" onclick="saveToLocal()">💾 儲存文字表單並返回主畫面</button>
@@ -333,7 +345,6 @@
         document.getElementById('tpa_no_wrap').style.display = (status === '未施打') ? 'flex' : 'none';
     }
 
-    // 🌟 一鍵套餐功能
     function applyCombo(type) {
         const sympEl = document.getElementById('symptoms');
         const nihssEl = document.getElementById('nihss');
@@ -355,10 +366,8 @@
         calcNIHSS(); 
     }
 
-   // 🌟 快捷全選左右側症狀 (加入再次點擊取消全選的切換功能)
     function checkSide(side) {
         if (side === 'L') {
-            // 判斷目前第一個選項是否已勾選，若已勾選則 newState 為 false (取消)，反之為 true (勾選)
             const newState = !document.querySelector('input[value="L facial palsy"]').checked;
             document.querySelector('input[value="L facial palsy"]').checked = newState;
             document.querySelector('input[value="LU weakness"]').checked = newState;
@@ -405,6 +414,10 @@
     function saveToLocal() {
         let pmhArr = [];
         document.querySelectorAll('.pmh-cb:checked').forEach(cb => pmhArr.push(cb.value));
+        
+        // 🌟 收集影像打勾選項
+        let imgArr = [];
+        document.querySelectorAll('.img-cb:checked').forEach(cb => imgArr.push(cb.value));
 
         const tpaStatus = document.querySelector('input[name="tpa_status"]:checked')?.value || "";
 
@@ -431,7 +444,10 @@
             tpaNoNote: document.getElementById('tpa_no_note').value,
             
             famSel: document.getElementById('fam_sel').value,
-            famText: document.getElementById('fam_text').value
+            famText: document.getElementById('fam_text').value,
+            
+            // 🌟 將陣列轉換成字串儲存至 images 欄位
+            images: imgArr.join(', ')
         };
 
         localStorage.setItem('stroke_transfer_clinical_data', JSON.stringify(data));
@@ -478,7 +494,6 @@
                 if(d.tpaStatus) {
                     const radio = document.querySelector(`input[name="tpa_status"][value="${d.tpaStatus}"]`);
                     if(radio) radio.checked = true;
-
                }
                 document.getElementById('tpa_dose').value = d.tpaDose || "0.9 mg/kg";
                 document.getElementById('tpa_bolus_time').value = d.tpaBolusTime || "";
@@ -491,6 +506,14 @@
                 if(d.pmhList) {
                     document.querySelectorAll('.pmh-cb').forEach(cb => {
                         cb.checked = d.pmhList.includes(cb.value);
+                    });
+                }
+                
+                // 🌟 讀取影像打勾狀態
+                if(d.images) {
+                    let savedImgs = d.images.split(', ');
+                    document.querySelectorAll('.img-cb').forEach(cb => {
+                        cb.checked = savedImgs.includes(cb.value);
                     });
                 }
 
