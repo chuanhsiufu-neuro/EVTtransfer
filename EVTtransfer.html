@@ -80,7 +80,7 @@
 
         .quick-update-board { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 30px; }
         .quick-case-card { background: var(--card); border: 1px solid #17878A; border-left: 5px solid #17878A; padding: 15px; border-radius: 10px; width: 100%; max-width: 300px; box-shadow: 0 2px 8px rgba(11,58,63,0.06); }
-        .quick-case-card .cid { font-family: var(--mono); font-weight: bold; color: #0F5C61; font-size: 1.05em; margin-bottom: 8px; }
+        .quick-case-card .cid { font-family: var(--mono); font-weight: bold; color: var(--teal-700); font-size: 1.25em; margin-bottom: 16px; }
         .quick-case-card .info { font-size: 0.9em; color: #4A5652; margin-bottom: 12px; line-height: 1.5; }
         .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
 
@@ -695,8 +695,8 @@
             let canClean = c.cancelTime.length > 10 ? c.cancelTime.substring(5) : c.cancelTime;
             parts.push(`取消${byHosp}: ${canClean}`);
         }
-        // 加上 span 並指定 color: #ffffff 確保是白字
-        return `<span style="color: #ffffff; font-size: 0.85em; font-family: var(--mono);">(${parts.join(', ')})</span>`;
+        // 🌟 拿掉強制白字，這樣在深綠色標題中會繼承白色，在白色卡片中會繼承深色
+        return `<span style="font-size: 0.85em; font-family: var(--mono);">(${parts.join(', ')})</span>`;
     }
 
     window.onload = function() {
@@ -1115,7 +1115,17 @@
                 let btnArrive = c.arriveTime ? 
                     `<button class="btn-custom btn-theme-secondary" onclick="undoTime('${caseId}', 'arrive')">已抵達 ${c.arriveTime} ↺</button>` : 
                     `<button class="btn-custom btn-theme-danger" onclick="markTime('${caseId}', 'arrive')">🏥 記錄抵達</button>`;
-                board.innerHTML += `<div class="quick-case-card"><div class="cid">📄 ${caseId} <div class="text-muted small mt-1">${getCaseTimeStr(c)}</div></div><div class="info">狀態: ${destStatus}</div><div class="action-grid">${btnDepart}${btnArrive}</div><button class="btn btn-success btn-sm w-100 mt-1 fw-bold" onclick="quickUpdateLocation('${caseId}')">📍 傳送 GPS 位置</button></div>`;
+                // 🌟 替換原本的 board.innerHTML += ... 這一長串
+                board.innerHTML += `
+                <div class="quick-case-card">
+                    <div class="cid">
+                        📄 ${caseId} 
+                        <div style="color: #5B6B65; font-size: 0.65em; font-weight: normal; margin-top: 4px;">${getCaseTimeStr(c)}</div>
+                    </div>
+                    <div class="info">狀態: ${destStatus}</div>
+                    <div class="action-grid">${btnDepart}${btnArrive}</div>
+                    <button class="btn-custom btn-theme-success w-100 mt-1 py-2" onclick="quickUpdateLocation('${caseId}')">📍 傳送 GPS 位置</button>
+                </div>`;
             }
         }
         if (!hasActiveCases) board.innerHTML = `<span class="text-muted p-2">目前近4小時無進行中個案。</span>`;
