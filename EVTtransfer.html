@@ -1171,14 +1171,14 @@ let payloadClinicalData = JSON.parse(JSON.stringify(pendingClinicalData));
                         // 🌟 新增：警示小圖示按鈕 (點擊後可開啟注意事項網頁或圖片)
                         let prepGuideBtn = `<button class="btn-main" style="background-color: #ffc107; color: #333; font-size: 0.8em; padding: 4px 8px; margin-left: 5px;" onclick="openPrepGuide('${caseId}')" title="出發前準備與注意事項">🚨 注意事項</button>`;
                         
-                        // 將兩個按鈕組合在一起輸出到看板上
-                        let actionButtons = chatBtn + prepGuideBtn;
                         if (c.arriveTime) {
                             let feedbackBtn = `<button class="btn-main" style="background:#ffc107; color:#333;" onclick="openFeedbackModal('${caseId}')">📝 個案回饋與結案</button>`;
-                            actionBtns = `${mapBtn} ${chatBtn} ${feedbackBtn}`;
+                            // 🌟 修正：把 prepGuideBtn 加進字串裡
+                            actionBtns = `${mapBtn} ${chatBtn} ${prepGuideBtn} ${feedbackBtn}`; 
                         } else {
                             let cancelBtn = `<button class="btn-main" style="background:#dc3545;" onclick="cancelFinalDest('${caseId}', '${loggedInHosp}')">❌ 取消轉入</button>`;
-                            actionBtns = `${mapBtn} ${chatBtn} ${cancelBtn}`;
+                            // 🌟 修正：把 prepGuideBtn 加進字串裡
+                            actionBtns = `${mapBtn} ${chatBtn} ${prepGuideBtn} ${cancelBtn}`; 
                         }
                     } else if (c.finalDest) { intentText = `<span style="color:red;">已轉至 ${c.finalDest}</span>`; actionBtns = ``; }
 
