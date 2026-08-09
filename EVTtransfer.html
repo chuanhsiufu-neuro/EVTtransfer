@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>中風區域聯防轉診平台 v37 </title>
+    <title>中風區域聯防轉診平台 v38 </title>
     <style>
         body { font-family: "Microsoft JhengHei", sans-serif; margin: 0; padding: 20px; background-color: #f0f2f5; color: #333; }
         .app-container { max-width: 1100px; margin: 0 auto; background: transparent; }
@@ -193,7 +193,6 @@
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                 <h3 style="color: #0056b3; margin:0;"><span id="disp_login_hosp"></span> - 收到的需求</h3>
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                    <!-- 🌟 補上立即更新按鈕，讓醫師可以瞬間手動刷出最新 GPS 與對話 -->
                     <button class="btn-main" style="background:#28a745;" onclick="fetchRecentCasesFromGAS()">🔄 立即更新</button>
                     <button class="btn-main" style="background:#17a2b8;" onclick="openHospSysSettingsModal()">⚙️ 系統設定 (含通訊錄)</button>
                     <button class="btn-main" onclick="logoutHospital()" style="background:#6c757d;">登出</button>
@@ -233,8 +232,8 @@
 <!-- 彈出視窗群 (Modals)                        -->
 <!-- ========================================== -->
 
-<!-- ★ LINE 風格的 Messenger 對話框 Modal ★ -->
-<div id="messengerModal" class="modal" style="align-items: center; padding-top: 0;">
+<!-- ★ 🌟 全新升級：LINE 風格的 Messenger 對話框 Modal ★ -->
+<div id="messengerModal" class="modal" style="align-items: center; padding-top: 0; z-index: 2000;">
     <div class="modal-content" style="max-width: 500px; padding: 0; overflow: hidden; display: flex; flex-direction: column; height: 85vh; max-height: 650px; background-color: #8bbccf;">
         <!-- 標題區 -->
         <div style="background-color: #0056b3; color: white; padding: 15px; position: relative; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 10;">
@@ -632,7 +631,7 @@
         const board = document.getElementById('hospital_status_board'); board.innerHTML = "";
         hospitals.forEach(hosp => {
             const topColor = hosp.status === 'green' ? '#28a745' : (hosp.status === 'orange' ? '#fd7e14' : '#dc3545');
-            let updateTimeHtml = hosp.lightUpdateTime ? `<span style="font-size: 0.75em; color: #888; margin-left: 8px;">(更新於: ${hosp.lightUpdateTime})</span>` : "";
+            let updateTimeHtml = hosp.lightUpdateTime ? `<span style="font-size: 0.75em; color: #888; margin-left: 8px;">(更新于: ${hosp.lightUpdateTime})</span>` : "";
             
             board.innerHTML += `
                 <div class="hosp-card" style="border-top-color: ${topColor}">
@@ -1086,19 +1085,18 @@
         } 
     }
 
-    // 🌟 全新改寫：純客製化、無衝突且具備 LINE 風格氣泡的對話模組
+    // ==========================================
+    // 🌟 全新升級：LINE 風格即時對話模組 (無 Bootstrap 衝突)
+    // ==========================================
     let chatPollInterval;
     let currentChatContext = { caseId: "", attempt: 1, senderType: "", senderName: "" };
 
     function openMessenger(caseId, attempt, senderType, senderName) {
       currentChatContext = { caseId, attempt, senderType, senderName };
       
-      document.getElementById('messengerTitle').innerText = 
-        senderType === 'requester' ? `與 取栓醫院 即時溝通` : `與 轉出醫院 即時溝通`;
-      
+      document.getElementById('messengerTitle').innerText = senderType === 'requester' ? `與 取栓醫院 即時溝通` : `與 轉出醫院 即時溝通`;
       document.getElementById('chatHistoryBox').innerHTML = "<div style='text-align:center; color:#fff; margin-top: 50px;'>載入對話紀錄中...</div>";
       document.getElementById('chatInput').value = "";
-      
       document.getElementById('messengerModal').style.display = 'flex';
 
       refreshChat();
@@ -1113,10 +1111,7 @@
     function refreshChat() {
         fetch(GAS_URL, {
             method: 'POST',
-            body: JSON.stringify({
-                action: "getChatHistory", 
-                payload: { caseId: currentChatContext.caseId, attempt: currentChatContext.attempt }
-            })
+            body: JSON.stringify({ action: "getChatHistory", payload: { caseId: currentChatContext.caseId, attempt: currentChatContext.attempt } })
         })
         .then(res => res.json())
         .then(data => {
@@ -1134,29 +1129,29 @@
                     lines.forEach(line => {
                         if(!line.trim()) return;
                         
-                        // 使用正則表達式拆解發送者、訊息與時間
-                        let match = line.match(/^(.*?)：(.*) \((.*)\)$/);
+                        // 正則解析：抓出發送者、訊息、時間
+                        let match = line.match(/^([^：]+)：(.*) \(([^)]+)\)$/);
                         if(match) {
-                            let sender = match[1];
-                            let msg = match[2];
-                            let time = match[3];
+                            let sender = match[1]; let msg = match[2]; let time = match[3];
                             let isMe = (sender === currentChatContext.senderName);
                             
                             if(isMe) {
+                                // 🌟 己方發送：顯示在右側綠色氣泡
                                 chatHtml += `
                                 <div style="display: flex; justify-content: flex-end; margin-bottom: 12px;">
                                     <div style="display: flex; flex-direction: column; align-items: flex-end; max-width: 80%;">
                                         <div style="background-color: #dcf8c6; padding: 8px 12px; border-radius: 15px 15px 0 15px; color: #333; box-shadow: 0 1px 2px rgba(0,0,0,0.1); word-break: break-word; text-align: left;">${msg}</div>
-                                        <div style="font-size: 0.7em; color: #333; margin-top: 3px;">${time}</div>
+                                        <div style="font-size: 0.7em; color: rgba(255,255,255,0.8); margin-top: 3px;">${time}</div>
                                     </div>
                                 </div>`;
                             } else {
+                                // 🌟 對方發送：顯示在左側白色氣泡
                                 chatHtml += `
                                 <div style="display: flex; justify-content: flex-start; margin-bottom: 12px;">
                                     <div style="display: flex; flex-direction: column; align-items: flex-start; max-width: 80%;">
-                                        <div style="font-size: 0.75em; color: #111; margin-bottom: 3px; margin-left: 5px; font-weight: bold;">${sender}</div>
+                                        <div style="font-size: 0.75em; color: #333; margin-bottom: 3px; margin-left: 5px; font-weight: bold;">${sender}</div>
                                         <div style="background-color: #ffffff; padding: 8px 12px; border-radius: 15px 15px 15px 0; color: #333; box-shadow: 0 1px 2px rgba(0,0,0,0.1); word-break: break-word; text-align: left;">${msg}</div>
-                                        <div style="font-size: 0.7em; color: #333; margin-top: 3px;">${time}</div>
+                                        <div style="font-size: 0.7em; color: rgba(255,255,255,0.8); margin-top: 3px;">${time}</div>
                                     </div>
                                 </div>`;
                             }
@@ -1172,9 +1167,7 @@
         }).catch(e => console.log("讀取對話失敗", e));
     }
 
-    function handleChatEnter(event) {
-      if (event.key === "Enter") submitChatMessage();
-    }
+    function handleChatEnter(event) { if (event.key === "Enter") submitChatMessage(); }
 
     function submitChatMessage() {
       let input = document.getElementById('chatInput');
@@ -1182,35 +1175,24 @@
       if(!msg) return;
 
       input.disabled = true;
-      let payload = {
-        caseId: currentChatContext.caseId,
-        attempt: currentChatContext.attempt,
-        senderType: currentChatContext.senderType,
-        senderName: currentChatContext.senderName,
-        message: msg
-      };
-
       fetch(GAS_URL, {
             method: 'POST',
-            body: JSON.stringify({ action: "sendMessage", payload: payload })
+            body: JSON.stringify({ action: "sendMessage", payload: {
+                caseId: currentChatContext.caseId, attempt: currentChatContext.attempt,
+                senderType: currentChatContext.senderType, senderName: currentChatContext.senderName, message: msg
+            }})
         })
         .then(res => res.json())
         .then(data => {
             if(data.status === "success") {
-                input.value = ""; 
-                input.disabled = false;
-                input.focus();
-                refreshChat(); 
-            } else {
-                alert("發送失敗：" + data.error);
-                input.disabled = false;
-            }
-        }).catch(e => {
-            console.log("發送失敗", e);
-            input.disabled = false;
-        });
+                input.value = ""; input.disabled = false; input.focus(); refreshChat(); 
+            } else { alert("發送失敗：" + data.error); input.disabled = false; }
+        }).catch(e => { console.log("發送失敗", e); input.disabled = false; });
     }
 
+    // ==========================================
+    // 🌟 取消轉入與強制瞬間同步
+    // ==========================================
     function cancelFinalDest(caseId, cancelHospName) { 
         if(confirm(`確定要取消轉入 ${cases[caseId].finalDest} 嗎？\n(操作方：${cancelHospName})`)) { 
             let t = formatDateTime();
@@ -1222,6 +1204,11 @@
             cases[caseId].cancelTime = t;
             cases[caseId].cancelHosp = cancelHospName; 
             
+            // 如果是取栓醫院自己退回，本地端狀態也預先退回「評估中」
+            if (loggedInHosp === cancelHospName) {
+                cases[caseId].hospStatus[loggedInHosp] = "評估中";
+            }
+
             fetch(GAS_URL, { 
                 method: 'POST', 
                 body: JSON.stringify({ 
@@ -1234,6 +1221,8 @@
                 if(data.data && data.data.message === "已達最高取消次數限制") {
                     alert("⚠️ 錯誤：此個案已達最高取消次數限制！");
                 }
+                // 🌟 當雲端處理完畢後，強制背景瞬間更新！確保大家看到的畫面一致
+                fetchRecentCasesFromGAS();
             });
             renderTrackerDashboard(); renderQuickUpdateBoard(); if(loggedInHosp) renderHospitalCases(); 
         } 
@@ -1264,9 +1253,7 @@
                         let mapBtn = c.location ? `<button class="btn-main" style="background:#28a745;" onclick="window.open('https://www.google.com/maps/search/?api=1&query=${c.location.lat},${c.location.lng}', '_blank')">🗺️ GPS地圖</button>` : `<span style="font-size:0.85em; color:#888;">(尚未回報GPS)</span>`;
                         
                         let cancelBtn = `<button class="btn-main" style="background:#dc3545;" onclick="cancelFinalDest('${caseId}', '${loggedInHosp}')">❌ 取消轉入</button>`;
-                        
                         let chatBtn = `<button class="btn-main" style="background:#17a2b8;" onclick="openMessenger('${caseId}', 1, 'evt', '${loggedInHosp}')">💬 即時文字溝通</button>`;
-                        
                         actionBtns = `${mapBtn} ${chatBtn} ${cancelBtn}`;
                     } else if (c.finalDest) { 
                         intentText = `<span style="color:red;">已轉至 ${c.finalDest}</span>`; actionBtns = ``; 
