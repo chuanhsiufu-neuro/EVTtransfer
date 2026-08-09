@@ -355,7 +355,17 @@
 
         <div style="margin-bottom: 20px; border-bottom: 1px dashed #ccc; padding-bottom: 20px;">
             <label style="display:block; margin-bottom: 8px; font-weight:bold; color:#0056b3;">📥 下載範本</label>
-            <button class="btn-main" style="background:#17a2b8; width: 100%; padding: 10px;" onclick="alert('下載範本格式\n(表頭: Date, 8-12, 12-17, 夜間)')">下載範本格式</button>
+            <!-- 🌟 換成直接觸發下載函式 -->
+            <button class="btn-main" style="background:#17a2b8; width: 100%; padding: 10px;" onclick="downloadRosterTemplate()">下載範本格式 (醫院名稱_YYYYMM.csv)</button>
+        </div>
+        
+        <div style="margin-bottom: 10px;">
+            <label style="display:block; margin-bottom: 8px; font-weight:bold; color:#0056b3;">📤 上傳當月班表 (支援 CSV)</label>
+            <div style="font-size: 0.85em; color: #666; margin-bottom: 10px;">💡 系統會自動辨識檔名 (例如：新竹台大_202608.csv)，並將資料自動接續貼在該院班表最下方。</div>
+            
+            <!-- 🌟 拔除下拉選單，只留純粹的上傳區 -->
+            <input type="file" id="roster_file_input" accept=".csv" style="width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
+            <button class="btn-success" style="width: 100%; padding: 10px;" onclick="uploadRosterCsv()">上傳並自動附加</button>
         </div>
         
         <div style="margin-bottom: 10px;">
@@ -595,16 +605,19 @@
 
                 renderHospitalBoard(); renderQuickUpdateBoard();
 
+                // 🌟 網址導航解析 (安全加強版)
                 const urlParams = new URLSearchParams(window.location.search);
                 if (urlParams.get('tab') === 'tab3') {
                     switchTab('tab3');
                     const urlHosp = urlParams.get('hosp');
-                    if (urlHosp && document.querySelector(`#login_hosp_name option[value="${urlHosp}"]`)) {
-                        document.getElementById('login_hosp_name').value = urlHosp;
-                        setTimeout(() => document.getElementById('login_hosp_pwd').focus(), 500);
+                    if (urlHosp) {
+                        let opts = Array.from(document.getElementById('login_hosp_name').options);
+                        if (opts.some(opt => opt.value === urlHosp)) {
+                            document.getElementById('login_hosp_name').value = urlHosp;
+                            setTimeout(() => document.getElementById('login_hosp_pwd').focus(), 500);
+                        }
                     }
-                }
-            } else { alert("雲端資料讀取失敗: " + resData.error); }
+                } else { alert("雲端資料讀取失敗: " + resData.error); }
         })
         .catch(err => {
             console.error(err);
@@ -844,6 +857,88 @@
         document.getElementById('hospRosterModal').style.display = 'none'; 
     }
 
+    // ==========================================
+    // 🌟 班表上傳與下載功能
+    // ==========================================
+    
+    // 產生並下載 CSV 範本
+    function downloadRosterTemplate() {
+        // \uFEFF 是 BOM，能確保用 Excel 直接點開不會變成亂碼
+        let csvContent = "\uFEFFDate,8-12,12-17,夜間\n";
+        
+        // 產生未來三天的假資料做為範例
+        let now = new Date();
+        for(let i = 1; i <= 3; i++) {
+            let dStr = `${now.getFullYear()}/${now.getMonth() + 1}/${i}`;
+            csvContent += `${dStr},,,\n`;
+        }
+        
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        
+        // 預設檔名
+        let defaultMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
+        link.setAttribute("download", `醫院名稱_${defaultMonth}.csv`);
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    // 處理前端檔案上傳並傳送至 GAS
+    function uploadRosterCsv() {
+        const fileInput = document.getElementById('roster_file_input');
+        if (!fileInput.files || fileInput.files.length === 0) {
+            return alert("請先點擊「選擇檔案」挑選一個 CSV 班表！");
+        }
+        
+        const file = fileInput.files[0];
+        const fileName = file.name; 
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            // 將檔案轉為 Base64 傳給後端，避免直接傳文字時破壞編碼
+            const base64Data = e.target.result; 
+            
+            // 將畫面上傳按鈕改為讀取狀態
+            const btn = event.target;
+            const originalText = btn.innerText;
+            btn.innerText = "⏳ 正在分析與上傳，請稍候...";
+            btn.disabled = true;
+            
+            fetch(GAS_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: "uploadRoster",
+                    payload: { filename: fileName, csvContent: base64Data }
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.innerText = originalText;
+                btn.disabled = false;
+                
+                if (data.status === "success") {
+                    alert(data.data.message);
+                    fetchDataFromGAS(); // 背景重新載入最新班表狀態
+                    closeHospRosterModal();
+                } else {
+                    alert("上傳失敗: " + data.error);
+                }
+            })
+            .catch(err => {
+                alert("上傳發生錯誤，請檢查網路連線。");
+                btn.innerText = originalText;
+                btn.disabled = false;
+                console.log(err);
+            });
+        };
+        
+        reader.readAsDataURL(file);
+    }
+    
     function queryTodayRoster() {
         const hospName = document.getElementById('roster_query_hosp_sel').value;
         const resDiv = document.getElementById('query_roster_result');
