@@ -892,23 +892,41 @@
        if (c.finalDest) {
             chatArea.style.display = "flex"; chatArea.className = "chat-room-banner";
             let folderLink = c.clinicalData.folderUrl ? c.clinicalData.folderUrl : "#";
+            
+            // 🌟 產生出發與抵達按鈕
+            let btnDepart = c.departTime ? `<button class="btn-recorded" onclick="undoTime('${currentTrackCaseId}', 'depart')">已出發 ${c.departTime} ↺</button>` : `<button class="btn-warning" onclick="markTime('${currentTrackCaseId}', 'depart')">🚑 記錄出發</button>`;
+            let btnArrive = c.arriveTime ? `<button class="btn-recorded" onclick="undoTime('${currentTrackCaseId}', 'arrive')">已抵達 ${c.arriveTime} ↺</button>` : `<button class="btn-danger" onclick="markTime('${currentTrackCaseId}', 'arrive')">🏥 記錄抵達</button>`;
+
             chatArea.innerHTML = `
-                <div><strong style="color:#0056b3; font-size: 1.1em;">💬 已鎖定：${c.finalDest} (${c.lockTime})</strong></div>
-                <div style="display:flex; gap:10px; flex-wrap: wrap;">
+                <div style="width: 100%; margin-bottom: 5px;">
+                    <strong style="color:#0056b3; font-size: 1.1em;">💬 已鎖定：${c.finalDest} (${c.lockTime})</strong>
+                </div>
+                <div style="display:flex; gap:10px; flex-wrap: wrap; width: 100%;">
+                    ${btnDepart}
+                    ${btnArrive}
                     <button class="btn-success" onclick="quickUpdateLocation('${currentTrackCaseId}')">📍 更新 GPS</button>
-                    <button class="btn-main" style="background:#28a745;" onclick="window.open('${folderLink}', '_blank')">📂 開啟影像資料夾</button>
-                    <button class="btn-main" style="background:#17a2b8;" onclick="openMessenger('${currentTrackCaseId}', 1, 'requester', '需求端')">💬 開啟即時溝通</button>
+                    <button class="btn-main" style="background:#28a745;" onclick="window.open('${folderLink}', '_blank')">📂 開啟影像</button>
+                    <button class="btn-main" style="background:#17a2b8;" onclick="openMessenger('${currentTrackCaseId}', 1, 'requester', '需求端')">💬 即時溝通</button>
                     <button class="btn-danger" onclick="cancelFinalDest('${currentTrackCaseId}', '${c.reqHospOut}')">❌ 取消</button>
                 </div>`;
         }
+        
         c.targets.forEach(hospName => {
-            const status = c.hospStatus[hospName]; let statusClass = "eval";
-            if(status.includes("可轉院")) statusClass = "ok"; else if(status.includes("不建議")) statusClass = "no"; else if(status.includes("待確認")) statusClass = "pending";
+            const status = c.hospStatus[hospName]; 
+            let statusClass = "eval";
+            if(status.includes("可轉院")) statusClass = "ok";
+            else if(status.includes("不建議")) statusClass = "no";
+            else if(status.includes("待確認")) statusClass = "pending";
+
             let replyTimeStr = c.hospReplyTime[hospName] ? ` <span style="font-size:0.85em; color:#666;">(${c.hospReplyTime[hospName]})</span>` : "";
             let itemClass = "track-item"; let actionHtml = "";
-            if (c.finalDest) { itemClass += (c.finalDest === hospName) ? " selected" : " disabled"; } else if (statusClass === "ok") { actionHtml = `<button class="btn-success" onclick="selectFinalDest('${hospName}')">✅ 選擇此院</button>`; }
+            
+            if (c.finalDest) { itemClass += (c.finalDest === hospName) ? " selected" : " disabled"; } 
+            else if (statusClass === "ok") { actionHtml = `<button class="btn-success" onclick="selectFinalDest('${hospName}')">✅ 選擇此院</button>`; }
+            
             let pendingReason = (statusClass === 'pending' && c.hospPendingReason[hospName]) ? ` (${c.hospPendingReason[hospName]})` : "";
             let statusTextHtml = `<span class="track-status ${statusClass}">${status}${pendingReason}</span>`;
+            
             container.innerHTML += `<div class="${itemClass}"><div><span style="font-weight:bold; font-size:1.1em; color:#004085; display:inline-block; min-width:90px;">${hospName}</span>${statusTextHtml}${replyTimeStr}</div><div>${actionHtml}</div></div>`;
         });
     }
