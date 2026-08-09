@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>中風區域聯防轉診平台 v41 </title>
+    <title>中風區域聯防轉診平台 v42 </title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -93,6 +93,10 @@
 
         #chatHistoryBox::-webkit-scrollbar { width: 6px; }
         #chatHistoryBox::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 10px; }
+
+        /* 🌟 拖曳上傳區的專屬 CSS */
+        .drop-zone { border: 2px dashed #17a2b8; padding: 25px; text-align: center; color: #17a2b8; background-color: #f8f9fa; border-radius: 8px; cursor: pointer; transition: 0.3s; font-weight: bold; font-size: 1em; box-shadow: inset 0 0 5px rgba(0,0,0,0.02);}
+        .drop-zone:hover { background-color: #e8f4f8; border-color: #0056b3; color: #0056b3;}
     </style>
 </head>
 <body>
@@ -119,9 +123,7 @@
         <button class="tab-btn" onclick="switchTab('tab4')">4. 班表與系統設定</button>
     </div>
 
-    <!-- ========================================== -->
-    <!-- 分頁 1: 提出取栓需求 -->
-    <!-- ========================================== -->
+    <!-- 分頁 1 -->
     <div id="tab1" class="tab-content active">
         <div class="sub-header">A. 基本聯絡資訊</div>
         <div class="req-row">
@@ -151,13 +153,10 @@
         </div>
         
         <button class="btn-success" style="width: 100%; font-size: 1.1em; padding: 12px;" onclick="submitCase()">🚀 建立個案並發送通知</button>
-        
         <div id="submit_result_area" style="display: none; background: #d4edda; padding: 25px; border-radius: 8px; margin-top: 20px; line-height: 1.5; border: 2px solid #28a745;"></div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- 分頁 2: 個案追蹤 -->
-    <!-- ========================================== -->
+    <!-- 分頁 2 -->
     <div id="tab2" class="tab-content">
         <div class="req-row">
             <div class="req-group"><label>個案代碼</label><input type="text" id="track_case_id"></div>
@@ -177,9 +176,7 @@
         </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- 分頁 3: 取栓醫院端介面 -->
-    <!-- ========================================== -->
+    <!-- 分頁 3 -->
     <div id="tab3" class="tab-content">
         <div id="hosp_login_area" class="req-row">
             <div class="req-group"><label>醫院</label><select id="login_hosp_name"><option>載入中...</option></select></div>
@@ -191,7 +188,6 @@
                 <h3 style="color: #0056b3; margin:0;"><span id="disp_login_hosp"></span> - 收到的需求</h3>
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                     <button class="btn-main" style="background:#28a745;" onclick="fetchRecentCasesFromGAS()">🔄 立即更新</button>
-                    <!-- 🌟 新增：下載品管月報按鈕 -->
                     <button class="btn-main" style="background:#6f42c1;" onclick="openReportModal()">📥 下載品管月報</button>
                     <button class="btn-main" style="background:#17a2b8;" onclick="openHospSysSettingsModal()">⚙️ 系統設定 (含通訊錄)</button>
                     <button class="btn-main" onclick="logoutHospital()" style="background:#6c757d;">登出</button>
@@ -203,9 +199,7 @@
         </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- 分頁 4: 班表與系統設定 -->
-    <!-- ========================================== -->
+    <!-- 分頁 4 -->
     <div id="tab4" class="tab-content">
         <div class="live-clock-banner" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
             <div>
@@ -214,7 +208,6 @@
             </div>
             <button class="btn-main" style="background:#28a745; font-size: 1em; padding: 10px 20px; white-space: nowrap; height: fit-content;" onclick="openHospRosterModal()">📅 Excel 班表</button>
         </div>
-
         <div style="margin-top: 15px; text-align: center;">
             <button class="btn-success" onclick="fetchDataFromGAS()">🔄 重新同步最新看板資料</button>
         </div>
@@ -224,14 +217,13 @@
         此平台為新竹台大分院傅傳修醫師為協助桃竹苗地區轉診生成的網頁，<br>為了協助資訊傳遞，請注意避免輸入含病人個資之資訊 (如: 姓名/病歷號/電話等)，謝謝合作！
         <div id="footer_version_display" style="margin-top: 8px; font-size: 0.85em; color: #6c757d; font-weight: normal;"></div>
     </div>
-
 </div>
 
 <!-- ========================================== -->
 <!-- 彈出視窗群 (Modals)                        -->
 <!-- ========================================== -->
 
-<!-- ★ LINE 風格的 Messenger 對話框 Modal ★ -->
+<!-- ★ Messenger 對話框 Modal ★ -->
 <div id="messengerModal" class="modal" style="align-items: center; padding-top: 0; z-index: 2000;">
     <div class="modal-content" style="max-width: 500px; padding: 0; overflow: hidden; display: flex; flex-direction: column; height: 85vh; max-height: 650px; background-color: #8bbccf;">
         <div style="background-color: #0056b3; color: white; padding: 15px; position: relative; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 10;">
@@ -263,7 +255,6 @@
 
         <div class="req-row" style="flex-wrap: wrap;">
             <div class="req-group" style="min-width: 100px;"><label>Arrival Time</label><input type="text" id="fb_arrival" readonly style="background:#e9ecef;"></div>
-            <!-- 🌟 加入 oninput 自動計算 DTP 與 DTR -->
             <div class="req-group" style="min-width: 100px;"><label>Puncture Time</label><input type="text" id="fb_puncture" placeholder="時間或文字" oninput="autoCalcDTPDTR()"></div>
             <div class="req-group" style="min-width: 100px;"><label>Recanalization</label><input type="text" id="fb_recanalization" placeholder="時間或文字" oninput="autoCalcDTPDTR()"></div>
             <div class="req-group" style="min-width: 80px;"><label>DTP</label><input type="text" id="fb_dtp" placeholder="自動計算..."></div>
@@ -287,28 +278,37 @@
             </div>
             <div class="req-group"><label>Disposition</label><input type="text" id="fb_disposition" placeholder="例如: 出院 / 轉院 / 死亡..."></div>
         </div>
+        
+        <!-- 🌟 新增：拖曳上傳圖檔區塊 -->
+        <div class="req-row" style="margin-top: 15px;">
+            <div class="req-group" style="flex: 1;">
+                <label style="color: #0056b3;">📎 附加回饋圖檔 (可拖曳多張圖片上傳)</label>
+                <div id="fb_drop_zone" class="drop-zone" onclick="document.getElementById('fb_file_input').click()">
+                    📸 點擊此處選擇檔案，或將圖片拖曳至此
+                </div>
+                <input type="file" id="fb_file_input" multiple accept="image/*" style="display: none;" onchange="handleFbFiles(this.files)">
+                <div id="fb_preview_area" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;"></div>
+            </div>
+        </div>
 
-        <button class="btn-success" style="width: 100%; padding: 12px; font-size: 1.1em; margin-top: 15px;" onclick="submitFeedback()">💾 紀錄時間並送出結案</button>
+        <button id="btn_submit_feedback" class="btn-success" style="width: 100%; padding: 12px; font-size: 1.1em; margin-top: 15px;" onclick="submitFeedback()">💾 紀錄時間並送出結案</button>
     </div>
 </div>
 
-<!-- ★ 月報表下載 Modal ★ -->
+<!-- ★ 其他 Modals (月報表、系統設定、通訊錄、班表...維持原樣) ★ -->
 <div id="reportModal" class="modal" style="align-items: center; padding-top: 0;">
     <div class="modal-content" style="max-width: 400px; text-align: left; margin-bottom: 0;">
         <span class="close-btn" onclick="closeReportModal()">&times;</span>
         <h2 style="color: #6f42c1; margin-top: 0; border-bottom: 2px solid #eee; padding-bottom: 10px;">📊 下載品管月報表</h2>
         <div class="req-group" style="margin-bottom: 15px;">
             <label>請選擇報表月份：</label>
-            <select id="report_month_select" style="width: 100%; padding: 8px;">
-                <!-- 選項由 JS 自動生成 -->
-            </select>
+            <select id="report_month_select" style="width: 100%; padding: 8px;"></select>
         </div>
         <div style="font-size: 0.85em; color: #666; margin-bottom: 15px;">💡 系統將自動彙整 <b><span id="report_hosp_display"></span></b> 在該月份成功轉入且結案的資訊，合併三個分頁為一份完整的 Excel(CSV) 檔案。</div>
         <button class="btn-main" id="btn_download_report" style="width: 100%; padding: 12px; font-size: 1.1em; background: #6f42c1;" onclick="executeDownloadReport()">📥 產生並下載</button>
     </div>
 </div>
 
-<!-- ★ 一鍵撥號 Modal ★ -->
 <div id="callModal" class="modal" style="align-items: center; padding-top: 0;">
     <div class="modal-content" style="max-width: 350px; text-align: center; margin-bottom: 0;">
         <span class="close-btn" onclick="closeCallModal()">&times;</span>
@@ -319,109 +319,64 @@
     </div>
 </div>
 
-<!-- ★ Tab 3 專屬: 系統設定與通訊錄 Modal ★ -->
 <div id="hospSysSettingsModal" class="modal">
     <div class="modal-content" style="max-width: 550px;">
         <span class="close-btn" onclick="closeHospSysSettingsModal()">&times;</span>
         <h2 style="color: #0056b3; margin-top: 0; border-bottom: 2px solid #eee; padding-bottom: 10px;">⚙️ 醫院系統與通訊錄設定</h2>
-        
         <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
             <h4 style="margin: 0 0 10px 0; color: #333;">🏥 基本設定</h4>
-            <div class="req-row">
-                <div class="req-group"><label>急診電話/取栓專線</label><input type="text" id="sys_set_er_phone"></div>
-                <div class="req-group"><label>LINE 群組連結</label><input type="text" id="sys_set_line"></div>
-            </div>
-            <div class="req-group" style="margin-bottom: 10px;">
-                <label>Google Drive 專屬資料夾 ID (Folder)</label>
-                <input type="text" id="sys_set_folder" placeholder="例如: 1mKrQfQWL_oIHu0YVyXycBTd8lZXG5GX2">
-            </div>
+            <div class="req-row"><div class="req-group"><label>急診電話/取栓專線</label><input type="text" id="sys_set_er_phone"></div><div class="req-group"><label>LINE 群組連結</label><input type="text" id="sys_set_line"></div></div>
+            <div class="req-group" style="margin-bottom: 10px;"><label>Google Drive 專屬資料夾 ID (Folder)</label><input type="text" id="sys_set_folder" placeholder="例如: 1mKrQfQWL_oIHu0YVyXycBTd8lZXG5GX2"></div>
             <div class="req-group" style="margin-bottom: 10px;"><label>登入密碼修改</label><input type="password" id="sys_set_pwd" placeholder="若不修改請留空 (預設 admin)"></div>
-            <div class="req-row" style="align-items: flex-end; border-top: 1px dashed #ccc; padding-top: 10px;">
-                <div class="req-group" style="flex: 2;"><label style="color:#d35400;">覆寫今日值班醫師 (強制取代班表)</label><input type="text" id="sys_set_today_dr" placeholder="輸入醫師姓名"></div>
-                <div class="req-group" style="flex: 1;"><button class="btn-warning" onclick="alert('請在下方點擊儲存以執行覆寫')">強制覆寫</button></div>
+            <div class="req-row" style="align-items: flex-end; border-top: 1px dashed #ccc; padding-top: 10px;"><div class="req-group" style="flex: 2;"><label style="color:#d35400;">覆寫今日值班醫師 (強制取代班表)</label><input type="text" id="sys_set_today_dr" placeholder="輸入醫師姓名"></div><div class="req-group" style="flex: 1;"><button class="btn-warning" onclick="alert('請在下方點擊儲存以執行覆寫')">強制覆寫</button></div></div>
+        </div>
+        <div style="background: #e8f4f8; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #17a2b8;">
+            <h4 style="margin: 0 0 10px 0; color: #0056b3;">📞 取栓醫師通訊錄設定 </h4>
+            <div class="req-group" style="margin-bottom: 10px;"><label>取栓醫師姓名</label><input type="text" id="addr_dr_name" placeholder="姓名"></div>
+            <div class="req-group" style="margin-bottom: 10px;"><label>取栓醫師 Email</label><input type="email" id="addr_dr_email" placeholder="Email"></div>
+            <div class="req-group" style="margin-bottom: 10px;"><label>取栓醫師 連絡電話</label><input type="text" id="addr_dr_phone" placeholder="電話"></div>
+            <div class="req-group" style="margin-bottom: 15px;">
+                <label>LINE ID</label>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="text" id="addr_dr_lineid" placeholder="LINE 帳號 (提供給同仁加入用)" style="flex: 1; margin: 0;">
+                    <a href="https://line.me/R/ti/p/%40964pltbx" target="_blank" style="display: inline-flex; align-items: center; justify-content: center; background-color: #06C755; color: white; padding: 6px 12px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; white-space: nowrap; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: 0.2s;">加入小幫手</a>
+                </div>
+            </div>
+            <div class="req-row" style="margin-top: 15px; margin-bottom: 0;">
+                <div class="req-group" style="flex: 1;"><select id="addr_dr_selector" onchange="loadAddressBookDr()"><option value="1">Dr 1</option><option value="2">Dr 2</option><option value="3">Dr 3</option><option value="4">Dr 4</option><option value="5">Dr 5</option></select></div>
+                <div class="req-group" style="flex: 1;"><button class="btn-success" onclick="saveAddressBookDr()">儲存醫師資訊</button></div>
             </div>
         </div>
-
-    <div style="background: #e8f4f8; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #17a2b8;">
-        <h4 style="margin: 0 0 10px 0; color: #0056b3;">📞 取栓醫師通訊錄設定 </h4>
-        <div class="req-group" style="margin-bottom: 10px;"><label>取栓醫師姓名</label><input type="text" id="addr_dr_name" placeholder="姓名"></div>
-        <div class="req-group" style="margin-bottom: 10px;"><label>取栓醫師 Email</label><input type="email" id="addr_dr_email" placeholder="Email"></div>
-        <div class="req-group" style="margin-bottom: 10px;"><label>取栓醫師 連絡電話</label><input type="text" id="addr_dr_phone" placeholder="電話"></div>
-        
-        <div class="req-group" style="margin-bottom: 15px;">
-    <label>LINE ID</label>
-    <div style="display: flex; gap: 10px; align-items: center;">
-        <input type="text" id="addr_dr_lineid" placeholder="LINE 帳號 (提供給同仁加入用)" style="flex: 1; margin: 0;">
-        <a href="https://line.me/R/ti/p/%40964pltbx" target="_blank" style="display: inline-flex; align-items: center; justify-content: center; background-color: #06C755; color: white; padding: 6px 12px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; white-space: nowrap; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: 0.2s;">
-            <img src="https://chuanhsiufu-neuro.github.io/EVTtransfer/littlehelper.png" alt="小幫手" style="width: 24px; height: 24px; margin-right: 8px; border-radius: 50%; background: white;">
-            加入小幫手
-            </a>
-        </div>
-        <small style="color: #6c757d; font-size: 12px; margin-top: 5px; display: block;">
-            💡 系統綁定前，請醫師先點擊右方按鈕 (或搜尋 ID: <b style="color:#0056b3;">@964pltbx</b>) 將小幫手加為好友，並在聊天室輸入「綁定 醫院名稱 醫師姓名」。
-        </small>
-    </div>
-        <div class="req-row" style="margin-top: 15px; margin-bottom: 0;">
-            <div class="req-group" style="flex: 1;">
-                <select id="addr_dr_selector" onchange="loadAddressBookDr()">
-                    <option value="1">Dr 1</option><option value="2">Dr 2</option><option value="3">Dr 3</option><option value="4">Dr 4</option><option value="5">Dr 5</option>
-                </select>
-            </div>
-            <div class="req-group" style="flex: 1;">
-                <button class="btn-success" onclick="saveAddressBookDr()">儲存醫師資訊</button>
-            </div>
-        </div>
-    </div>
-
         <button class="btn-main" style="width: 100%; padding: 12px; font-size: 1.1em;" onclick="saveHospSysSettings()">💾 儲存所有基本設定並關閉</button>
     </div>
 </div>
 
-<!-- ★ Excel 班表 Modal ★ -->
 <div id="hospRosterModal" class="modal">
     <div class="modal-content" style="max-width: 500px;">
         <span class="close-btn" onclick="closeHospRosterModal()">&times;</span>
         <h2 style="color: #0056b3; margin-top: 0; border-bottom: 2px solid #eee; padding-bottom: 10px;">📅 Excel 班表</h2>
-        
         <div style="margin-bottom: 20px; border-bottom: 1px dashed #ccc; padding-bottom: 20px;">
             <label style="display:block; margin-bottom: 8px; font-weight:bold; color:#0056b3;">🔍 查詢今日班表</label>
             <select id="roster_query_hosp_sel" style="width: 100%; padding: 8px; margin-bottom: 10px;" onchange="queryTodayRoster()">
                 <option value="">-- 請選擇醫院 --</option>
-                <option value="1st Line 優先排班表">1st Line 優先排班表</option>
-                <option value="新竹台大">新竹台大</option>
-                <option value="東元醫院">東元醫院</option>
-                <option value="新竹中國">新竹中國</option>
-                <option value="大千醫院">大千醫院</option>
-                <option value="聯新國際">聯新國際</option>
-                <option value="林口長庚">林口長庚</option>
+                <option value="1st Line 優先排班表">1st Line 優先排班表</option><option value="新竹台大">新竹台大</option><option value="東元醫院">東元醫院</option><option value="新竹中國">新竹中國</option><option value="大千醫院">大千醫院</option><option value="聯新國際">聯新國際</option><option value="林口長庚">林口長庚</option>
             </select>
-            
             <div id="query_roster_result" style="display:none; overflow-x: auto; margin-top: 10px;">
-                <table class="neuro-duty-table" style="margin-top: 0; min-width: 100%;">
-                    <thead>
-                        <tr><th>醫院</th><th>8-12</th><th>12-17</th><th>夜間</th></tr>
-                    </thead>
-                    <tbody id="query_roster_tbody">
-                    </tbody>
-                </table>
+                <table class="neuro-duty-table" style="margin-top: 0; min-width: 100%;"><thead><tr><th>醫院</th><th>8-12</th><th>12-17</th><th>夜間</th></tr></thead><tbody id="query_roster_tbody"></tbody></table>
             </div>
         </div>
-
         <div style="margin-bottom: 20px; border-bottom: 1px dashed #ccc; padding-bottom: 20px;">
             <label style="display:block; margin-bottom: 8px; font-weight:bold; color:#0056b3;">📥 下載範本</label>
             <button class="btn-main" style="background:#17a2b8; width: 100%; padding: 10px;" onclick="downloadRosterTemplate()">下載範本格式 (醫院名稱_YYYYMM.csv)</button>
         </div>
-        
         <div style="margin-bottom: 10px;">
             <label style="display:block; margin-bottom: 8px; font-weight:bold; color:#0056b3;">📤 上傳當月班表 (支援 CSV)</label>
-            <div style="font-size: 0.85em; color: #666; margin-bottom: 10px;">💡 系統會自動辨識檔名 (例如：新竹台大_202608.csv)，並將資料自動接續貼在該院班表最下方。</div>
             <input type="file" id="roster_file_input" accept=".csv" style="width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
             <button class="btn-success" style="width: 100%; padding: 10px;" onclick="uploadRosterCsv()">上傳並自動附加</button>
         </div>
     </div>
 </div>
 
-<!-- ★ 看板設定 Modal (修改燈號) ★ -->
 <div id="hospSettingsModal" class="modal" style="align-items: center; padding-top: 0;">
     <div class="modal-content" style="max-width: 400px; text-align: left; margin-bottom: 0;">
         <span class="close-btn" onclick="closeHospSettingsModal()">&times;</span>
@@ -434,17 +389,14 @@
             <button class="toggle-btn orange" data-val="orange">滿床</button>
             <button class="toggle-btn red" data-val="red">無人力</button>
         </div>
-        
         <div class="req-group" style="margin-top: 15px;">
             <label style="font-size: 0.9em; color: #555;">自訂狀態文字 (預設為上方選項文字)</label>
             <input type="text" id="set_hosp_status_text" placeholder="例如：CT維修中，暫停取栓">
         </div>
-
         <button class="btn-success" style="width: 100%; margin-top: 20px; padding: 12px; font-size: 1.1em;" onclick="saveHospSettings()">💾 儲存並更新看板</button>
     </div>
 </div>
 
-<!-- ★ 取栓醫院回覆 Modal ★ -->
 <div id="replyModal" class="modal" style="align-items: center; padding-top: 0;">
     <div class="modal-content" style="max-width: 400px; text-align: center; margin-bottom: 0;">
         <span class="close-btn" onclick="closeReplyModal()">&times;</span>
@@ -453,7 +405,6 @@
         <button class="btn-success" style="width: 100%; padding: 15px; margin-bottom: 10px; font-size: 1.1em;" onclick="submitReply('可轉院 (請聯繫急診)')">✅ 可轉院 (請聯繫急診)</button>
         <button class="btn-danger" style="width: 100%; padding: 15px; margin-bottom: 10px; font-size: 1.1em;" onclick="submitReply('不建議轉院 (無床/無人力)')">❌ 不建議轉院 (無床/無人力)</button>
         <button class="btn-main" style="width: 100%; padding: 15px; font-size: 1.1em; background-color: #343a40;" onclick="openPendingReplyBox()">⏳ 待確認 (須了解詳情)</button>
-        
         <div id="pending_reply_box" style="display: none; margin-top: 15px; text-align: left;">
             <label style="color: #333; margin-bottom: 5px;">輸入待確認原因 (如: 需補 CTA 影像)</label>
             <input type="text" id="pending_reason_input" style="margin-bottom: 10px;">
@@ -462,12 +413,10 @@
     </div>
 </div>
 
-<!-- ★ 檢視病史與影像 Modal ★ -->
 <div id="viewCaseModal" class="modal">
     <div class="modal-content" style="background: #fafafa; max-width: 800px;">
         <span class="close-btn" onclick="closeViewCaseModal()">&times;</span>
         <h2 style="color: #0056b3; margin-top: 0; border-bottom: 2px solid #b8daff; padding-bottom: 10px;">📜 臨床資訊與影像檢視</h2>
-        
         <div class="view-section">
             <h4>基本與時間資訊</h4>
             <div class="view-data"><span class="view-label">轉出端:</span><span id="vc_hosp"></span></div>
@@ -500,31 +449,23 @@
 </div>
 
 <script>
-    // ==========================================
-    // ⚙️ 系統設定與 GAS API 網址
-    // ==========================================
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbz7hI4rBuv7pL_pkc8kweWlBwzXlcN5RWYP_zcC3SBD29opLL3cGbtZXkd6ALEbX6AX3Q/exec"; 
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyEtx32wO5J2Vm7X1YaXZQNscQy2DUj0htoeqpWFaomB0Kx-0UP6k5iSrqyiUP9ikvX_A/exec"; 
 
-    let hospitalsConfigData = {};
-    let currentRosterData = {};
-    let hospitals = []; 
+    let hospitalsConfigData = {}; let currentRosterData = {}; let hospitals = []; 
+    let cases = {}; let currentTrackCaseId = null; let loggedInHosp = null;
+    let currentReplyCaseId = null; let pendingClinicalData = {}; let editingHospStatus = "green";
 
-    let cases = {}; 
-    let currentTrackCaseId = null;
-    let loggedInHosp = null;
-    let currentReplyCaseId = null;
-    let pendingClinicalData = {}; 
-    let editingHospStatus = "green";
+    // 🌟 全域變數：處理拖曳的圖檔
+    let feedbackImages = [];
 
+    // 時間格式化工具
     function formatClinicalTime(timeStr) {
         if (!timeStr) return "";
         if (typeof timeStr === 'string' && (timeStr.includes('T') || timeStr.includes('Z'))) {
             let d = new Date(timeStr);
             if (!isNaN(d.getTime())) {
-                const MM = String(d.getMonth() + 1).padStart(2, '0'); 
-                const DD = String(d.getDate()).padStart(2, '0');
-                const HH = String(d.getHours()).padStart(2, '0'); 
-                const mm = String(d.getMinutes()).padStart(2, '0');
+                const MM = String(d.getMonth() + 1).padStart(2, '0'); const DD = String(d.getDate()).padStart(2, '0');
+                const HH = String(d.getHours()).padStart(2, '0'); const mm = String(d.getMinutes()).padStart(2, '0');
                 if (d.getFullYear() === 1899) return `${HH}:${mm}`;
                 return `${MM}/${DD} ${HH}:${mm}`;
             }
@@ -536,163 +477,141 @@
         if (!startTimeStr || !endTimeStr) return "";
         function parseStr(str) {
             let match = str.match(/(\d{2})\/(\d{2}) (\d{2}):(\d{2})/);
-            if (match) {
-                let y = new Date().getFullYear();
-                return new Date(y, parseInt(match[1])-1, parseInt(match[2]), parseInt(match[3]), parseInt(match[4])).getTime();
-            }
+            if (match) return new Date(new Date().getFullYear(), parseInt(match[1])-1, parseInt(match[2]), parseInt(match[3]), parseInt(match[4])).getTime();
             let matchTime = str.match(/^(\d{2}):(\d{2})$/);
-            if (matchTime) {
-                let d = new Date();
-                d.setHours(parseInt(matchTime[1]), parseInt(matchTime[2]), 0, 0);
-                return d.getTime();
-            }
+            if (matchTime) { let d = new Date(); d.setHours(parseInt(matchTime[1]), parseInt(matchTime[2]), 0, 0); return d.getTime(); }
             return null;
         }
-
-        let t1 = parseStr(startTimeStr);
-        let t2 = parseStr(endTimeStr);
-
+        let t1 = parseStr(startTimeStr); let t2 = parseStr(endTimeStr);
         if (!t1 || !t2) return "";
         let diffMs = t2 - t1;
-        if (diffMs < 0) return "時間順序異常"; 
-
-        let totalMins = Math.floor(diffMs / 60000);
-        let h = Math.floor(totalMins / 60);
-        let m = totalMins % 60;
-        
-        if (h > 0) return `${h}小時${m}分`;
-        else return `${m}分鐘`;
+        if (diffMs < 0) return "時間異常"; 
+        let totalMins = Math.floor(diffMs / 60000); let h = Math.floor(totalMins / 60); let m = totalMins % 60;
+        if (h > 0) return `${h}小時${m}分`; else return `${m}分鐘`;
     }
 
     function formatDateTime(d = new Date()) {
+        const YYYY = d.getFullYear(); // 🌟 改成帶有年份的格式，方便結案報告顯示
         const MM = String(d.getMonth() + 1).padStart(2, '0'); const DD = String(d.getDate()).padStart(2, '0');
         const HH = String(d.getHours()).padStart(2, '0'); const mm = String(d.getMinutes()).padStart(2, '0');
-        return `${MM}/${DD} ${HH}:${mm}`;
+        return `${YYYY}/${MM}/${DD} ${HH}:${mm}`;
     }
 
     function getCaseTimeStr(c) {
         if (!c.requestTime) return "";
-        let parts = [`提出: ${c.requestTime}`];
+        // 只取字串的後半段 (MM/DD HH:mm) 來顯示，讓畫面不要太擁擠
+        let reqClean = c.requestTime.length > 10 ? c.requestTime.substring(5) : c.requestTime;
+        let parts = [`提出: ${reqClean}`];
         if (c.cancelTime) {
             let byHosp = c.cancelHosp ? `(由 ${c.cancelHosp} 取消)` : "";
-            parts.push(`取消${byHosp}: ${c.cancelTime}`);
+            let canClean = c.cancelTime.length > 10 ? c.cancelTime.substring(5) : c.cancelTime;
+            parts.push(`取消${byHosp}: ${canClean}`);
         }
-        if (c.reRequestTime) parts.push(`再提: ${c.reRequestTime}`);
         return `(${parts.join(', ')})`;
     }
 
     window.onload = function() {
-        startLiveClock();
-        fetchDataFromGAS();
-        fetchRecentCasesFromGAS(); 
-        setInterval(fetchRecentCasesFromGAS, 300000); 
+        startLiveClock(); fetchDataFromGAS(); fetchRecentCasesFromGAS(); setInterval(fetchRecentCasesFromGAS, 300000); 
         
         document.querySelectorAll('.toggle-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
-                this.classList.add('active'); 
-                editingHospStatus = this.getAttribute('data-val');
-                let defaultText = editingHospStatus === 'green' ? '可取栓' : (editingHospStatus === 'orange' ? '滿床' : '無人力');
-                document.getElementById('set_hosp_status_text').value = defaultText;
+                this.classList.add('active'); editingHospStatus = this.getAttribute('data-val');
+                document.getElementById('set_hosp_status_text').value = editingHospStatus === 'green' ? '可取栓' : (editingHospStatus === 'orange' ? '滿床' : '無人力');
             });
         });
 
-        const today = new Date();
-        const dateString = today.getFullYear() + "/" + String(today.getMonth() + 1).padStart(2, '0') + "/" + String(today.getDate()).padStart(2, '0');
-        const pageTitle = document.title;
-        document.getElementById('footer_version_display').innerText = `(版本資訊: ${pageTitle} | 當前日期: ${dateString})`;
+        const today = new Date(); const dateString = today.getFullYear() + "/" + String(today.getMonth() + 1).padStart(2, '0') + "/" + String(today.getDate()).padStart(2, '0');
+        document.getElementById('footer_version_display').innerText = `(版本資訊: ${document.title} | 當前日期: ${dateString})`;
+
+        // 🌟 綁定圖檔拖曳上傳事件
+        const fbDropZone = document.getElementById('fb_drop_zone');
+        if (fbDropZone) {
+            fbDropZone.addEventListener('dragover', (e) => { e.preventDefault(); fbDropZone.style.backgroundColor = '#e8f4f8'; });
+            fbDropZone.addEventListener('dragleave', (e) => { e.preventDefault(); fbDropZone.style.backgroundColor = '#f8f9fa'; });
+            fbDropZone.addEventListener('drop', (e) => {
+                e.preventDefault(); fbDropZone.style.backgroundColor = '#f8f9fa';
+                handleFbFiles(e.dataTransfer.files);
+            });
+        }
     };
+
+    function handleFbFiles(files) {
+        for (let file of files) {
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const base64 = e.target.result.split(',')[1];
+                    feedbackImages.push({ name: file.name, type: file.type, base64: base64 });
+                    renderFbPreviews();
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        document.getElementById('fb_file_input').value = ""; 
+    }
+
+    function renderFbPreviews() {
+        const area = document.getElementById('fb_preview_area');
+        area.innerHTML = '';
+        feedbackImages.forEach((img, idx) => {
+            area.innerHTML += `<div style="padding: 6px 12px; background: #e2e3e5; border-radius: 20px; font-size: 0.85em; display: flex; align-items: center; gap: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                <span style="font-weight: bold; color: #333;">📸 ${img.name}</span>
+                <span style="color: white; background: #dc3545; width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; cursor: pointer; font-weight: bold;" onclick="removeFbImg(${idx})">&times;</span>
+            </div>`;
+        });
+    }
+
+    function removeFbImg(idx) { feedbackImages.splice(idx, 1); renderFbPreviews(); }
 
     function fetchRecentCasesFromGAS() {
         if (!GAS_URL) return;
         fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "fetchRecentCases" }) })
-        .then(res => res.json())
-        .then(resData => {
+        .then(res => res.json()).then(resData => {
             if (resData.status === "success" && resData.data.cases) {
-                let newCases = resData.data.cases;
-                const now = Date.now();
-                for (let cid in cases) {
-                    if (!newCases[cid] && (now - cases[cid].timestamp < 20000)) {
-                        newCases[cid] = cases[cid];
-                    }
-                }
-                cases = newCases;
-                renderQuickUpdateBoard();
-                if (currentTrackCaseId) renderTrackerDashboard();
-                if (loggedInHosp) renderHospitalCases();
+                let newCases = resData.data.cases; const now = Date.now();
+                for (let cid in cases) { if (!newCases[cid] && (now - cases[cid].timestamp < 20000)) newCases[cid] = cases[cid]; }
+                cases = newCases; renderQuickUpdateBoard(); if (currentTrackCaseId) renderTrackerDashboard(); if (loggedInHosp) renderHospitalCases();
             }
-        }).catch(e => console.log("即時同步背景執行失敗", e));
+        }).catch(e => console.log("即時同步失敗", e));
     }
 
     function fetchDataFromGAS() {
         if (!GAS_URL) return alert("尚未設定 GAS URL！");
-        
         document.getElementById('hospital_status_board').innerHTML = '<h3 style="color: #666; text-align: center; width: 100%;">⏳ 正在從雲端載入各醫院即時量能，請稍候...</h3>';
-        
         fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "fetchActiveData" }) })
-        .then(res => res.json())
-        .then(resData => {
+        .then(res => res.json()).then(resData => {
             if (resData.status === "success") {
-                hospitalsConfigData = resData.data.hospitalsConfig;
-                currentRosterData = resData.data.currentRoster;
-                
-                hospitals = [];
-                const container = document.getElementById('target_hospitals_container');
-                const selLogin = document.getElementById('login_hosp_name');
-                const selSet = document.getElementById('set_hosp_name');
-                
+                hospitalsConfigData = resData.data.hospitalsConfig; currentRosterData = resData.data.currentRoster; hospitals = [];
+                const container = document.getElementById('target_hospitals_container'); const selLogin = document.getElementById('login_hosp_name'); const selSet = document.getElementById('set_hosp_name');
                 container.innerHTML = ""; selLogin.innerHTML = ""; selSet.innerHTML = "";
 
                 for (let hName in hospitalsConfigData) {
-                    let config = hospitalsConfigData[hName];
-                    let rData = currentRosterData[hName] || {};
-                    
-                    let drName = (rData.activeName && rData.activeName !== "無排班" && rData.activeName !== "-") ? rData.activeName : "無";
-                    let drPhone = (rData.phone && rData.phone !== "未提供" && rData.phone !== "-") ? rData.phone : "無";
-                    let drEmail = (rData.email && rData.email !== "-") ? rData.email : "無";
-                    
+                    let config = hospitalsConfigData[hName]; let rData = currentRosterData[hName] || {};
                     let hObj = {
-                        name: hName,
-                        status: config.status || "green",
-                        statusText: config.statusText || "可取栓",
-                        lightUpdateTime: config.lightUpdateTime || "",
-                        erPhone: config.erPhone || "-",
-                        docName: drName,
-                        docPhone: drPhone,
-                        docEmail: drEmail,
-                        lineGroup: config.lineGroup || "#",
-                        folderId: config.folderId || "",
-                        loginPwd: config.loginPwd || "admin",
-                        addressBook: {}
+                        name: hName, status: config.status || "green", statusText: config.statusText || "可取栓",
+                        lightUpdateTime: config.lightUpdateTime || "", erPhone: config.erPhone || "-",
+                        docName: (rData.activeName && rData.activeName !== "無排班" && rData.activeName !== "-") ? rData.activeName : "無",
+                        docPhone: (rData.phone && rData.phone !== "未提供" && rData.phone !== "-") ? rData.phone : "無",
+                        docEmail: (rData.email && rData.email !== "-") ? rData.email : "無",
+                        lineGroup: config.lineGroup || "#", folderId: config.folderId || "", loginPwd: config.loginPwd || "admin", addressBook: {}
                     };
-                    
                     for(let i=1; i<=5; i++) { hObj.addressBook[i] = config.doctors[i-1] || { name: "", email: "", phone: "", lineId: "" }; }
-                    hospitals.push(hObj);
-
-                    selLogin.innerHTML += `<option value="${hName}">${hName}</option>`;
-                    selSet.innerHTML += `<option value="${hName}">${hName}</option>`;
+                    hospitals.push(hObj); selLogin.innerHTML += `<option value="${hName}">${hName}</option>`; selSet.innerHTML += `<option value="${hName}">${hName}</option>`;
                 }
-
                 const statusOrder = { "green": 1, "orange": 2, "red": 3 };
                 let sortedHospitals = [...hospitals].sort((a, b) => statusOrder[a.status] - statusOrder[b.status]);
-                
                 sortedHospitals.forEach(h => {
                     let colorCode = h.status === 'green' ? '#28a745' : (h.status === 'orange' ? '#fd7e14' : '#dc3545');
                     let isChecked = (h.status === 'green' || h.status === 'orange') ? 'checked' : '';
-                    
                     container.innerHTML += `<label style="padding: 5px 10px; border: 1px solid ${colorCode}; border-radius: 4px; background: white;"><input type="checkbox" class="target-hosp-cb" value="${h.name}" ${isChecked}> <span style="font-weight:bold;">${h.name}</span> <span style="color:${colorCode}; font-size:0.9em;">(${h.statusText})</span></label>`;
                 });
-                
-                if (currentRosterData['1st Line 優先排班表']) {
-                    document.getElementById('priority_hosp_display').innerText = currentRosterData['1st Line 優先排班表'].activeName;
-                }
-
+                if (currentRosterData['1st Line 優先排班表']) document.getElementById('priority_hosp_display').innerText = currentRosterData['1st Line 優先排班表'].activeName;
                 renderHospitalBoard(); renderQuickUpdateBoard();
-
+                
                 const urlParams = new URLSearchParams(window.location.search);
                 if (urlParams.get('tab') === 'tab3') {
-                    switchTab('tab3');
-                    const urlHosp = urlParams.get('hosp');
+                    switchTab('tab3'); const urlHosp = urlParams.get('hosp');
                     if (urlHosp) {
                         let opts = Array.from(document.getElementById('login_hosp_name').options);
                         if (opts.some(opt => opt.value === urlHosp)) {
@@ -702,24 +621,18 @@
                     }
                 }
             } else { alert("雲端資料讀取失敗: " + resData.error); }
-        })
-        .catch(err => {
-            console.error(err);
-            document.getElementById('hospital_status_board').innerHTML = '<h3 style="color: #dc3545; text-align: center; width: 100%;">❌ 雲端連線失敗，請檢查網路或 GAS 網址。</h3>';
-        });
+        }).catch(err => { console.error(err); document.getElementById('hospital_status_board').innerHTML = '<h3 style="color: #dc3545; text-align: center; width: 100%;">❌ 雲端連線失敗，請檢查網路。</h3>'; });
     }
 
     function switchTab(tabId) {
         document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-        document.getElementById(tabId).classList.add('active');
-        event.target.classList.add('active');
+        document.getElementById(tabId).classList.add('active'); event.target.classList.add('active');
     }
 
     function startLiveClock() {
         setInterval(() => {
-            const now = new Date();
-            const clockEl = document.getElementById('system_live_clock');
+            const now = new Date(); const clockEl = document.getElementById('system_live_clock');
             if(clockEl) clockEl.innerText = `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
         }, 1000);
     }
@@ -729,338 +642,154 @@
         hospitals.forEach(hosp => {
             const topColor = hosp.status === 'green' ? '#28a745' : (hosp.status === 'orange' ? '#fd7e14' : '#dc3545');
             let updateTimeHtml = hosp.lightUpdateTime ? `<span style="font-size: 0.75em; color: #888; margin-left: 8px;">(更新於: ${hosp.lightUpdateTime})</span>` : "";
-            
             board.innerHTML += `
                 <div class="hosp-card" style="border-top-color: ${topColor}">
-                    <div class="hosp-card-icons">
-                        <span class="edit-icon" onclick="openCallModal('${hosp.name}')" title="撥打電話">📞</span>
-                        <span class="edit-icon" onclick="openHospSettingsModal('${hosp.name}')" title="系統設定">⚙️</span>
-                    </div>
+                    <div class="hosp-card-icons"><span class="edit-icon" onclick="openCallModal('${hosp.name}')" title="撥打電話">📞</span><span class="edit-icon" onclick="openHospSettingsModal('${hosp.name}')" title="系統設定">⚙️</span></div>
                     <h3 style="padding-right: 60px;">${hosp.name}</h3>
-                    <div style="margin-bottom: 5px; display: flex; align-items: center; flex-wrap: wrap;">
-                        <span class="status-indicator status-${hosp.status}">${hosp.statusText}</span>
-                        ${updateTimeHtml}
-                    </div>
-                    <div class="hosp-info" style="margin-top: 8px;">
-                        📞 急診: <strong>${hosp.erPhone}</strong><br>
-                        👨‍⚕️ 當前值班: <strong>${hosp.docName}</strong><br>
-                        📱 手機: <strong>${hosp.docPhone}</strong>
-                    </div>
+                    <div style="margin-bottom: 5px; display: flex; align-items: center; flex-wrap: wrap;"><span class="status-indicator status-${hosp.status}">${hosp.statusText}</span>${updateTimeHtml}</div>
+                    <div class="hosp-info" style="margin-top: 8px;">📞 急診: <strong>${hosp.erPhone}</strong><br>👨‍⚕️ 當前值班: <strong>${hosp.docName}</strong><br>📱 手機: <strong>${hosp.docPhone}</strong></div>
                     <a href="${hosp.lineGroup}" target="_blank" class="line-btn">💬 開啟取栓 LINE 群組</a>
                 </div>`;
         });
     }
 
     function openCallModal(hospName) {
-        const hosp = hospitals.find(h => h.name === hospName);
-        if (!hosp) return;
-        
+        const hosp = hospitals.find(h => h.name === hospName); if (!hosp) return;
         document.getElementById('call_hosp_name').innerText = hospName;
-        const btnEr = document.getElementById('btn_call_er');
-        const btnDr = document.getElementById('btn_call_dr');
-        
-        if (hosp.erPhone && hosp.erPhone !== "-" && hosp.erPhone !== "無" && hosp.erPhone.trim() !== "") {
-            btnEr.href = `tel:${hosp.erPhone.replace(/[^0-9+]/g, '')}`;
-            btnEr.innerHTML = `🏥 打給急診 (${hosp.erPhone})`;
-            btnEr.className = "btn-call er";
-        } else {
-            btnEr.href = "javascript:void(0);";
-            btnEr.innerHTML = `🏥 急診專線 (無資訊)`;
-            btnEr.className = "btn-call disabled";
-        }
-        
-        if (hosp.docPhone && hosp.docPhone !== "-" && hosp.docPhone !== "無" && hosp.docPhone.trim() !== "") {
-            btnDr.href = `tel:${hosp.docPhone.replace(/[^0-9+]/g, '')}`;
-            let drNameStr = (hosp.docName !== "-" && hosp.docName !== "無") ? hosp.docName : "值班醫師";
-            btnDr.innerHTML = `👨‍⚕️ 打給 ${drNameStr} (${hosp.docPhone})`;
-            btnDr.className = "btn-call dr";
-        } else {
-            btnDr.href = "javascript:void(0);";
-            btnDr.innerHTML = `👨‍⚕️ 值班醫師手機 (無資訊)`;
-            btnDr.className = "btn-call disabled";
-        }
-        
+        const btnEr = document.getElementById('btn_call_er'); const btnDr = document.getElementById('btn_call_dr');
+        if (hosp.erPhone && hosp.erPhone !== "-" && hosp.erPhone !== "無" && hosp.erPhone.trim() !== "") { btnEr.href = `tel:${hosp.erPhone.replace(/[^0-9+]/g, '')}`; btnEr.innerHTML = `🏥 打給急診 (${hosp.erPhone})`; btnEr.className = "btn-call er"; } else { btnEr.href = "javascript:void(0);"; btnEr.innerHTML = `🏥 急診專線 (無資訊)`; btnEr.className = "btn-call disabled"; }
+        if (hosp.docPhone && hosp.docPhone !== "-" && hosp.docPhone !== "無" && hosp.docPhone.trim() !== "") { btnDr.href = `tel:${hosp.docPhone.replace(/[^0-9+]/g, '')}`; let drNameStr = (hosp.docName !== "-" && hosp.docName !== "無") ? hosp.docName : "值班醫師"; btnDr.innerHTML = `👨‍⚕️ 打給 ${drNameStr} (${hosp.docPhone})`; btnDr.className = "btn-call dr"; } else { btnDr.href = "javascript:void(0);"; btnDr.innerHTML = `👨‍⚕️ 值班醫師手機 (無資訊)`; btnDr.className = "btn-call disabled"; }
         document.getElementById('callModal').style.display = 'flex';
     }
-
     function closeCallModal() { document.getElementById('callModal').style.display = 'none'; }
 
     function loadClinicalFromLocal() {
         const savedStr = localStorage.getItem('stroke_transfer_clinical_data');
         if(savedStr) {
-            try {
-                pendingClinicalData = JSON.parse(savedStr);
-                const card = document.getElementById('form_status_card'); 
-                const title = document.getElementById('form_status_title');
-                card.classList.add('filled'); 
-                title.innerText = `✅ 已讀取病史資料`; title.style.color = "#28a745"; 
-                alert("✅ 成功讀取暫存資料！");
-            } catch (e) { alert("❌ 資料讀取失敗"); }
+            try { pendingClinicalData = JSON.parse(savedStr); const card = document.getElementById('form_status_card'); const title = document.getElementById('form_status_title'); card.classList.add('filled'); title.innerText = `✅ 已讀取病史資料`; title.style.color = "#28a745"; alert("✅ 成功讀取暫存資料！"); } catch (e) { alert("❌ 資料讀取失敗"); }
         } else { alert("⚠️ 目前沒有暫存的臨床資料，請先開啟表單填寫。"); }
     }
     
     function openNewClinicalForm() {
         const savedStr = localStorage.getItem('stroke_transfer_clinical_data');
-        
         if (savedStr) {
             try {
                 let existingData = JSON.parse(savedStr);
-                if (existingData.caseId) {
-                    localStorage.removeItem('stroke_transfer_clinical_data'); 
-                    pendingClinicalData = {};
-                    resetFormStatusCard();
-                } else {
-                    let confirmClear = confirm("💡 系統偵測到您有一筆【尚未送出】的新個案草稿。\n\n👉 點擊【確定】：捨棄草稿，開啟全新空白表單\n👉 點擊【取消】：保留草稿，繼續編輯該病人資料");
-                    if (confirmClear) {
-                        localStorage.removeItem('stroke_transfer_clinical_data');
-                        pendingClinicalData = {};
-                        resetFormStatusCard();
-                    }
+                if (existingData.caseId) { localStorage.removeItem('stroke_transfer_clinical_data'); pendingClinicalData = {}; resetFormStatusCard(); } 
+                else {
+                    if (confirm("💡 系統偵測到您有一筆【尚未送出】的新個案草稿。\n\n👉 點擊【確定】：捨棄草稿，開啟全新空白表單\n👉 點擊【取消】：保留草稿，繼續編輯該病人資料")) { localStorage.removeItem('stroke_transfer_clinical_data'); pendingClinicalData = {}; resetFormStatusCard(); }
                 }
-            } catch (e) {
-                localStorage.removeItem('stroke_transfer_clinical_data');
-            }
+            } catch (e) { localStorage.removeItem('stroke_transfer_clinical_data'); }
         }
-        
         window.open('clinical.html', '_blank');
     }
 
     function resetFormStatusCard() {
-        const card = document.getElementById('form_status_card'); 
-        const title = document.getElementById('form_status_title');
-        card.classList.remove('filled'); 
-        title.innerText = "尚未讀取臨床資訊"; 
-        title.style.color = "#6c757d";
+        const card = document.getElementById('form_status_card'); const title = document.getElementById('form_status_title');
+        card.classList.remove('filled'); title.innerText = "尚未讀取臨床資訊"; title.style.color = "#6c757d";
     }
     
     function editExistingClinical() {
         if(!currentTrackCaseId || !cases[currentTrackCaseId]) return alert("請先登入個案！");
-        let currentData = cases[currentTrackCaseId].clinicalData || {};
-        currentData.caseId = currentTrackCaseId; 
-        localStorage.setItem('stroke_transfer_clinical_data', JSON.stringify(currentData));
-        window.open('clinical.html', '_blank');
+        let currentData = cases[currentTrackCaseId].clinicalData || {}; currentData.caseId = currentTrackCaseId; 
+        localStorage.setItem('stroke_transfer_clinical_data', JSON.stringify(currentData)); window.open('clinical.html', '_blank');
     }
 
     function updateClinicalToExistCase() {
         if(!currentTrackCaseId || !cases[currentTrackCaseId]) return alert("請先登入個案追蹤");
         const savedStr = localStorage.getItem('stroke_transfer_clinical_data');
-        if(savedStr) {
-            try {
-                cases[currentTrackCaseId].clinicalData = JSON.parse(savedStr);
-                alert("✅ 此個案的臨床病史資料已同步更新！");
-            } catch (e) { alert("❌ 同步失敗"); }
-        } else { alert("⚠️ 請先開啟表單修改並儲存後，再點擊同步。"); }
+        if(savedStr) { try { cases[currentTrackCaseId].clinicalData = JSON.parse(savedStr); alert("✅ 此個案的臨床病史資料已同步更新！"); } catch (e) { alert("❌ 同步失敗"); } } 
+        else { alert("⚠️ 請先開啟表單修改並儲存後，再點擊同步。"); }
     }
 
     function openHospSysSettingsModal() {
-        if (!loggedInHosp) return;
-        const hosp = hospitals.find(h => h.name === loggedInHosp);
-        document.getElementById('sys_set_er_phone').value = hosp.erPhone !== "無" ? hosp.erPhone : ""; 
-        document.getElementById('sys_set_line').value = hosp.lineGroup !== "#" ? hosp.lineGroup : "";
-        document.getElementById('sys_set_folder').value = hosp.folderId || ""; 
-        document.getElementById('sys_set_today_dr').value = ""; 
-        document.getElementById('sys_set_pwd').value = ""; 
-        document.getElementById('addr_dr_selector').value = "1";
-        loadAddressBookDr();
-        document.getElementById('hospSysSettingsModal').style.display = 'flex';
+        if (!loggedInHosp) return; const hosp = hospitals.find(h => h.name === loggedInHosp);
+        document.getElementById('sys_set_er_phone').value = hosp.erPhone !== "無" ? hosp.erPhone : ""; document.getElementById('sys_set_line').value = hosp.lineGroup !== "#" ? hosp.lineGroup : ""; document.getElementById('sys_set_folder').value = hosp.folderId || ""; document.getElementById('sys_set_today_dr').value = ""; document.getElementById('sys_set_pwd').value = ""; document.getElementById('addr_dr_selector').value = "1";
+        loadAddressBookDr(); document.getElementById('hospSysSettingsModal').style.display = 'flex';
     }
     function closeHospSysSettingsModal() { document.getElementById('hospSysSettingsModal').style.display = 'none'; }
     
     function saveAddressBookDr() {
-        const hosp = hospitals.find(h => h.name === loggedInHosp);
-        const idx = document.getElementById('addr_dr_selector').value;
-        
-        hosp.addressBook[idx] = { 
-            name: document.getElementById('addr_dr_name').value, 
-            email: document.getElementById('addr_dr_email').value, 
-            phone: document.getElementById('addr_dr_phone').value,
-            lineId: document.getElementById('addr_dr_lineid').value 
-        };
-        
-        fetch(GAS_URL, {
-            method: 'POST',
-            body: JSON.stringify({ 
-                action: "updateAddressBook", 
-                payload: { 
-                    hospName: loggedInHosp, 
-                    drIndex: idx, 
-                    name: hosp.addressBook[idx].name, 
-                    email: hosp.addressBook[idx].email, 
-                    phone: hosp.addressBook[idx].phone,
-                    lineId: hosp.addressBook[idx].lineId
-                } 
-            })
-        }).catch(e => console.log("GAS 錯誤", e));
-
+        const hosp = hospitals.find(h => h.name === loggedInHosp); const idx = document.getElementById('addr_dr_selector').value;
+        hosp.addressBook[idx] = { name: document.getElementById('addr_dr_name').value, email: document.getElementById('addr_dr_email').value, phone: document.getElementById('addr_dr_phone').value, lineId: document.getElementById('addr_dr_lineid').value };
+        fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "updateAddressBook", payload: { hospName: loggedInHosp, drIndex: idx, name: hosp.addressBook[idx].name, email: hosp.addressBook[idx].email, phone: hosp.addressBook[idx].phone, lineId: hosp.addressBook[idx].lineId } }) }).catch(e => console.log("GAS 錯誤", e));
         alert(`✅ Dr ${idx} 通訊錄已更新，系統將於背景同步雲端。`);
     }
 
     function loadAddressBookDr() {
-        const hosp = hospitals.find(h => h.name === loggedInHosp);
-        const idx = document.getElementById('addr_dr_selector').value;
-        
+        const hosp = hospitals.find(h => h.name === loggedInHosp); const idx = document.getElementById('addr_dr_selector').value;
         const drInfo = hosp.addressBook[idx] || { name: '', email: '', phone: '', lineId: '' };
-        
-        document.getElementById('addr_dr_name').value = drInfo.name || '';
-        document.getElementById('addr_dr_email').value = drInfo.email || '';
-        document.getElementById('addr_dr_phone').value = drInfo.phone || '';
-        document.getElementById('addr_dr_lineid').value = drInfo.lineId || ''; 
+        document.getElementById('addr_dr_name').value = drInfo.name || ''; document.getElementById('addr_dr_email').value = drInfo.email || ''; document.getElementById('addr_dr_phone').value = drInfo.phone || ''; document.getElementById('addr_dr_lineid').value = drInfo.lineId || ''; 
     }
 
     function saveHospSysSettings() {
         const hosp = hospitals.find(h => h.name === loggedInHosp);
-        hosp.erPhone = document.getElementById('sys_set_er_phone').value; 
-        hosp.lineGroup = document.getElementById('sys_set_line').value;
-        hosp.folderId = document.getElementById('sys_set_folder').value; 
-        
-        let forceDr = document.getElementById('sys_set_today_dr').value;
-        const newPwd = document.getElementById('sys_set_pwd').value; 
+        hosp.erPhone = document.getElementById('sys_set_er_phone').value; hosp.lineGroup = document.getElementById('sys_set_line').value; hosp.folderId = document.getElementById('sys_set_folder').value; 
+        let forceDr = document.getElementById('sys_set_today_dr').value; const newPwd = document.getElementById('sys_set_pwd').value; 
         if (newPwd.trim() !== "") { alert("密碼將於雲端更新！"); }
-
-        fetch(GAS_URL, {
-            method: 'POST',
-            body: JSON.stringify({
-                action: "updateSysSettings",
-                payload: { hospName: loggedInHosp, erPhone: hosp.erPhone, lineGroup: hosp.lineGroup, folderId: hosp.folderId, pwd: newPwd, overrideDr: forceDr }
-            })
-        })
-        .then(() => fetchDataFromGAS()) 
-        .catch(e => console.log("GAS 錯誤", e));
-
-        alert("✅ 基本設定已送出！系統正在為您同步..."); 
-        closeHospSysSettingsModal(); 
+        fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "updateSysSettings", payload: { hospName: loggedInHosp, erPhone: hosp.erPhone, lineGroup: hosp.lineGroup, folderId: hosp.folderId, pwd: newPwd, overrideDr: forceDr } }) }).then(() => fetchDataFromGAS()).catch(e => console.log("GAS 錯誤", e));
+        alert("✅ 基本設定已送出！系統正在為您同步..."); closeHospSysSettingsModal(); 
     }
 
     function downloadRosterTemplate() {
-        let csvContent = "\uFEFFDate,8-12,12-17,夜間\n";
-        let now = new Date();
-        for(let i = 1; i <= 3; i++) {
-            let dStr = `${now.getFullYear()}/${now.getMonth() + 1}/${i}`;
-            csvContent += `${dStr},,,\n`;
-        }
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        let defaultMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
-        link.setAttribute("download", `醫院名稱_${defaultMonth}.csv`);
+        let csvContent = "\uFEFFDate,8-12,12-17,夜間\n"; let now = new Date();
+        for(let i = 1; i <= 3; i++) { let dStr = `${now.getFullYear()}/${now.getMonth() + 1}/${i}`; csvContent += `${dStr},,,\n`; }
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }); const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url;
+        let defaultMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`; link.setAttribute("download", `醫院名稱_${defaultMonth}.csv`);
         document.body.appendChild(link); link.click(); document.body.removeChild(link);
     }
 
     function uploadRosterCsv() {
         const fileInput = document.getElementById('roster_file_input');
         if (!fileInput.files || fileInput.files.length === 0) return alert("請先點擊「選擇檔案」挑選一個 CSV 班表！");
-        
-        const file = fileInput.files[0];
-        const fileName = file.name; 
-        const reader = new FileReader();
-        
+        const file = fileInput.files[0]; const fileName = file.name; const reader = new FileReader();
         reader.onload = function(e) {
-            const base64Data = e.target.result; 
-            const btn = event.target;
-            const originalText = btn.innerText;
-            btn.innerText = "⏳ 正在分析與上傳，請稍候...";
-            btn.disabled = true;
-            
-            fetch(GAS_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action: "uploadRoster", payload: { filename: fileName, csvContent: base64Data } })
-            }).then(res => res.json()).then(data => {
+            const base64Data = e.target.result; const btn = event.target; const originalText = btn.innerText; btn.innerText = "⏳ 正在分析與上傳，請稍候..."; btn.disabled = true;
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "uploadRoster", payload: { filename: fileName, csvContent: base64Data } }) }).then(res => res.json()).then(data => {
                 btn.innerText = originalText; btn.disabled = false;
-                if (data.status === "success") { alert(data.data.message); fetchDataFromGAS(); closeHospRosterModal(); } 
-                else { alert("上傳失敗: " + data.error); }
+                if (data.status === "success") { alert(data.data.message); fetchDataFromGAS(); closeHospRosterModal(); } else { alert("上傳失敗: " + data.error); }
             }).catch(err => { alert("上傳發生錯誤，請檢查網路連線。"); btn.innerText = originalText; btn.disabled = false; console.log(err); });
         };
         reader.readAsDataURL(file);
     }
 
-    function openHospRosterModal() { 
-        document.getElementById('roster_query_hosp_sel').value = "";
-        document.getElementById('query_roster_result').style.display = "none";
-        document.getElementById('hospRosterModal').style.display = 'flex'; 
-    }
+    function openHospRosterModal() { document.getElementById('roster_query_hosp_sel').value = ""; document.getElementById('query_roster_result').style.display = "none"; document.getElementById('hospRosterModal').style.display = 'flex'; }
     function closeHospRosterModal() { document.getElementById('hospRosterModal').style.display = 'none'; }
 
     function queryTodayRoster() {
-        const hospName = document.getElementById('roster_query_hosp_sel').value;
-        const resDiv = document.getElementById('query_roster_result');
-        const tbody = document.getElementById('query_roster_tbody');
-        
+        const hospName = document.getElementById('roster_query_hosp_sel').value; const resDiv = document.getElementById('query_roster_result'); const tbody = document.getElementById('query_roster_tbody');
         if (!hospName) { resDiv.style.display = 'none'; return; }
-        
         resDiv.style.display = 'block';
         if (currentRosterData[hospName]) {
-            const r = currentRosterData[hospName];
-            tbody.innerHTML = `<tr><td style="color:#ecf0f1; font-weight:normal;">${hospName}</td><td style="color:#f1c40f;">${r.m}</td><td style="color:#f1c40f;">${r.a}</td><td style="color:#f1c40f;">${r.n}</td></tr>`;
+            const r = currentRosterData[hospName]; tbody.innerHTML = `<tr><td style="color:#ecf0f1; font-weight:normal;">${hospName}</td><td style="color:#f1c40f;">${r.m}</td><td style="color:#f1c40f;">${r.a}</td><td style="color:#f1c40f;">${r.n}</td></tr>`;
         } else { tbody.innerHTML = `<tr><td colspan="4" style="color:#aaa; text-align:center;">無排班資料</td></tr>`; }
     }
 
-    // 🌟 月報表下載彈出視窗處理 (動態偵測現有月份)
     function openReportModal() {
         if (!loggedInHosp) return alert("請先登入醫院！");
         document.getElementById('report_hosp_display').innerText = loggedInHosp;
-
-        const sel = document.getElementById('report_month_select');
-        const btn = document.getElementById('btn_download_report');
-        
-        // 開啟視窗時先顯示載入中，並鎖定下載按鈕
-        sel.innerHTML = "<option>⏳ 正在掃描資料庫月份...</option>";
-        sel.disabled = true;
-        btn.disabled = true;
+        const sel = document.getElementById('report_month_select'); const btn = document.getElementById('btn_download_report');
+        sel.innerHTML = "<option>⏳ 正在掃描資料庫月份...</option>"; sel.disabled = true; btn.disabled = true;
         document.getElementById('reportModal').style.display = 'flex';
-
-        // 呼叫 GAS 取得實際有資料的月份
-        fetch(GAS_URL, {
-            method: 'POST',
-            body: JSON.stringify({ action: "getAvailableMonths" })
-        }).then(res => res.json()).then(data => {
+        fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "getAvailableMonths" }) }).then(res => res.json()).then(data => {
             sel.innerHTML = "";
             if (data.status === "success" && data.data && data.data.length > 0) {
-                // 將掃描到的月份填入下拉選單
-                data.data.forEach(m => {
-                    sel.innerHTML += `<option value="${m.value}">${m.text}</option>`;
-                });
-                sel.disabled = false;
-                btn.disabled = false;
-            } else {
-                sel.innerHTML = "<option value=''>目前系統尚無歷史個案</option>";
-            }
-        }).catch(e => {
-            sel.innerHTML = "<option value=''>讀取失敗，請檢查網路</option>";
-            console.log("讀取月份失敗:", e);
-        });
+                data.data.forEach(m => { sel.innerHTML += `<option value="${m.value}">${m.text}</option>`; });
+                sel.disabled = false; btn.disabled = false;
+            } else { sel.innerHTML = "<option value=''>目前系統尚無歷史個案</option>"; }
+        }).catch(e => { sel.innerHTML = "<option value=''>讀取失敗，請檢查網路</option>"; console.log("讀取月份失敗:", e); });
     }
-
     function closeReportModal() { document.getElementById('reportModal').style.display = 'none'; }
 
     function executeDownloadReport() {
-        let month = document.getElementById('report_month_select').value;
-        let btn = document.getElementById('btn_download_report');
-        let origText = btn.innerText;
-        btn.innerText = "⏳ 報表產生中...";
-        btn.disabled = true;
-
-        fetch(GAS_URL, {
-            method: 'POST',
-            body: JSON.stringify({
-                action: "downloadMonthlyReport",
-                payload: { month: month, hospName: loggedInHosp }
-            })
-        }).then(res => res.json()).then(data => {
+        let month = document.getElementById('report_month_select').value; let btn = document.getElementById('btn_download_report'); let origText = btn.innerText; btn.innerText = "⏳ 報表產生中..."; btn.disabled = true;
+        fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "downloadMonthlyReport", payload: { month: month, hospName: loggedInHosp } }) }).then(res => res.json()).then(data => {
             btn.innerText = origText; btn.disabled = false;
             if (data.status === "success") {
-                if (!data.data.csvContent) {
-                    alert("⚠️ " + data.data.message);
-                } else {
-                    const blob = new Blob([data.data.csvContent], { type: 'text/csv;charset=utf-8;' });
-                    const url = URL.createObjectURL(blob);
-                    const link = document.createElement("a");
-                    link.href = url;
-                    link.setAttribute("download", `${loggedInHosp}_${month}_品管月報表.csv`);
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    closeReportModal();
+                if (!data.data.csvContent) { alert("⚠️ " + data.data.message); } 
+                else {
+                    const blob = new Blob([data.data.csvContent], { type: 'text/csv;charset=utf-8;' }); const url = URL.createObjectURL(blob); const link = document.createElement("a");
+                    link.href = url; link.setAttribute("download", `${loggedInHosp}_${month}_品管月報表.csv`); document.body.appendChild(link); link.click(); document.body.removeChild(link); closeReportModal();
                 }
             } else { alert("下載失敗: " + data.error); }
         }).catch(e => { alert("網路連線錯誤"); btn.innerText = origText; btn.disabled = false; console.log(e); });
@@ -1068,104 +797,48 @@
 
     function openHospSettingsModal(hospName) {
         document.getElementById('set_hosp_name').value = hospName; document.getElementById('set_hosp_pwd').value = ""; 
-        const hosp = hospitals.find(h => h.name === hospName); 
-        editingHospStatus = hosp.status;
-        
-        document.getElementById('set_hosp_status_text').value = hosp.statusText;
-        
-        document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
-        document.querySelector(`.toggle-btn[data-val="${editingHospStatus}"]`).classList.add('active');
+        const hosp = hospitals.find(h => h.name === hospName); editingHospStatus = hosp.status; document.getElementById('set_hosp_status_text').value = hosp.statusText;
+        document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active')); document.querySelector(`.toggle-btn[data-val="${editingHospStatus}"]`).classList.add('active');
         document.getElementById('hospSettingsModal').style.display = 'flex';
     }
     function closeHospSettingsModal() { document.getElementById('hospSettingsModal').style.display = 'none'; }
     
     function saveHospSettings() {
-        const hospName = document.getElementById('set_hosp_name').value; 
-        const hosp = hospitals.find(h => h.name === hospName);
-        
-        const inputPwd = document.getElementById('set_hosp_pwd').value;
-        if (inputPwd !== hosp.loginPwd) {
-            return alert("❌ 密碼錯誤！您沒有權限修改此醫院的燈號狀態。");
-        }
-
-        hosp.status = editingHospStatus;
-        let customText = document.getElementById('set_hosp_status_text').value;
-        if (!customText || customText.trim() === "") {
-            customText = (editingHospStatus === 'green' ? "可取栓" : (editingHospStatus === 'orange' ? "滿床" : "無人力"));
-        }
+        const hospName = document.getElementById('set_hosp_name').value; const hosp = hospitals.find(h => h.name === hospName); const inputPwd = document.getElementById('set_hosp_pwd').value;
+        if (inputPwd !== hosp.loginPwd) { return alert("❌ 密碼錯誤！您沒有權限修改此醫院的燈號狀態。"); }
+        hosp.status = editingHospStatus; let customText = document.getElementById('set_hosp_status_text').value;
+        if (!customText || customText.trim() === "") { customText = (editingHospStatus === 'green' ? "可取栓" : (editingHospStatus === 'orange' ? "滿床" : "無人力")); }
         hosp.statusText = customText;
-        
-        fetch(GAS_URL, {
-            method: 'POST',
-            body: JSON.stringify({
-                action: "updateSysSettings",
-                payload: { hospName: hospName, statusLight: hosp.status, statusWord: hosp.statusText }
-            })
-        }).then(() => fetchDataFromGAS()); 
-        
+        fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "updateSysSettings", payload: { hospName: hospName, statusLight: hosp.status, statusWord: hosp.statusText } }) }).then(() => fetchDataFromGAS()); 
         alert(`✅ ${hospName} 燈號已更新！`); closeHospSettingsModal(); 
     }
 
     function submitCase() {
-        const phone = document.getElementById('req_doc_phone').value;
-        const email = document.getElementById('req_doc_email').value;
-        const hospOut = document.getElementById('req_hosp_out').value;
+        const phone = document.getElementById('req_doc_phone').value; const email = document.getElementById('req_doc_email').value; const hospOut = document.getElementById('req_hosp_out').value;
         let targets = []; document.querySelectorAll('.target-hosp-cb:checked').forEach(cb => targets.push(cb.value));
-        
-        if (targets.length === 0) return alert("請勾選醫院！");
-        if (Object.keys(pendingClinicalData).length === 0) return alert("請先開啟臨床表單填寫並讀取暫存！");
+        if (targets.length === 0) return alert("請勾選醫院！"); if (Object.keys(pendingClinicalData).length === 0) return alert("請先開啟臨床表單填寫並讀取暫存！");
 
         const caseId = `${new Date().toISOString().slice(0,10).replace(/-/g,"")}-${String(Math.floor(Math.random()*999)+1).padStart(3,'0')}`;
-        const reqTime = formatDateTime();
+        let now = new Date(); 
+        const reqTime = `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
 
-        let hospStatusObj = {}; let hospReplyObj = {}; 
-        targets.forEach(hName => { hospStatusObj[hName] = "尚未讀取個案"; hospReplyObj[hName] = null; });
+        let hospStatusObj = {}; let hospReplyObj = {}; targets.forEach(hName => { hospStatusObj[hName] = "尚未讀取個案"; hospReplyObj[hName] = null; });
+        let payloadClinicalData = JSON.parse(JSON.stringify(pendingClinicalData)); delete payloadClinicalData.images; 
 
-        let payloadClinicalData = JSON.parse(JSON.stringify(pendingClinicalData));
-        delete payloadClinicalData.images; 
-
-        const payloadData = {
-            action: "createCase",
-            payload: { caseId: caseId, requestTime: reqTime, reqHospOut: hospOut, reqPhone: phone, reqEmail: email, targetHospitals: targets, clinicalData: payloadClinicalData }
-        };
-
-        document.getElementById('submit_result_area').style.display = 'block';
-        document.getElementById('submit_result_area').innerHTML = `⏳ <strong style="color:#0056b3;">正在秒速建檔並發送通知信，請稍候...</strong>`;
+        document.getElementById('submit_result_area').style.display = 'block'; document.getElementById('submit_result_area').innerHTML = `⏳ <strong style="color:#0056b3;">正在秒速建檔並發送通知信，請稍候...</strong>`;
         
-        fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payloadData) })
-        .then(res => res.json())
-        .then(data => {
+        fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "createCase", payload: { caseId: caseId, requestTime: reqTime, reqHospOut: hospOut, reqPhone: phone, reqEmail: email, targetHospitals: targets, clinicalData: payloadClinicalData } }) })
+        .then(res => res.json()).then(data => {
             if(data.status === "success") {
                 cases[caseId].clinicalData.folderUrl = data.data.folderUrl; 
-                document.getElementById('submit_result_area').innerHTML = `
-                    <div style="text-align: center;">
-                        <h3 style="color: #28a745; margin-bottom: 5px;">✅ 資訊與通知已秒速發送！</h3>
-                        <p style="font-size: 1.1em; color: #0056b3; font-weight: bold; margin-bottom: 15px;">個案代碼：${caseId}</p>
-                        <p style="color: #dc3545; font-weight: bold; font-size: 1.1em; margin-bottom: 10px;">⚠️ 最後一步：請點擊下方按鈕上傳臨床影像 ⚠️</p>
-                        <a href="${data.data.folderUrl}" target="_blank" style="display: inline-block; background-color: #0056b3; color: white; padding: 15px 30px; border-radius: 8px; font-size: 1.2em; font-weight: bold; text-decoration: none; box-shadow: 0 4px 6px rgba(0,0,0,0.2); animation: pulse 1.5s infinite;">
-                            📂 點此開啟專屬資料夾，並將影像拖曳進入
-                        </a>
-                        <p style="font-size: 0.85em; color: #666; margin-top: 10px;">(上傳完成後，接收端醫院即可在信件中查看)</p>
-                    </div>
-                `;
+                document.getElementById('submit_result_area').innerHTML = `<div style="text-align: center;"><h3 style="color: #28a745; margin-bottom: 5px;">✅ 資訊與通知已秒速發送！</h3><p style="font-size: 1.1em; color: #0056b3; font-weight: bold; margin-bottom: 15px;">個案代碼：${caseId}</p><p style="color: #dc3545; font-weight: bold; font-size: 1.1em; margin-bottom: 10px;">⚠️ 最後一步：請點擊下方按鈕上傳臨床影像 ⚠️</p><a href="${data.data.folderUrl}" target="_blank" style="display: inline-block; background-color: #0056b3; color: white; padding: 15px 30px; border-radius: 8px; font-size: 1.2em; font-weight: bold; text-decoration: none; box-shadow: 0 4px 6px rgba(0,0,0,0.2); animation: pulse 1.5s infinite;">📂 點此開啟專屬資料夾，並將影像拖曳進入</a><p style="font-size: 0.85em; color: #666; margin-top: 10px;">(上傳完成後，接收端醫院即可在信件中查看)</p></div>`;
                 setTimeout(fetchRecentCasesFromGAS, 3000);
             } else { document.getElementById('submit_result_area').innerHTML = `❌ <strong>上傳發生錯誤：</strong> ${data.error}`; }
-        })
-        .catch(e => { document.getElementById('submit_result_area').innerHTML = `❌ <strong>網路連線錯誤，請檢查 GAS 網址是否正確。</strong>`; });
+        }).catch(e => { document.getElementById('submit_result_area').innerHTML = `❌ <strong>網路連線錯誤，請檢查 GAS 網址是否正確。</strong>`; });
 
-        cases[caseId] = { 
-            reqHospOut: hospOut, phone: phone, targets: targets, hospStatus: hospStatusObj, hospReplyTime: hospReplyObj, hospPendingReason: {},
-            finalDest: null, location: null, departTime: null, arriveTime: null, timestamp: Date.now(),
-            clinicalData: payloadClinicalData, requestTime: reqTime, cancelTime: null, reRequestTime: null, lockTime: null 
-        };
-
-        pendingClinicalData = {}; 
-        localStorage.removeItem('stroke_transfer_clinical_data'); 
-        
-        document.getElementById('track_case_id').value = caseId; 
-        const card = document.getElementById('form_status_card'); const title = document.getElementById('form_status_title');
-        card.classList.remove('filled'); title.innerText = "尚未讀取臨床資訊與影像"; title.style.color = "#6c757d";
-        renderQuickUpdateBoard(); 
+        cases[caseId] = { reqHospOut: hospOut, phone: phone, targets: targets, hospStatus: hospStatusObj, hospReplyTime: hospReplyObj, hospPendingReason: {}, finalDest: null, location: null, departTime: null, arriveTime: null, timestamp: Date.now(), clinicalData: payloadClinicalData, requestTime: reqTime, cancelTime: null, reRequestTime: null, lockTime: null };
+        pendingClinicalData = {}; localStorage.removeItem('stroke_transfer_clinical_data'); 
+        document.getElementById('track_case_id').value = caseId; const card = document.getElementById('form_status_card'); const title = document.getElementById('form_status_title'); card.classList.remove('filled'); title.innerText = "尚未讀取臨床資訊與影像"; title.style.color = "#6c757d"; renderQuickUpdateBoard(); 
     }
 
     function renderQuickUpdateBoard() {
@@ -1177,13 +850,7 @@
                 let destStatus = c.finalDest ? `<span style="color:#28a745; font-weight:bold;">已鎖定：${c.finalDest} (${c.lockTime})</span>` : `<span style="color:#fd7e14;">媒合中...</span>`;
                 let btnDepart = c.departTime ? `<button class="btn-recorded" onclick="undoTime('${caseId}', 'depart')">已出發 ${c.departTime} ↺</button>` : `<button class="btn-warning" onclick="markTime('${caseId}', 'depart')">🚑 記錄出發</button>`;
                 let btnArrive = c.arriveTime ? `<button class="btn-recorded" onclick="undoTime('${caseId}', 'arrive')">已抵達 ${c.arriveTime} ↺</button>` : `<button class="btn-danger" onclick="markTime('${caseId}', 'arrive')">🏥 記錄抵達</button>`;
-                board.innerHTML += `
-                    <div class="quick-case-card">
-                        <div class="cid">📄 ${caseId} <div style="font-size: 0.75em; color: #666; font-weight: normal; margin-top: 2px;">${getCaseTimeStr(c)}</div></div>
-                        <div class="info">狀態: ${destStatus}</div>
-                        <div class="action-grid">${btnDepart}${btnArrive}</div>
-                        <button class="btn-success" style="width: 100%; margin-top:5px;" onclick="quickUpdateLocation('${caseId}')">📍 傳送 GPS 位置</button>
-                    </div>`;
+                board.innerHTML += `<div class="quick-case-card"><div class="cid">📄 ${caseId} <div style="font-size: 0.75em; color: #666; font-weight: normal; margin-top: 2px;">${getCaseTimeStr(c)}</div></div><div class="info">狀態: ${destStatus}</div><div class="action-grid">${btnDepart}${btnArrive}</div><button class="btn-success" style="width: 100%; margin-top:5px;" onclick="quickUpdateLocation('${caseId}')">📍 傳送 GPS 位置</button></div>`;
             }
         }
         if (!hasActiveCases) board.innerHTML = `<span style="color: #888; padding: 10px;">目前近4小時無進行中個案。</span>`;
@@ -1203,9 +870,7 @@
         if (!navigator.geolocation) return alert("不支援定位！");
         navigator.geolocation.getCurrentPosition(
             (pos) => { 
-                let t = formatDateTime();
-                let locStr = `Lat:${pos.coords.latitude}, Lng:${pos.coords.longitude}`;
-                cases[caseId].location = { lat: pos.coords.latitude, lng: pos.coords.longitude, time: t }; 
+                let t = formatDateTime(); let locStr = `Lat:${pos.coords.latitude}, Lng:${pos.coords.longitude}`; cases[caseId].location = { lat: pos.coords.latitude, lng: pos.coords.longitude, time: t }; 
                 fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "updateCaseTracking", payload: { caseId: caseId, actionType: "gps", value1: locStr, value2: t } }) });
                 alert("✅ GPS 已更新"); renderQuickUpdateBoard(); if(currentTrackCaseId === caseId) renderTrackerDashboard(); if(loggedInHosp) renderHospitalCases(); 
             },
@@ -1215,8 +880,7 @@
 
     function loginTracker() {
         const id = document.getElementById('track_case_id').value; const pwd = document.getElementById('track_phone').value;
-        if (cases[id] && cases[id].phone === pwd) { currentTrackCaseId = id; document.getElementById('track_dashboard').style.display = 'block'; renderTrackerDashboard(); } 
-        else { alert("代碼或密碼錯誤！"); }
+        if (cases[id] && cases[id].phone === pwd) { currentTrackCaseId = id; document.getElementById('track_dashboard').style.display = 'block'; renderTrackerDashboard(); } else { alert("代碼或密碼錯誤！"); }
     }
 
     function renderTrackerDashboard() {
@@ -1238,109 +902,57 @@
                 </div>`;
         }
         c.targets.forEach(hospName => {
-            const status = c.hospStatus[hospName]; 
-            let statusClass = "eval";
-            if(status.includes("可轉院")) statusClass = "ok";
-            else if(status.includes("不建議")) statusClass = "no";
-            else if(status.includes("待確認")) statusClass = "pending";
-
+            const status = c.hospStatus[hospName]; let statusClass = "eval";
+            if(status.includes("可轉院")) statusClass = "ok"; else if(status.includes("不建議")) statusClass = "no"; else if(status.includes("待確認")) statusClass = "pending";
             let replyTimeStr = c.hospReplyTime[hospName] ? ` <span style="font-size:0.85em; color:#666;">(${c.hospReplyTime[hospName]})</span>` : "";
             let itemClass = "track-item"; let actionHtml = "";
-            
-            if (c.finalDest) { itemClass += (c.finalDest === hospName) ? " selected" : " disabled"; } 
-            else if (statusClass === "ok") { actionHtml = `<button class="btn-success" onclick="selectFinalDest('${hospName}')">✅ 選擇此院</button>`; }
-            
+            if (c.finalDest) { itemClass += (c.finalDest === hospName) ? " selected" : " disabled"; } else if (statusClass === "ok") { actionHtml = `<button class="btn-success" onclick="selectFinalDest('${hospName}')">✅ 選擇此院</button>`; }
             let pendingReason = (statusClass === 'pending' && c.hospPendingReason[hospName]) ? ` (${c.hospPendingReason[hospName]})` : "";
             let statusTextHtml = `<span class="track-status ${statusClass}">${status}${pendingReason}</span>`;
-            
             container.innerHTML += `<div class="${itemClass}"><div><span style="font-weight:bold; font-size:1.1em; color:#004085; display:inline-block; min-width:90px;">${hospName}</span>${statusTextHtml}${replyTimeStr}</div><div>${actionHtml}</div></div>`;
         });
     }
 
     function selectFinalDest(hospName) { 
         if(confirm(`確定轉至 ${hospName}？`)) { 
-            let t = formatDateTime();
-            cases[currentTrackCaseId].finalDest = hospName; 
-            cases[currentTrackCaseId].lockTime = t; 
-            
+            let t = formatDateTime(); cases[currentTrackCaseId].finalDest = hospName; cases[currentTrackCaseId].lockTime = t; 
             fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "updateCaseTracking", payload: { caseId: currentTrackCaseId, actionType: "lock", value1: hospName, value2: t } }) })
-            .then(res => res.json())
-            .then(data => {
-                if(data.status === "success") {
-                    renderTrackerDashboard(); if(loggedInHosp) renderHospitalCases(); 
-                }
-            })
-            .catch(e => console.log("鎖定醫院失敗", e));
+            .then(res => res.json()).then(data => { if(data.status === "success") { renderTrackerDashboard(); if(loggedInHosp) renderHospitalCases(); } }).catch(e => console.log("鎖定失敗", e));
         } 
     }
 
-    let chatPollInterval;
-    let currentChatContext = { caseId: "", attempt: 1, senderType: "", senderName: "" };
+    let chatPollInterval; let currentChatContext = { caseId: "", attempt: 1, senderType: "", senderName: "" };
 
     function openMessenger(caseId, attempt, senderType, senderName) {
       currentChatContext = { caseId, attempt, senderType, senderName };
       document.getElementById('messengerTitle').innerText = senderType === 'requester' ? `與 取栓醫院 即時溝通` : `與 轉出醫院 即時溝通`;
       document.getElementById('chatHistoryBox').innerHTML = "<div style='text-align:center; color:#fff; margin-top: 50px;'>載入對話紀錄中...</div>";
-      document.getElementById('chatInput').value = "";
-      document.getElementById('messengerModal').style.display = 'flex';
-
-      refreshChat();
-      chatPollInterval = setInterval(refreshChat, 3000);
+      document.getElementById('chatInput').value = ""; document.getElementById('messengerModal').style.display = 'flex';
+      refreshChat(); chatPollInterval = setInterval(refreshChat, 3000);
     }
 
-    function closeMessenger() {
-      document.getElementById('messengerModal').style.display = 'none';
-      if (chatPollInterval) clearInterval(chatPollInterval);
-    }
+    function closeMessenger() { document.getElementById('messengerModal').style.display = 'none'; if (chatPollInterval) clearInterval(chatPollInterval); }
 
     function refreshChat() {
-        fetch(GAS_URL, {
-            method: 'POST',
-            body: JSON.stringify({ action: "getChatHistory", payload: { caseId: currentChatContext.caseId, attempt: currentChatContext.attempt } })
-        })
-        .then(res => res.json())
-        .then(data => {
+        fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "getChatHistory", payload: { caseId: currentChatContext.caseId, attempt: currentChatContext.attempt } }) })
+        .then(res => res.json()).then(data => {
             if(data.status === "success") {
-                let box = document.getElementById('chatHistoryBox');
-                let isScrolledToBottom = box.scrollHeight - box.clientHeight <= box.scrollTop + 10;
-                let rawText = data.data || "";
-                let chatHtml = "";
-                
+                let box = document.getElementById('chatHistoryBox'); let isScrolledToBottom = box.scrollHeight - box.clientHeight <= box.scrollTop + 10;
+                let rawText = data.data || ""; let chatHtml = "";
                 if (!rawText.trim()) {
                     chatHtml = "<div style='text-align:center; color:#fff; background: rgba(0,0,0,0.2); padding: 5px 10px; border-radius: 15px; width: fit-content; margin: 20px auto; font-size: 0.85em;'>目前尚無對話紀錄，請直接在下方輸入訊息開始對話。</div>";
                 } else {
                     let lines = rawText.split('\n');
                     lines.forEach(line => {
-                        if(!line.trim()) return;
-                        let match = line.match(/^([^：]+)：(.*) \(([^)]+)\)$/);
+                        if(!line.trim()) return; let match = line.match(/^([^：]+)：(.*) \(([^)]+)\)$/);
                         if(match) {
-                            let sender = match[1]; let msg = match[2]; let time = match[3];
-                            let isMe = (sender === currentChatContext.senderName);
-                            if(isMe) {
-                                chatHtml += `
-                                <div style="display: flex; justify-content: flex-end; margin-bottom: 12px;">
-                                    <div style="display: flex; flex-direction: column; align-items: flex-end; max-width: 80%;">
-                                        <div style="background-color: #dcf8c6; padding: 8px 12px; border-radius: 15px 15px 0 15px; color: #333; box-shadow: 0 1px 2px rgba(0,0,0,0.1); word-break: break-word; text-align: left;">${msg}</div>
-                                        <div style="font-size: 0.7em; color: rgba(255,255,255,0.8); margin-top: 3px;">${time}</div>
-                                    </div>
-                                </div>`;
-                            } else {
-                                chatHtml += `
-                                <div style="display: flex; justify-content: flex-start; margin-bottom: 12px;">
-                                    <div style="display: flex; flex-direction: column; align-items: flex-start; max-width: 80%;">
-                                        <div style="font-size: 0.75em; color: #333; margin-bottom: 3px; margin-left: 5px; font-weight: bold;">${sender}</div>
-                                        <div style="background-color: #ffffff; padding: 8px 12px; border-radius: 15px 15px 15px 0; color: #333; box-shadow: 0 1px 2px rgba(0,0,0,0.1); word-break: break-word; text-align: left;">${msg}</div>
-                                        <div style="font-size: 0.7em; color: rgba(255,255,255,0.8); margin-top: 3px;">${time}</div>
-                                    </div>
-                                </div>`;
-                            }
-                        } else {
-                            chatHtml += `<div style='text-align:center; color:#fff; background: rgba(0,0,0,0.2); padding: 3px 10px; border-radius: 15px; width: fit-content; margin: 10px auto; font-size: 0.8em;'>${line}</div>`;
-                        }
+                            let sender = match[1]; let msg = match[2]; let time = match[3]; let isMe = (sender === currentChatContext.senderName);
+                            if(isMe) { chatHtml += `<div style="display: flex; justify-content: flex-end; margin-bottom: 12px;"><div style="display: flex; flex-direction: column; align-items: flex-end; max-width: 80%;"><div style="background-color: #dcf8c6; padding: 8px 12px; border-radius: 15px 15px 0 15px; color: #333; box-shadow: 0 1px 2px rgba(0,0,0,0.1); word-break: break-word; text-align: left;">${msg}</div><div style="font-size: 0.7em; color: rgba(255,255,255,0.8); margin-top: 3px;">${time}</div></div></div>`; } 
+                            else { chatHtml += `<div style="display: flex; justify-content: flex-start; margin-bottom: 12px;"><div style="display: flex; flex-direction: column; align-items: flex-start; max-width: 80%;"><div style="font-size: 0.75em; color: #333; margin-bottom: 3px; margin-left: 5px; font-weight: bold;">${sender}</div><div style="background-color: #ffffff; padding: 8px 12px; border-radius: 15px 15px 15px 0; color: #333; box-shadow: 0 1px 2px rgba(0,0,0,0.1); word-break: break-word; text-align: left;">${msg}</div><div style="font-size: 0.7em; color: rgba(255,255,255,0.8); margin-top: 3px;">${time}</div></div></div>`; }
+                        } else { chatHtml += `<div style='text-align:center; color:#fff; background: rgba(0,0,0,0.2); padding: 3px 10px; border-radius: 15px; width: fit-content; margin: 10px auto; font-size: 0.8em;'>${line}</div>`; }
                     });
                 }
-                box.innerHTML = chatHtml;
-                if (isScrolledToBottom) box.scrollTop = box.scrollHeight;
+                box.innerHTML = chatHtml; if (isScrolledToBottom) box.scrollTop = box.scrollHeight;
             }
         }).catch(e => console.log("讀取對話失敗", e));
     }
@@ -1348,155 +960,82 @@
     function handleChatEnter(event) { if (event.key === "Enter") submitChatMessage(); }
 
     function submitChatMessage() {
-      let input = document.getElementById('chatInput');
-      let msg = input.value.trim();
-      if(!msg) return;
-
-      input.disabled = true;
-      fetch(GAS_URL, {
-            method: 'POST',
-            body: JSON.stringify({ action: "sendMessage", payload: {
-                caseId: currentChatContext.caseId, attempt: currentChatContext.attempt,
-                senderType: currentChatContext.senderType, senderName: currentChatContext.senderName, message: msg
-            }})
-        })
-        .then(res => res.json())
-        .then(data => {
-            if(data.status === "success") {
-                input.value = ""; input.disabled = false; input.focus(); refreshChat(); 
-            } else { alert("發送失敗：" + data.error); input.disabled = false; }
-        }).catch(e => { console.log("發送失敗", e); input.disabled = false; });
+      let input = document.getElementById('chatInput'); let msg = input.value.trim(); if(!msg) return; input.disabled = true;
+      fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "sendMessage", payload: { caseId: currentChatContext.caseId, attempt: currentChatContext.attempt, senderType: currentChatContext.senderType, senderName: currentChatContext.senderName, message: msg }}) })
+        .then(res => res.json()).then(data => { if(data.status === "success") { input.value = ""; input.disabled = false; input.focus(); refreshChat(); } else { alert("發送失敗：" + data.error); input.disabled = false; } }).catch(e => { console.log("發送失敗", e); input.disabled = false; });
     }
 
     function cancelFinalDest(caseId, cancelHospName) { 
         if(confirm(`確定要取消轉入 ${cases[caseId].finalDest} 嗎？\n(操作方：${cancelHospName})`)) { 
-            let t = formatDateTime();
-            cases[caseId].finalDest = null; 
-            cases[caseId].location = null; 
-            cases[caseId].departTime = null; 
-            cases[caseId].arriveTime = null; 
-            cases[caseId].lockTime = null; 
-            cases[caseId].cancelTime = t;
-            cases[caseId].cancelHosp = cancelHospName; 
-            
-            if (loggedInHosp === cancelHospName) {
-                cases[caseId].hospStatus[loggedInHosp] = "評估中";
-            }
-
-            fetch(GAS_URL, { 
-                method: 'POST', 
-                body: JSON.stringify({ 
-                    action: "updateCaseTracking", 
-                    payload: { caseId: caseId, actionType: "cancel", value1: t, value3: cancelHospName } 
-                }) 
-            })
-            .then(res => res.json())
-            .then(data => {
-                if(data.data && data.data.message === "已達最高取消次數限制") {
-                    alert("⚠️ 錯誤：此個案已達最高取消次數限制！");
-                }
-                fetchRecentCasesFromGAS();
-            });
+            let t = formatDateTime(); cases[caseId].finalDest = null; cases[caseId].location = null; cases[caseId].departTime = null; cases[caseId].arriveTime = null; cases[caseId].lockTime = null; cases[caseId].cancelTime = t; cases[caseId].cancelHosp = cancelHospName; 
+            if (loggedInHosp === cancelHospName) cases[caseId].hospStatus[loggedInHosp] = "評估中";
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "updateCaseTracking", payload: { caseId: caseId, actionType: "cancel", value1: t, value3: cancelHospName } }) }).then(res => res.json()).then(data => { if(data.data && data.data.message === "已達最高取消次數限制") alert("⚠️ 錯誤：此個案已達最高取消次數限制！"); fetchRecentCasesFromGAS(); });
             renderTrackerDashboard(); renderQuickUpdateBoard(); if(loggedInHosp) renderHospitalCases(); 
         } 
     }
 
-    let currentFeedbackCaseId = null;
-
-    // 🌟 智慧計算 DTP 與 DTR (可自動判斷相差時間)
+    // 🌟 智慧計算 DTP 與 DTR 
     function autoCalcDTPDTR() {
         let arrival = document.getElementById('fb_arrival').value;
         let puncture = document.getElementById('fb_puncture').value;
         let recan = document.getElementById('fb_recanalization').value;
-
-        if (arrival && puncture) {
-            document.getElementById('fb_dtp').value = calculateTimeDiffStr(arrival, puncture);
-        } else {
-            document.getElementById('fb_dtp').value = "";
-        }
-
-        if (arrival && recan) {
-            document.getElementById('fb_dtr').value = calculateTimeDiffStr(arrival, recan);
-        } else {
-            document.getElementById('fb_dtr').value = "";
-        }
+        if (arrival && puncture) document.getElementById('fb_dtp').value = calculateTimeDiffStr(arrival, puncture); else document.getElementById('fb_dtp').value = "";
+        if (arrival && recan) document.getElementById('fb_dtr').value = calculateTimeDiffStr(arrival, recan); else document.getElementById('fb_dtr').value = "";
     }
-    
+
+    let currentFeedbackCaseId = null;
+
     function openFeedbackModal(caseId) {
-        currentFeedbackCaseId = caseId;
-        const c = cases[caseId];
-        document.getElementById('fb_case_display').innerText = caseId;
+        currentFeedbackCaseId = caseId; const c = cases[caseId]; document.getElementById('fb_case_display').innerText = caseId;
         
-        let door = (c.clinicalData && c.clinicalData.door) ? formatClinicalTime(c.clinicalData.door) : "";
-        let doorOut = c.departTime || "";
-        let arrival = c.arriveTime || "";
+        let door = (c.clinicalData && c.clinicalData.door) ? formatClinicalTime(c.clinicalData.door) : ""; let doorOut = c.departTime || ""; let arrival = c.arriveTime || "";
+        document.getElementById('fb_door').value = door; document.getElementById('fb_doorout').value = doorOut; document.getElementById('fb_arrival').value = arrival;
+        document.getElementById('fb_dido').value = calculateTimeDiffStr(door, doorOut); 
         
-        document.getElementById('fb_door').value = door;
-        document.getElementById('fb_doorout').value = doorOut;
-        document.getElementById('fb_arrival').value = arrival;
-        
-        let didoResult = calculateTimeDiffStr(door, doorOut);
-        document.getElementById('fb_dido').value = didoResult; 
-        
-        document.getElementById('fb_puncture').value = "";
-        document.getElementById('fb_recanalization').value = "";
-        document.getElementById('fb_dtp').value = "";
-        document.getElementById('fb_dtr').value = "";
-        document.getElementById('fb_mtici').value = "";
-        document.getElementById('fb_complication').value = "";
-        document.getElementById('fb_mrs').value = "";
-        document.getElementById('fb_disposition').value = "";
+        document.getElementById('fb_puncture').value = ""; document.getElementById('fb_recanalization').value = ""; document.getElementById('fb_dtp').value = ""; document.getElementById('fb_dtr').value = ""; document.getElementById('fb_mtici').value = ""; document.getElementById('fb_complication').value = ""; document.getElementById('fb_mrs').value = ""; document.getElementById('fb_disposition').value = "";
+
+        // 清空之前的圖檔預覽
+        feedbackImages = [];
+        document.getElementById('fb_preview_area').innerHTML = "";
 
         document.getElementById('feedbackModal').style.display = 'flex';
     }
 
-    function closeFeedbackModal() {
-        document.getElementById('feedbackModal').style.display = 'none';
-    }
+    function closeFeedbackModal() { document.getElementById('feedbackModal').style.display = 'none'; }
 
     function submitFeedback() {
         if (!confirm("確定要紀錄結案時間並送出回饋嗎？")) return;
         
         let payload = {
-            caseId: currentFeedbackCaseId,
-            hospName: loggedInHosp,
-            door: document.getElementById('fb_door').value,
-            doorOut: document.getElementById('fb_doorout').value,
-            dido: document.getElementById('fb_dido').value,
-            arrival: document.getElementById('fb_arrival').value,
-            puncture: document.getElementById('fb_puncture').value,
-            recanalization: document.getElementById('fb_recanalization').value,
-            dtp: document.getElementById('fb_dtp').value,
-            dtr: document.getElementById('fb_dtr').value,
-            mTICI: document.getElementById('fb_mtici').value,
-            complication: document.getElementById('fb_complication').value,
-            dischargeMRS: document.getElementById('fb_mrs').value,
-            disposition: document.getElementById('fb_disposition').value,
-            closeTime: formatDateTime()
+            caseId: currentFeedbackCaseId, hospName: loggedInHosp,
+            door: document.getElementById('fb_door').value, doorOut: document.getElementById('fb_doorout').value,
+            dido: document.getElementById('fb_dido').value, arrival: document.getElementById('fb_arrival').value,
+            puncture: document.getElementById('fb_puncture').value, recanalization: document.getElementById('fb_recanalization').value,
+            dtp: document.getElementById('fb_dtp').value, dtr: document.getElementById('fb_dtr').value,
+            mTICI: document.getElementById('fb_mtici').value, complication: document.getElementById('fb_complication').value,
+            dischargeMRS: document.getElementById('fb_mrs').value, disposition: document.getElementById('fb_disposition').value,
+            closeTime: formatDateTime(),
+            images: feedbackImages // 🌟 將圖檔打包進去
         };
 
-        fetch(GAS_URL, {
-            method: 'POST',
-            body: JSON.stringify({ action: "submitCaseFeedback", payload: payload })
-        }).then(res => res.json()).then(data => {
-            if (data.status === "success") {
-                alert("✅ 個案已成功紀錄回饋並結案！");
-                cases[currentFeedbackCaseId].hospStatus[loggedInHosp] = "已結案";
-                closeFeedbackModal();
-                fetchRecentCasesFromGAS();
-            } else {
-                alert("結案發生錯誤：" + data.error);
-            }
-        }).catch(e => { alert("連線錯誤"); console.log(e); });
+        // 鎖定按鈕狀態
+        let btn = document.getElementById('btn_submit_feedback');
+        let origText = btn.innerText;
+        btn.innerText = feedbackImages.length > 0 ? "⏳ 正在上傳圖檔並發送報告，請稍候..." : "⏳ 正在處理結案，請稍候...";
+        btn.disabled = true;
+
+        fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "submitCaseFeedback", payload: payload }) }).then(res => res.json()).then(data => {
+            btn.innerText = origText; btn.disabled = false;
+            if (data.status === "success") { alert("✅ 個案已成功紀錄回饋並結案！"); cases[currentFeedbackCaseId].hospStatus[loggedInHosp] = "已結案"; closeFeedbackModal(); fetchRecentCasesFromGAS(); } 
+            else { alert("結案發生錯誤：" + data.error); }
+        }).catch(e => { alert("連線錯誤"); console.log(e); btn.innerText = origText; btn.disabled = false; });
     }
 
     function loginHospital() {
         const hospName = document.getElementById('login_hosp_name').value; const hosp = hospitals.find(h => h.name === hospName);
         if (!hosp) return alert("醫院資料載入中，請稍後再試。");
-
         if (document.getElementById('login_hosp_pwd').value === (hosp.loginPwd || "admin") || document.getElementById('login_hosp_pwd').value === "admin") {
-            loggedInHosp = hospName; document.getElementById('hosp_login_area').style.display = 'none'; document.getElementById('hosp_dashboard').style.display = 'block';
-            document.getElementById('disp_login_hosp').innerText = loggedInHosp; renderHospitalCases();
+            loggedInHosp = hospName; document.getElementById('hosp_login_area').style.display = 'none'; document.getElementById('hosp_dashboard').style.display = 'block'; document.getElementById('disp_login_hosp').innerText = loggedInHosp; renderHospitalCases();
         } else { alert(`❌ 密碼錯誤！`); }
     }
     function logoutHospital() { loggedInHosp = null; document.getElementById('hosp_login_area').style.display = 'flex'; document.getElementById('hosp_dashboard').style.display = 'none'; }
@@ -1505,27 +1044,16 @@
         const tbody = document.getElementById('hosp_cases_tbody'); tbody.innerHTML = "";
         for (let caseId in cases) {
             const c = cases[caseId];
-            
             if (c.targets.includes(loggedInHosp)) {
-                
-                // 🌟 過濾掉已結案的個案
-                if (c.hospStatus[loggedInHosp] && c.hospStatus[loggedInHosp].includes("已結案")) {
-                    continue; 
-                }
-
+                if (c.hospStatus[loggedInHosp] && c.hospStatus[loggedInHosp].includes("已結案")) continue; 
                 if (c.hospStatus[loggedInHosp] === "尚未讀取個案") c.hospStatus[loggedInHosp] = "評估中";
                 
-                let intentText = "評估中"; 
-                let actionBtns = `<button class="btn-main" style="background:#fd7e14;" onclick="openReplyModal('${caseId}')">🏥 回覆量能</button>`;
+                let intentText = "評估中"; let actionBtns = `<button class="btn-main" style="background:#fd7e14;" onclick="openReplyModal('${caseId}')">🏥 回覆量能</button>`;
                 
                 if (c.finalDest === loggedInHosp) {
-                        if (c.arriveTime) {
-                            intentText = `<span style="color:#17a2b8; font-weight:bold;">🏥 已抵達本院 (${c.arriveTime})</span>`;
-                        } else if (c.departTime) {
-                            intentText = `<span style="color:#fd7e14; font-weight:bold;">🚑 救護車已出發 (${c.departTime})</span>`;
-                        } else {
-                            intentText = `<span style="color:green; font-weight:bold;">✅ 已轉入本院 (${c.lockTime})</span>`;
-                        }
+                        if (c.arriveTime) { intentText = `<span style="color:#17a2b8; font-weight:bold;">🏥 已抵達本院 (${c.arriveTime})</span>`; } 
+                        else if (c.departTime) { intentText = `<span style="color:#fd7e14; font-weight:bold;">🚑 救護車已出發 (${c.departTime})</span>`; } 
+                        else { intentText = `<span style="color:green; font-weight:bold;">✅ 已轉入本院 (${c.lockTime})</span>`; }
 
                         let mapBtn = c.location ? `<button class="btn-main" style="background:#28a745;" onclick="window.open('https://www.google.com/maps/search/?api=1&query=${c.location.lat},${c.location.lng}', '_blank')">🗺️ GPS地圖</button>` : `<span style="font-size:0.85em; color:#888;">(尚未回報GPS)</span>`;
                         let chatBtn = `<button class="btn-main" style="background:#17a2b8;" onclick="openMessenger('${caseId}', 1, 'evt', '${loggedInHosp}')">💬 即時文字溝通</button>`;
@@ -1537,40 +1065,20 @@
                             let cancelBtn = `<button class="btn-main" style="background:#dc3545;" onclick="cancelFinalDest('${caseId}', '${loggedInHosp}')">❌ 取消轉入</button>`;
                             actionBtns = `${mapBtn} ${chatBtn} ${cancelBtn}`;
                         }
-                    } else if (c.finalDest) { 
-                        intentText = `<span style="color:red;">已轉至 ${c.finalDest}</span>`; actionBtns = ``; 
-                    }
+                    } else if (c.finalDest) { intentText = `<span style="color:red;">已轉至 ${c.finalDest}</span>`; actionBtns = ``; }
 
-                let timesInfo = getCaseTimeStr(c);
-                let replyTimeStr = c.hospReplyTime[loggedInHosp] ? ` <span style="font-size:0.85em; color:#666;">(${c.hospReplyTime[loggedInHosp]})</span>` : "";
+                let timesInfo = getCaseTimeStr(c); let replyTimeStr = c.hospReplyTime[loggedInHosp] ? ` <span style="font-size:0.85em; color:#666;">(${c.hospReplyTime[loggedInHosp]})</span>` : "";
 
-                tbody.innerHTML += `
-                    <tr>
-                        <td style="border-bottom: 1px solid #ccc; padding: 15px; width: 140px;"><b>${caseId}</b><br><span style="font-size: 0.8em; color: #666;">${timesInfo}</span></td>
-                        <td style="border-bottom: 1px solid #ccc; padding: 15px;">
-                            <div style="display:flex; gap:8px; flex-wrap: wrap; margin-bottom: 8px;">
-                                <button class="btn-main" style="background:#6c757d;" onclick="openViewCaseModal('${caseId}')">📜 檢視完整病史</button>
-                                ${actionBtns}
-                            </div>
-                            <div style="font-size:0.9em;">狀態: <span style="color:#0056b3;">${c.hospStatus[loggedInHosp]}</span>${replyTimeStr} | 轉出端: ${intentText}</div>
-                        </td>
-                    </tr>`;
+                tbody.innerHTML += `<tr><td style="border-bottom: 1px solid #ccc; padding: 15px; width: 140px;"><b>${caseId}</b><br><span style="font-size: 0.8em; color: #666;">${timesInfo}</span></td><td style="border-bottom: 1px solid #ccc; padding: 15px;"><div style="display:flex; gap:8px; flex-wrap: wrap; margin-bottom: 8px;"><button class="btn-main" style="background:#6c757d;" onclick="openViewCaseModal('${caseId}')">📜 檢視完整病史</button>${actionBtns}</div><div style="font-size:0.9em;">狀態: <span style="color:#0056b3;">${c.hospStatus[loggedInHosp]}</span>${replyTimeStr} | 轉出端: ${intentText}</div></td></tr>`;
             }
         }
     }
 
-    function openReplyModal(caseId) { 
-        currentReplyCaseId = caseId; document.getElementById('reply_case_display').innerText = caseId; 
-        document.getElementById('pending_reply_box').style.display = 'none'; document.getElementById('pending_reason_input').value = "";
-        document.getElementById('replyModal').style.display = 'flex'; 
-    }
+    function openReplyModal(caseId) { currentReplyCaseId = caseId; document.getElementById('reply_case_display').innerText = caseId; document.getElementById('pending_reply_box').style.display = 'none'; document.getElementById('pending_reason_input').value = ""; document.getElementById('replyModal').style.display = 'flex'; }
     function closeReplyModal() { document.getElementById('replyModal').style.display = 'none'; currentReplyCaseId = null; }
     
     function submitReply(statusStr) {
-        if (!currentReplyCaseId) return;
-        let t = formatDateTime();
-        cases[currentReplyCaseId].hospStatus[loggedInHosp] = `回覆結果: ${statusStr}`;
-        cases[currentReplyCaseId].hospReplyTime[loggedInHosp] = t; 
+        if (!currentReplyCaseId) return; let t = formatDateTime(); cases[currentReplyCaseId].hospStatus[loggedInHosp] = `回覆結果: ${statusStr}`; cases[currentReplyCaseId].hospReplyTime[loggedInHosp] = t; 
         fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "updateHospitalResponse", payload: { caseId: currentReplyCaseId, hospitalName: loggedInHosp, response: `回覆結果: ${statusStr}`, replyTime: t } }) });
         closeReplyModal(); renderHospitalCases(); if (currentTrackCaseId === currentReplyCaseId) renderTrackerDashboard();
     }
@@ -1578,47 +1086,22 @@
     function openPendingReplyBox() { document.getElementById('pending_reply_box').style.display = 'block'; }
 
     function submitPendingReply() {
-        const reason = document.getElementById('pending_reason_input').value;
-        if(!reason) return alert("請輸入待確認原因！");
-        let t = formatDateTime();
-        cases[currentReplyCaseId].hospStatus[loggedInHosp] = "待確認";
-        cases[currentReplyCaseId].hospPendingReason[loggedInHosp] = reason;
-        cases[currentReplyCaseId].hospReplyTime[loggedInHosp] = t; 
+        const reason = document.getElementById('pending_reason_input').value; if(!reason) return alert("請輸入待確認原因！");
+        let t = formatDateTime(); cases[currentReplyCaseId].hospStatus[loggedInHosp] = "待確認"; cases[currentReplyCaseId].hospPendingReason[loggedInHosp] = reason; cases[currentReplyCaseId].hospReplyTime[loggedInHosp] = t; 
         fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "updateHospitalResponse", payload: { caseId: currentReplyCaseId, hospitalName: loggedInHosp, response: `待確認`, pendingReason: reason, replyTime: t } }) });
         closeReplyModal(); renderHospitalCases(); if (currentTrackCaseId === currentReplyCaseId) renderTrackerDashboard();
     }
 
     function openViewCaseModal(caseId) {
-        const c = cases[caseId]; 
-        if (!c || !c.clinicalData) return alert("查無此個案或臨床資料");
-        const d = c.clinicalData;
-        
-        document.getElementById('vc_hosp').innerText = c.reqHospOut || document.getElementById('req_hosp_out').value || "未填寫";
-        document.getElementById('vc_phone').innerText = c.phone || "-";
-        document.getElementById('vc_patient').innerText = `${d.age||"-"}歲 ${d.gender||"-"}, mRS: ${d.mrs||"-"}`;
-        
-        document.getElementById('vc_onset').innerText = d.onset ? formatClinicalTime(d.onset) : "-";
-        document.getElementById('vc_door').innerText = d.door ? formatClinicalTime(d.door) : "-";
-        
-        document.getElementById('vc_occlusion').innerText = d.occlusion || "-"; 
-        document.getElementById('vc_nihss').innerText = `${d.nihssRaw||"-"} ${d.nihssScore||""}`;
-        
-        let pmhStr = (d.pmhList && d.pmhList.length > 0) ? d.pmhList.join(', ') : "";
-        if(d.pmhOther) pmhStr += (pmhStr ? ", " : "") + d.pmhOther;
-        document.getElementById('vc_pmh').innerText = pmhStr || "無";
-        document.getElementById('vc_symptoms').innerText = d.symptoms || "無";
-        document.getElementById('vc_lab').innerText = `Cre: ${d.cre||"-"} / 其他: ${d.labOther||"-"}`;
-        
-        let tpaStr = d.tpaStatus || "未填寫";
-        if(d.tpaStatus === '有施打') tpaStr += ` (${d.tpaDose||""}, Bolus: ${d.tpaBolusTime ? formatClinicalTime(d.tpaBolusTime) : "-"}, 備註: ${d.tpaYesNote||"-"})`;
-        else if(d.tpaStatus === '未施打') tpaStr += ` (原因: ${d.tpaNoNote||"-"})`;
-        
-        document.getElementById('vc_tpa').innerText = tpaStr;
-        document.getElementById('vc_family').innerText = `${d.famSel||"-"} - ${d.famText||"-"}`;
-
-        const imgContainer = document.getElementById('vc_images_container'); 
-        imgContainer.innerHTML = `<p style="margin-top:5px;"><a href="${c.clinicalData.folderUrl}" target="_blank" style="color:#0056b3; font-weight:bold;">📂 開啟 Google Drive 影像資料夾</a></p>`;
-
+        const c = cases[caseId]; if (!c || !c.clinicalData) return alert("查無此個案或臨床資料"); const d = c.clinicalData;
+        document.getElementById('vc_hosp').innerText = c.reqHospOut || document.getElementById('req_hosp_out').value || "未填寫"; document.getElementById('vc_phone').innerText = c.phone || "-"; document.getElementById('vc_patient').innerText = `${d.age||"-"}歲 ${d.gender||"-"}, mRS: ${d.mrs||"-"}`;
+        document.getElementById('vc_onset').innerText = d.onset ? formatClinicalTime(d.onset) : "-"; document.getElementById('vc_door').innerText = d.door ? formatClinicalTime(d.door) : "-";
+        document.getElementById('vc_occlusion').innerText = d.occlusion || "-"; document.getElementById('vc_nihss').innerText = `${d.nihssRaw||"-"} ${d.nihssScore||""}`;
+        let pmhStr = (d.pmhList && d.pmhList.length > 0) ? d.pmhList.join(', ') : ""; if(d.pmhOther) pmhStr += (pmhStr ? ", " : "") + d.pmhOther;
+        document.getElementById('vc_pmh').innerText = pmhStr || "無"; document.getElementById('vc_symptoms').innerText = d.symptoms || "無"; document.getElementById('vc_lab').innerText = `Cre: ${d.cre||"-"} / 其他: ${d.labOther||"-"}`;
+        let tpaStr = d.tpaStatus || "未填寫"; if(d.tpaStatus === '有施打') tpaStr += ` (${d.tpaDose||""}, Bolus: ${d.tpaBolusTime ? formatClinicalTime(d.tpaBolusTime) : "-"}, 備註: ${d.tpaYesNote||"-"})`; else if(d.tpaStatus === '未施打') tpaStr += ` (原因: ${d.tpaNoNote||"-"})`;
+        document.getElementById('vc_tpa').innerText = tpaStr; document.getElementById('vc_family').innerText = `${d.famSel||"-"} - ${d.famText||"-"}`;
+        const imgContainer = document.getElementById('vc_images_container'); imgContainer.innerHTML = `<p style="margin-top:5px;"><a href="${c.clinicalData.folderUrl}" target="_blank" style="color:#0056b3; font-weight:bold;">📂 開啟 Google Drive 影像資料夾</a></p>`;
         document.getElementById('viewCaseModal').style.display = 'flex';
     }
     function closeViewCaseModal() { document.getElementById('viewCaseModal').style.display = 'none'; }
