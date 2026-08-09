@@ -3,220 +3,342 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>中風區域聯防轉診平台 v42 </title>
+    <title>中風區域聯防轉診平台 v43 </title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <style>
-        body { font-family: "Microsoft JhengHei", sans-serif; margin: 0; padding: 20px; background-color: #f0f2f5; color: #333; }
+    /* 🌟 呼吸燈閃爍動畫 */
+    @keyframes pulse-dot {
+        0% { transform: scale(0.95); opacity: 0.8; box-shadow: 0 0 0 0 rgba(199, 121, 31, 0.7); }
+        70% { transform: scale(1.05); opacity: 1; box-shadow: 0 0 0 6px rgba(199, 121, 31, 0); }
+        100% { transform: scale(0.95); opacity: 0.8; box-shadow: 0 0 0 0 rgba(199, 121, 31, 0); }
+    }
+    .pulse-dot {
+        width: 10px; height: 10px; background-color: #C7791F; border-radius: 50%; display: inline-block;
+        animation: pulse-dot 2s infinite ease-in-out; margin-right: 6px; vertical-align: middle;
+    }
+
+    /* 🌟 底部心電圖/脈搏動態流動線條 */
+    .pulse-line {
+        position: absolute; bottom: 0; left: 0; width: 100%; height: 4px;
+        background: linear-gradient(90deg, transparent, #17878A, #BFE0DC, #17878A, transparent);
+        background-size: 200% 100%;
+        animation: wave-flow 4s linear infinite;
+    }
+    @keyframes wave-flow {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;700;900&family=Noto+Sans+TC:wght@400;500;600;700;900&family=JetBrains+Mono:wght@500;700&display=swap');
+
+        :root{
+            --ink:      #0F2A2E;
+            --teal-900: #0B3A3F;
+            --teal-700: #0F5C61;
+            --teal-500: #17878A;
+            --teal-100: #E4F1EF;
+            --paper:    #F4F6F4;
+            --card:     #FFFFFF;
+            --amber:    #C7791F;
+            --amber-100:#FBEEDA;
+            --alert:    #B23A2E;
+            --alert-100:#FBE9E5;
+            --success:  #2F8F5B;
+            --success-100:#E4F3EA;
+            --line:     #DCE4E0;
+            --serif: 'Noto Serif TC', serif;
+            --sans:  'Noto Sans TC', "Microsoft JhengHei", sans-serif;
+            --mono:  'JetBrains Mono', monospace;
+        }
+
+        body { font-family: var(--sans); margin: 0; padding: 20px; background-color: var(--paper); color: var(--ink); line-height: 1.65; }
         .app-container { max-width: 1100px; margin: 0 auto; background: transparent; }
-        .section-header { font-size: 1.2em; font-weight: bold; color: #004085; margin-bottom: 15px; padding-bottom: 5px; border-bottom: 2px solid #b8daff; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;}
-        .sub-header { background-color: #eef; padding: 6px 10px; margin: 15px 0 10px 0; border-radius: 4px; font-weight: bold; color: #004085; border-left: 4px solid #0056b3; font-size: 1.05em; }
+        .section-header { font-family: var(--serif); font-size: 1.25em; font-weight: 700; color: #0B3A3F; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #BFE0DC; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;}
+        .sub-header { font-family: var(--serif); background-color: #E4F1EF; padding: 8px 14px; margin: 18px 0 12px 0; border-radius: 8px; font-weight: 700; color: #0B3A3F; border-left: 4px solid #0F5C61; font-size: 1.05em; }
         
         .status-board { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 20px; }
-        .hosp-card { background: white; border-radius: 8px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-top: 4px solid #ccc; position: relative; display: flex; flex-direction: column; gap: 8px;}
-        .hosp-card h3 { margin: 0; font-size: 1.1em; color: #333; display: flex; align-items: center; }
+        .hosp-card { background: var(--card); border-radius: 12px; padding: 16px; box-shadow: 0 2px 10px rgba(11,58,63,0.08); border-top: 4px solid #D8E0DC; position: relative; display: flex; flex-direction: column; gap: 8px;}
+        .hosp-card h3 { font-family: var(--serif); margin: 0; font-size: 1.08em; font-weight: 700; color: #0F2A2E; display: flex; align-items: center; }
         
         .hosp-card-icons { position: absolute; top: 12px; right: 12px; display: flex; gap: 8px; }
         .edit-icon { cursor: pointer; font-size: 1.2em; opacity: 0.6; transition: 0.2s; }
         .edit-icon:hover { opacity: 1; transform: scale(1.1); }
         
         .status-indicator { align-self: flex-start; padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 0.9em; color: white; }
-        .status-green { background-color: #28a745; } .status-orange { background-color: #fd7e14; } .status-red { background-color: #dc3545; }
-        .hosp-info { font-size: 0.85em; color: #555; line-height: 1.5; }
-        .hosp-info strong { color: #222; }
+        .status-green { background-color: #2F8F5B; } .status-orange { background-color: #C7791F; } .status-red { background-color: #B23A2E; }
+        .hosp-info { font-size: 0.85em; color: #4A5652; line-height: 1.5; }
+        .hosp-info strong { color: #0F2A2E; }
         .line-btn { display: inline-block; background-color: #00c300; color: white; text-decoration: none; padding: 4px 8px; border-radius: 4px; font-size: 0.85em; font-weight: bold; text-align: center; margin-top: 5px;}
         
         .btn-call { display: block; width: 100%; text-align: center; padding: 15px; margin-bottom: 10px; border-radius: 6px; font-size: 1.1em; font-weight: bold; text-decoration: none; transition: 0.2s; box-sizing: border-box; border: none; cursor: pointer; }
-        .btn-call.er { background-color: #dc3545; color: white; }
-        .btn-call.dr { background-color: #17a2b8; color: white; }
-        .btn-call.disabled { background-color: #e9ecef; color: #aaa; pointer-events: none; border: 1px solid #ccc; cursor: not-allowed; }
+        .btn-call.er { background-color: #B23A2E; color: white; }
+        .btn-call.dr { background-color: #17878A; color: white; }
+        .btn-call.disabled { background-color: #EEF2EF; color: #94A29D; pointer-events: none; border: 1px solid #D8E0DC; cursor: not-allowed; }
 
         .quick-update-board { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 30px; }
-        .quick-case-card { background: white; border: 1px solid #17a2b8; border-left: 5px solid #17a2b8; padding: 15px; border-radius: 8px; width: 100%; max-width: 300px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .quick-case-card .cid { font-weight: bold; color: #0056b3; font-size: 1.1em; margin-bottom: 8px; }
-        .quick-case-card .info { font-size: 0.9em; color: #555; margin-bottom: 12px; line-height: 1.5; }
+        .quick-case-card { background: var(--card); border: 1px solid #17878A; border-left: 5px solid #17878A; padding: 15px; border-radius: 10px; width: 100%; max-width: 300px; box-shadow: 0 2px 8px rgba(11,58,63,0.06); }
+        .quick-case-card .cid { font-family: var(--mono); font-weight: bold; color: #0F5C61; font-size: 1.05em; margin-bottom: 8px; }
+        .quick-case-card .info { font-size: 0.9em; color: #4A5652; margin-bottom: 12px; line-height: 1.5; }
         .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
 
-        .tabs { display: flex; border-bottom: 2px solid #0056b3; margin-bottom: 20px; gap: 5px; flex-wrap: wrap;}
-        .tab-btn { background-color: #e9ecef; border: none; padding: 10px 15px; font-size: 0.95em; cursor: pointer; border-radius: 8px 8px 0 0; font-weight: bold; color: #555; transition: 0.2s; }
-        .tab-btn:hover { background-color: #d6d8db; } .tab-btn.active { background-color: #0056b3; color: white; }
-        .tab-content { display: none; background: white; padding: 20px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 30px; }
+        .tabs { display: flex; border-bottom: 2px solid #0F5C61; margin-bottom: 20px; gap: 5px; flex-wrap: wrap;}
+        .tab-btn { font-family: var(--serif); background-color: #EEF2EF; border: none; padding: 10px 18px; font-size: 0.95em; cursor: pointer; border-radius: 10px 10px 0 0; font-weight: 700; color: #4A5652; transition: 0.2s; }
+        .tab-btn:hover { background-color: #DCE4E0; } .tab-btn.active { background-color: #0F5C61; color: white; }
+        .tab-content { display: none; background: var(--card); padding: 22px; border-radius: 0 12px 12px 12px; box-shadow: 0 2px 12px rgba(11,58,63,0.08); margin-bottom: 30px; }
         .tab-content.active { display: block; }
 
         .req-row { display: flex; flex-wrap: wrap; gap: 15px; align-items: center; margin-bottom: 12px; }
         .req-group { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 150px; }
-        label { font-weight: bold; font-size: 0.95em; color: #444; }
-        input[type="text"], input[type="email"], input[type="tel"], input[type="password"], input[type="number"], input[type="datetime-local"], select, textarea { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 15px; width: 100%; box-sizing: border-box; }
+        label { font-weight: 700; font-size: 0.95em; color: #35433E; }
+        input[type="text"], input[type="email"], input[type="tel"], input[type="password"], input[type="number"], input[type="datetime-local"], select, textarea { padding: 9px 10px; border: 1px solid #D8E0DC; border-radius: 8px; font-size: 15px; width: 100%; box-sizing: border-box; font-family: var(--sans); }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #17878A; box-shadow: 0 0 0 3px rgba(23,135,138,0.15); }
         
-        .btn-main { background-color: #0056b3; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        .btn-success { background-color: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        .btn-warning { background-color: #ffc107; color: #333; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        .btn-danger { background-color: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        .btn-recorded { background-color: #6c757d; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s;}
+        .btn-main { background-color: #0F5C61; color: white; border: none; padding: 9px 14px; border-radius: 8px; cursor: pointer; font-weight: 700; transition: 0.2s; }
+        .btn-main:hover { background-color: #0B3A3F; }
+        .btn-success { background-color: #2F8F5B; color: white; border: none; padding: 9px 14px; border-radius: 8px; cursor: pointer; font-weight: 700; transition: 0.2s; }
+        .btn-success:hover { background-color: #257A4B; }
+        .btn-warning { background-color: #C7791F; color: white; border: none; padding: 9px 14px; border-radius: 8px; cursor: pointer; font-weight: 700; transition: 0.2s; }
+        .btn-warning:hover { background-color: #A8650F; }
+        .btn-danger { background-color: #B23A2E; color: white; border: none; padding: 9px 14px; border-radius: 8px; cursor: pointer; font-weight: 700; transition: 0.2s; }
+        .btn-danger:hover { background-color: #942F25; }
+        .btn-recorded { background-color: #5B6B65; color: white; border: none; padding: 9px 14px; border-radius: 8px; cursor: pointer; font-weight: 700; transition: 0.2s;}
+
+        .btn-custom { padding: 6px 14px; border-radius: 8px; font-weight: 700; font-size: 0.9em; border: none; cursor: pointer; transition: 0.2s; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
+        .btn-custom:hover { opacity: 0.88; transform: translateY(-1px); }
+        .btn-theme-primary   { background-color: #0F5C61; color: white; }
+        .btn-theme-success   { background-color: #2F8F5B; color: white; }
+        .btn-theme-warning   { background-color: #C7791F; color: white; }
+        .btn-theme-danger    { background-color: #B23A2E; color: white; }
+        .btn-theme-info      { background-color: #17878A; color: white; }
+        .btn-theme-secondary { background-color: #5B6B65; color: white; }
+        .btn-theme-dark      { background-color: #0F2A2E; color: white; }
+        .btn-theme-orange    { background-color: #C7791F; color: white; }
 
         .track-list { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
-        .track-item { border: 1px solid #ddd; padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; background: #fdfdfd; transition: 0.3s; }
-        .track-item.disabled { background: #e9ecef; opacity: 0.6; pointer-events: none; }
-        .track-item.selected { border-color: #28a745; background: #f2fff5; border-width: 2px; }
-        .track-status { font-size: 0.95em; padding: 5px 10px; border-radius: 4px; background: #e2e3e5; margin: 0 10px; cursor: pointer; transition: 0.2s; }
+        .track-item { border: 1px solid #DCE4E0; padding: 16px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; background: #FDFDFB; transition: 0.3s; }
+        .track-item.disabled { background: #EEF2EF; opacity: 0.6; pointer-events: none; }
+        .track-item.selected { border-color: #2F8F5B; background: #E9F7EE; border-width: 2px; }
+        .track-status { font-size: 0.92em; padding: 5px 12px; border-radius: 20px; background: #EEF2EF; margin: 0 10px; cursor: pointer; transition: 0.2s; font-weight: 700; }
         .track-status:hover { opacity: 0.8; }
-        .track-status.eval { background: #fff3cd; color: #856404; } .track-status.ok { background: #d4edda; color: #155724; font-weight: bold; } .track-status.no { background: #f8d7da; color: #721c24; } 
-        .track-status.pending { background: #343a40; color: white; } 
-        .chat-room-banner { background: #e8f4f8; border: 2px dashed #17a2b8; padding: 15px; border-radius: 8px; margin-top: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .track-status.eval { background: #FBEEDA; color: #8A5A13; } .track-status.ok { background: #E4F3EA; color: #1F6B3F; font-weight: bold; } .track-status.no { background: #FBE9E5; color: #8A2E22; } 
+        .track-status.pending { background: #0F2A2E; color: white; } 
+        .chat-room-banner { background: #E4F1EF; border: 2px dashed #17878A; padding: 15px; border-radius: 10px; margin-top: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
 
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); overflow-y: auto; align-items: flex-start; justify-content: center; padding-top: 30px;}
-        .modal-content { background-color: #fff; padding: 25px; border-radius: 8px; width: 90%; max-width: 700px; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.3); margin-bottom: 30px; }
-        .close-btn { position: absolute; top: 10px; right: 15px; color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(11,58,63,0.55); overflow-y: auto; align-items: flex-start; justify-content: center; padding-top: 30px;}
+        .modal-content { background-color: #fff; padding: 26px; border-radius: 14px; width: 90%; max-width: 700px; position: relative; box-shadow: 0 12px 40px rgba(11,58,63,0.25); margin-bottom: 30px; }
+        .modal-content h2, .modal-content h3 { font-family: var(--serif); }
+        .close-btn { position: absolute; top: 10px; right: 15px; color: #94A29D; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .close-btn:hover { color: #0F5C61; }
 
-        .status-card { background: #fdfdfd; border: 1px dashed #ccc; padding: 15px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;}
-        .status-card.filled { border-color: #28a745; background: #f2fff5; }
+        .status-card { background: #FDFDFB; border: 1px dashed #D8E0DC; padding: 15px; border-radius: 10px; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;}
+        .status-card.filled { border-color: #2F8F5B; background: #E9F7EE; }
 
         .toggle-group { display: flex; gap: 5px; margin-top: 10px; width: 100%; }
-        .toggle-btn { flex: 1; padding: 12px 5px; font-size: 1em; font-weight: bold; border: 2px solid #ccc; border-radius: 6px; cursor: pointer; background: #f8f9fa; color: #555; transition: 0.2s; }
-        .toggle-btn.active.green { background: #28a745; border-color: #28a745; color: white; }
-        .toggle-btn.active.orange { background: #fd7e14; border-color: #fd7e14; color: white; }
-        .toggle-btn.active.red { background: #dc3545; border-color: #dc3545; color: white; }
+        .toggle-btn { flex: 1; padding: 12px 5px; font-size: 1em; font-weight: 700; border: 2px solid #D8E0DC; border-radius: 8px; cursor: pointer; background: #F4F6F4; color: #4A5652; transition: 0.2s; }
+        .toggle-btn.active.green { background: #2F8F5B; border-color: #2F8F5B; color: white; }
+        .toggle-btn.active.orange { background: #C7791F; border-color: #C7791F; color: white; }
+        .toggle-btn.active.red { background: #B23A2E; border-color: #B23A2E; color: white; }
 
-        .neuro-duty-table { width: 100%; text-align: center; color: #ecf0f1; font-size: 14px; margin-top: 15px; border-collapse: collapse; background: #2c3e50; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.15);}
-        .neuro-duty-table th { border-bottom: 1px solid #34495e; padding: 12px 8px; font-weight: normal; color: #bdc3c7; background: #1a252f; white-space: nowrap;}
-        .neuro-duty-table td { padding: 12px 8px; font-weight: bold; border-bottom: 1px solid #34495e; vertical-align: middle;}
+        .neuro-duty-table { width: 100%; text-align: center; color: #E7F2F0; font-size: 14px; margin-top: 15px; border-collapse: collapse; background: #0B3A3F; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 14px rgba(11,58,63,0.2);}
+        .neuro-duty-table th { font-family: var(--mono); border-bottom: 1px solid #1D4A4F; padding: 12px 8px; font-weight: 500; letter-spacing: .04em; color: #9FCFC9; background: #08262A; white-space: nowrap;}
+        .neuro-duty-table td { padding: 12px 8px; font-weight: bold; border-bottom: 1px solid #1D4A4F; vertical-align: middle;}
 
-        .view-section { margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
-        .view-section h4 { color: #17a2b8; margin: 0 0 8px 0; font-size: 1.1em; border-left: 4px solid #17a2b8; padding-left: 8px;}
+        .view-section { margin-bottom: 15px; border-bottom: 1px solid #E3E9E5; padding-bottom: 10px; }
+        .view-section h4 { font-family: var(--serif); color: #17878A; margin: 0 0 8px 0; font-size: 1.1em; border-left: 4px solid #17878A; padding-left: 8px;}
         .view-data { display: grid; grid-template-columns: 100px 1fr; gap: 8px; font-size: 0.95em; margin-bottom: 6px; }
-        .view-label { color: #666; font-weight: bold; }
+        .view-label { color: #5B6B65; font-weight: bold; }
 
-        .disclaimer { margin-top: 20px; padding: 15px; background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404; border-radius: 6px; font-size: 0.9em; line-height: 1.5; text-align: center; font-weight: bold; }
-        .live-clock-banner { background: #e8f4f8; border-left: 4px solid #17a2b8; padding: 15px; border-radius: 4px; margin-bottom: 15px; }
+        .disclaimer { margin-top: 20px; padding: 16px; background-color: #FBEEDA; border: 1px solid #E3B579; color: #8A5A13; border-radius: 10px; font-size: 0.9em; line-height: 1.5; text-align: center; font-weight: bold; }
+        
+.live-clock-banner { 
+        background: var(--teal-100); 
+        border-left: 4px solid var(--teal-500); 
+        padding: 15px; 
+        border-radius: 8px; 
+        margin-bottom: 15px; 
+    }
+    #system_live_clock { 
+        font-family: var(--mono) !important; 
+    }
 
         #chatHistoryBox::-webkit-scrollbar { width: 6px; }
-        #chatHistoryBox::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 10px; }
+        #chatHistoryBox::-webkit-scrollbar-thumb { background: rgba(11,58,63,0.25); border-radius: 10px; }
 
-        /* 🌟 拖曳上傳區的專屬 CSS */
-        .drop-zone { border: 2px dashed #17a2b8; padding: 25px; text-align: center; color: #17a2b8; background-color: #f8f9fa; border-radius: 8px; cursor: pointer; transition: 0.3s; font-weight: bold; font-size: 1em; box-shadow: inset 0 0 5px rgba(0,0,0,0.02);}
-        .drop-zone:hover { background-color: #e8f4f8; border-color: #0056b3; color: #0056b3;}
+        .drop-zone { border: 2px dashed #17878A; padding: 25px; text-align: center; color: #17878A; background-color: #F4F6F4; border-radius: 10px; cursor: pointer; transition: 0.3s; font-weight: bold; font-size: 1em; box-shadow: inset 0 0 5px rgba(0,0,0,0.02);}
+        .drop-zone:hover { background-color: #E4F1EF; border-color: #0F5C61; color: #0F5C61;}
+
+        h1, h2, h3 { font-family: var(--serif); }
+        code, .cid, #system_live_clock { font-family: var(--mono); }
     </style>
 </head>
 <body>
 
 <div class="app-container">
     
-    <div class="section-header">
-        <div>🏥 竹苗區可取栓醫院量能狀態即時看板</div>
-        <button class="btn-main" style="font-size: 0.8em; padding: 6px 12px; background: #6c757d;" onclick="fetchDataFromGAS()">🔄 雲端更新</button>
-    </div>
-    <div class="status-board" id="hospital_status_board">
-        <h3 style="color: #666; text-align: center; width: 100%;">⏳ 正在從雲端載入各醫院即時量能，請稍候...</h3>
-    </div>
-
-    <div class="section-header" style="border-bottom-color: #17a2b8; color: #17a2b8;">
-        🚑 轉運即時紀錄 (顯示近4小時個案)
-    </div>
-    <div class="quick-update-board" id="quick_update_board"></div>
-
-    <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('tab1')">1. 提出取栓需求</button>
-        <button class="tab-btn" onclick="switchTab('tab2')">2. 取栓個案追蹤</button>
-        <button class="tab-btn" onclick="switchTab('tab3')">3. 取栓醫院端介面</button>
-        <button class="tab-btn" onclick="switchTab('tab4')">4. 班表與系統設定</button>
-    </div>
-
-    <!-- 分頁 1 -->
-    <div id="tab1" class="tab-content active">
-        <div class="sub-header">A. 基本聯絡資訊</div>
-        <div class="req-row">
-            <div class="req-group"><label>1. 提出需求醫院</label><input type="text" id="req_hosp_out" placeholder="例如：新竹國泰"></div>
-            <div class="req-group"><label>2. 醫師電話 (作為追蹤密碼)</label><input type="tel" id="req_doc_phone" value="0912345678"></div>
-            <div class="req-group"><label>3. e-mail (取栓回饋用)</label><input type="email" id="req_doc_email" placeholder="example@email.com"></div>
-        </div>
-
-        <div class="sub-header">B. 臨床資訊與影像 (獨立表單)</div>
-        <div class="status-card" id="form_status_card">
-            <div>
-                <strong id="form_status_title" style="color: #6c757d;">尚未讀取臨床資訊</strong>
-                <div id="form_status_desc" style="font-size: 0.85em; color: #666; margin-top: 5px;">請點擊按鈕開啟獨立表單填寫臨床資料，填妥後點擊「讀取暫存資料」。</div>
-            </div>
-            <div style="display: flex; gap: 5px; flex-wrap: wrap;">
-                <button class="btn-main" style="background:#17a2b8;" onclick="openNewClinicalForm()">📝 開啟臨床表單</button>
-                <button class="btn-warning" onclick="loadClinicalFromLocal()">🔄 讀取暫存資料</button>
-            </div>
-        </div>
-
-        <div class="sub-header">C. 轉入目標與發送</div>
-        <div class="req-group" style="margin-bottom: 15px;">
-            <label>4. 欲發送通知之取栓醫院 (可複選)</label>
-            <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 5px; padding: 10px; background: #fff3cd; border: 1px solid #ffeeba; border-radius: 4px;" id="target_hospitals_container">
-                <span style="color:#666;">載入中...</span>
-            </div>
+    <!-- 🌟 頂部大氣橫幅 (內含呼吸燈、說明文字與底部流動波形線) -->
+    <div style="background-color: var(--teal-900); color: #ffffff; padding: 32px 28px 40px 28px; border-radius: 14px; margin-bottom: 25px; box-shadow: 0 4px 20px rgba(11,58,63,0.15); position: relative; overflow: hidden;">
+        
+        <!-- 頂部標籤與閃爍呼吸燈 -->
+        <div style="font-size: 0.85em; letter-spacing: 0.1em; color: var(--teal-100); opacity: 0.9; margin-bottom: 10px; font-weight: 600; display: flex; align-items: center;">
+            <span class="pulse-dot"></span> 院際協作 &nbsp;·&nbsp; 時間即腦組織
         </div>
         
-        <button class="btn-success" style="width: 100%; font-size: 1.1em; padding: 12px;" onclick="submitCase()">🚀 建立個案並發送通知</button>
-        <div id="submit_result_area" style="display: none; background: #d4edda; padding: 25px; border-radius: 8px; margin-top: 20px; line-height: 1.5; border: 2px solid #28a745;"></div>
+        <!-- 大標題 -->
+        <h1 style="font-family: var(--serif); font-size: 2.1em; font-weight: 900; margin: 0 0 10px 0; color: #ffffff; line-height: 1.25;">
+            桃竹苗腦中風取栓區域聯防轉診平台
+        </h1>
+        
+        <!-- 說明文字 -->
+        <p style="font-size: 1em; color: var(--teal-100); margin: 0; opacity: 0.9; max-width: 800px; line-height: 1.6;">
+            整合竹苗區可取栓醫院即時量能與轉運狀態追蹤，提供醫療團隊秒速對核、無縫接軌的綠色通道。
+        </p>
+
+        <!-- 底部會跑的心電圖脈搏流動線條 -->
+        <div class="pulse-line"></div>
     </div>
 
-    <!-- 分頁 2 -->
-    <div id="tab2" class="tab-content">
-        <div class="req-row">
-            <div class="req-group"><label>個案代碼</label><input type="text" id="track_case_id"></div>
-            <div class="req-group"><label>密碼(電話)</label><input type="password" id="track_phone" value="0912345678"></div>
-            <div class="req-group" style="justify-content: flex-end;"><button class="btn-main" onclick="loginTracker()">🔍 登入</button></div>
+    <!-- 🏥 量能狀態即時看板 -->
+    <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <span>🏥 可取栓醫院量能狀態即時看板</span>
+        <button style="background: none; border: none; cursor: pointer; font-size: 1.1em; padding: 2px 6px; transition: 0.2s;" onclick="fetchDataFromGAS()" title="雲端更新" onmouseover="this.style.transform='rotate(180deg)'" onmouseout="this.style.transform='rotate(0deg)'">🔄</button>
+    </div>
+</div>
+    
+    <div class="status-board" id="hospital_status_board">
+        <h3 style="color: #5B6B65; text-align: center; width: 100%;">⏳ 正在從雲端載入各醫院即時量能，請稍候...</h3>
+    </div>
+
+    <div class="section-header" style="border-bottom-color: var(--teal-500); color: var(--teal-500);">
+    🚑 轉運即時紀錄 (顯示近4小時個案)
+</div>
+<div class="quick-update-board" id="quick_update_board"></div>
+
+<div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('tab1')">1. 提出取栓需求</button>
+    <button class="tab-btn" onclick="switchTab('tab2')">2. 取栓個案追蹤</button>
+    <button class="tab-btn" onclick="switchTab('tab3')">3. 取栓醫院介面</button>
+    <button class="tab-btn" onclick="switchTab('tab4')">4. 班表與系統設定</button>
+</div>
+
+<!-- 分頁 1 -->
+<div id="tab1" class="tab-content active">
+    <div class="sub-header">A. 基本聯絡資訊</div>
+    <div class="req-row">
+        <div class="req-group"><label>1. 提出需求醫院</label><input type="text" id="req_hosp_out" placeholder=""></div>
+        <div class="req-group"><label>2. 醫師電話 (作為追蹤密碼)</label><input type="tel" id="req_doc_phone" value="0912345678"></div>
+        <div class="req-group"><label>3. e-mail (取栓回饋用)</label><input type="email" id="req_doc_email" placeholder="example@email.com"></div>
+    </div>
+
+    <div class="sub-header">B. 臨床資訊與影像 (獨立表單)</div>
+    <div class="status-card" id="form_status_card">
+        <div>
+            <strong id="form_status_title" style="color: var(--teal-700);">尚未讀取臨床資訊</strong>
+            <div id="form_status_desc" style="font-size: 0.85em; color: #5B6B65; margin-top: 5px;">請點擊按鈕開啟獨立表單填寫臨床資料，填妥後點擊「讀取暫存資料」。</div>
         </div>
-        <div id="track_dashboard" style="display: none; margin-top: 20px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                <h3 style="color: #0056b3; margin:0;">個案：<span id="disp_track_id"></span></h3>
-                <div style="display:flex; gap:10px;">
-                    <button class="btn-main" style="background:#17a2b8;" onclick="editExistingClinical()">📝 開啟表單修改</button>
-                    <button class="btn-warning" onclick="updateClinicalToExistCase()">🔄 同步修改至本案</button>
-                </div>
+        <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+            <button class="btn-custom btn-theme-info" onclick="openNewClinicalForm()">📝 開啟臨床表單</button>
+            <button class="btn-custom btn-theme-warning" onclick="loadClinicalFromLocal()">🔄 讀取暫存資料</button>
+        </div>
+    </div>
+
+    <div class="sub-header">C. 轉入目標與發送</div>
+    <div class="req-group" style="margin-bottom: 15px;">
+        <label>4. 欲發送通知之取栓醫院 (可複選)</label>
+        <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 5px; padding: 10px; background: var(--amber-100); border: 1px solid var(--amber); border-radius: 8px;" id="target_hospitals_container">
+            <span style="color:#5B6B65;">載入中...</span>
+        </div>
+    </div>
+    
+    <!-- 🌟 採用統一的 .btn-custom 按鈕設計 -->
+    <button class="btn-custom btn-theme-primary w-100 py-3 fs-5 mt-2" onclick="submitCase()">🚀 建立個案並發送通知</button>
+    
+    <!-- 🌟 採用全站變數邊框與背景 -->
+    <div id="submit_result_area" style="display: none; background: var(--success-100); padding: 25px; border-radius: 10px; margin-top: 20px; line-height: 1.5; border: 2px solid var(--success);"></div>
+</div>
+
+<!-- 分頁 2 -->
+<div id="tab2" class="tab-content">
+    <div class="req-row">
+        <div class="req-group"><label>個案代碼</label><input type="text" id="track_case_id"></div>
+        <div class="req-group"><label>密碼(電話)</label><input type="password" id="track_phone" value="0912345678"></div>
+        <div class="req-group" style="justify-content: flex-end;"><button class="btn-custom btn-theme-primary" onclick="loginTracker()">🔍 登入</button></div>
+    </div>
+    <div id="track_dashboard" style="display: none; margin-top: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <h3 style="background-color: var(--teal-700); color: #ffffff; padding: 8px 14px; border-radius: 8px; margin: 0; display: inline-flex; align-items: center; gap: 8px; font-family: var(--sans); font-size: 1.25em; font-weight: normal;">
+    <span>個案：<span id="disp_track_id"></span></span>
+    <span id="disp_track_time" style="color: #ffffff; font-weight: normal; font-family: var(--sans);"></span>
+</h3>
+            <div style="display:flex; gap:10px;">
+                <button class="btn-custom btn-theme-info" onclick="editExistingClinical()">📝 開啟表單修改</button>
+                <button class="btn-custom btn-theme-warning" onclick="updateClinicalToExistCase()">🔄 同步修改至本案</button>
             </div>
-            <div id="track_chat_area" style="display: none;"></div>
-            <div id="track_list_container" class="track-list"></div>
+        </div>
+        <div id="track_chat_area" style="display: none;"></div>
+        <div id="track_list_container" class="track-list"></div>
+    </div>
+</div>
+
+<!-- 分頁 3 -->
+<div id="tab3" class="tab-content">
+    <div id="hosp_login_area" class="req-row">
+        <div class="req-group"><label>醫院</label><select id="login_hosp_name"><option>載入中...</option></select></div>
+        <div class="req-group"><label>密碼 (預設 admin)</label><input type="password" id="login_hosp_pwd" value="admin"></div>
+        <div class="req-group" style="justify-content: flex-end;"><button class="btn-custom btn-theme-primary" onclick="loginHospital()">登入</button></div>
+    </div>
+    <div id="hosp_dashboard" style="display: none;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+        <h3 style="color: var(--teal-700); margin:0;"><span id="disp_login_hosp"></span> - 收到的需求</h3>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+            
+            <!-- 🌟 改為與即時看板一致的純圖示、帶旋轉特效的雲端更新按鈕 -->
+            <button style="background: none; border: none; cursor: pointer; font-size: 1.2em; padding: 4px 8px; transition: 0.2s;" onclick="fetchRecentCasesFromGAS()" title="立即更新" onmouseover="this.style.transform='rotate(180deg)'" onmouseout="this.style.transform='rotate(0deg)'">🔄</button>
+            
+            <button class="btn-custom btn-theme-dark" style="background-color: #6B4A85;" onclick="openReportModal()">📥 下載品管月報</button>
+            <button class="btn-custom btn-theme-info" onclick="openHospSysSettingsModal()">⚙️ 系統設定 (含通訊錄)</button>
+            <button class="btn-custom btn-theme-secondary" onclick="logoutHospital()">登出</button>
         </div>
     </div>
+    <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+        <tbody id="hosp_cases_tbody"></tbody>
+    </table>
+</div>
 
-    <!-- 分頁 3 -->
-    <div id="tab3" class="tab-content">
-        <div id="hosp_login_area" class="req-row">
-            <div class="req-group"><label>醫院</label><select id="login_hosp_name"><option>載入中...</option></select></div>
-            <div class="req-group"><label>密碼 (預設 admin)</label><input type="password" id="login_hosp_pwd" value="admin"></div>
-            <div class="req-group" style="justify-content: flex-end;"><button class="btn-main" onclick="loginHospital()">登入</button></div>
-        </div>
-        <div id="hosp_dashboard" style="display: none;">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                <h3 style="color: #0056b3; margin:0;"><span id="disp_login_hosp"></span> - 收到的需求</h3>
-                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                    <button class="btn-main" style="background:#28a745;" onclick="fetchRecentCasesFromGAS()">🔄 立即更新</button>
-                    <button class="btn-main" style="background:#6f42c1;" onclick="openReportModal()">📥 下載品管月報</button>
-                    <button class="btn-main" style="background:#17a2b8;" onclick="openHospSysSettingsModal()">⚙️ 系統設定 (含通訊錄)</button>
-                    <button class="btn-main" onclick="logoutHospital()" style="background:#6c757d;">登出</button>
-                </div>
+
+<!-- 分頁 4 -->
+<div id="tab4" class="tab-content">
+    
+    <!-- 📅 班表管理卡片 -->
+    <div style="background: var(--teal-100); border-left: 5px solid var(--teal-500); padding: 20px; border-radius: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; box-shadow: 0 2px 8px rgba(11,58,63,0.05);">
+        <div>
+            <div style="font-size: 1.15em; font-weight: bold; color: var(--teal-700); margin-bottom: 8px; font-family: var(--sans);">
+                現在時間：<span id="system_live_clock" style="font-family: var(--mono); color: var(--ink);">載入中...</span>
             </div>
-            <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
-                <tbody id="hosp_cases_tbody"></tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- 分頁 4 -->
-    <div id="tab4" class="tab-content">
-        <div class="live-clock-banner" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
-            <div>
-                <div style="font-size: 1.1em; font-weight: bold; color: #0056b3; margin-bottom: 5px;">現在時間：<span id="system_live_clock" style="font-family: monospace; font-size: 1.1em;">載入中...</span></div>
-                <div style="font-size: 1.05em; font-weight: bold; color: #d35400;">📍 區域聯防排班 - 第一線優先聯絡醫院：<span id="priority_hosp_display">載入中...</span></div>
+            <div style="font-size: 1.1em; font-weight: bold; color: var(--amber);">
+                📍 區域聯防排班 - 第一線優先聯絡醫院：<span id="priority_hosp_display">載入中...</span>
             </div>
-            <button class="btn-main" style="background:#28a745; font-size: 1em; padding: 10px 20px; white-space: nowrap; height: fit-content;" onclick="openHospRosterModal()">📅 Excel 班表</button>
         </div>
-        <div style="margin-top: 15px; text-align: center;">
-            <button class="btn-success" onclick="fetchDataFromGAS()">🔄 重新同步最新看板資料</button>
-        </div>
+        <button class="btn-custom btn-theme-primary" style="padding: 12px 24px; font-size: 1.1em;" onclick="openHospRosterModal()">📅 Excel 班表管理</button>
     </div>
 
-    <div class="disclaimer">
-        此平台為新竹台大分院傅傳修醫師為協助桃竹苗地區轉診生成的網頁，<br>為了協助資訊傳遞，請注意避免輸入含病人個資之資訊 (如: 姓名/病歷號/電話等)，謝謝合作！
-        <div id="footer_version_display" style="margin-top: 8px; font-size: 0.85em; color: #6c757d; font-weight: normal;"></div>
+    <!-- ⚙️ 系統同步與設定提示卡片 -->
+    <div style="background: var(--paper); border: 1px dashed var(--teal-500); border-radius: 10px; padding: 24px; text-align: center;">
+        <h4 style="color: var(--teal-700); margin-top: 0; margin-bottom: 10px; font-family: var(--serif); font-size: 1.2em;">系統狀態與更新</h4>
+        <p style="color: var(--ink); font-size: 0.95em; margin-bottom: 20px;">
+            💡 提示：若需修改「醫院專屬通訊錄」或「LINE 群組設定」，請至 <strong>分頁 3</strong> 登入您的醫院後，點擊「⚙️ 系統設定」。
+        </p>
+        <button class="btn-custom btn-theme-info py-2 px-4" style="font-size: 1.05em;" onclick="fetchDataFromGAS()">🔄 重新同步最新看板與排班資料</button>
     </div>
+
+</div>
+
+<div class="disclaimer">
+    此平台為新竹台大分院傅傳修醫師為協助桃竹苗地區轉診生成的網頁，<br>為了協助資訊傳遞，請注意避免輸入含病人個資之資訊 (如: 姓名/病歷號/電話等)，謝謝合作！
+    <div id="footer_version_display" style="margin-top: 8px; font-size: 0.85em; color: #5B6B65; font-weight: normal;"></div>
 </div>
 
 <!-- ========================================== -->
@@ -225,17 +347,17 @@
 
 <!-- ★ Messenger 對話框 Modal ★ -->
 <div id="messengerModal" class="modal" style="align-items: center; padding-top: 0; z-index: 2000;">
-    <div class="modal-content" style="max-width: 500px; padding: 0; overflow: hidden; display: flex; flex-direction: column; height: 85vh; max-height: 650px; background-color: #8bbccf;">
-        <div style="background-color: #0056b3; color: white; padding: 15px; position: relative; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 10;">
+    <div class="modal-content" style="max-width: 500px; padding: 0; overflow: hidden; display: flex; flex-direction: column; height: 85vh; max-height: 650px; background-color: #BFE0DC;">
+        <div style="background-color: #0F5C61; color: white; padding: 15px; position: relative; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 10;">
             <h3 id="messengerTitle" style="margin: 0; font-size: 1.2em; text-align: center;">💬 即時溝通</h3>
             <span class="close-btn" style="color: white; top: 8px; right: 15px; font-size: 32px;" onclick="closeMessenger()">&times;</span>
         </div>
         <div id="chatHistoryBox" style="flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column;">
             <div style="text-align:center; color:#fff; margin-top: 50px;">載入對話紀錄中...</div>
         </div>
-        <div style="padding: 10px; background-color: #f8f9fa; border-top: 1px solid #ddd; display: flex; gap: 8px;">
-            <input type="text" id="chatInput" placeholder="請輸入訊息..." style="flex: 1; padding: 10px 15px; border: 1px solid #ccc; border-radius: 20px; outline: none; font-size: 1em;" onkeypress="handleChatEnter(event)">
-            <button style="background-color: #0056b3; color: white; border: none; padding: 0 18px; border-radius: 20px; font-weight: bold; cursor: pointer; transition: 0.2s;" onclick="submitChatMessage()">送出</button>
+        <div style="padding: 10px; background-color: #F4F6F4; border-top: 1px solid #DCE4E0; display: flex; gap: 8px;">
+            <input type="text" id="chatInput" placeholder="請輸入訊息..." style="flex: 1; padding: 10px 15px; border: 1px solid #D8E0DC; border-radius: 20px; outline: none; font-size: 1em;" onkeypress="handleChatEnter(event)">
+            <button style="background-color: #0F5C61; color: white; border: none; padding: 0 18px; border-radius: 20px; font-weight: bold; cursor: pointer; transition: 0.2s;" onclick="submitChatMessage()">送出</button>
         </div>
     </div>
 </div>
@@ -244,17 +366,17 @@
 <div id="feedbackModal" class="modal" style="align-items: center; padding-top: 0;">
     <div class="modal-content" style="max-width: 600px; text-align: left; margin-bottom: 0;">
         <span class="close-btn" onclick="closeFeedbackModal()">&times;</span>
-        <h2 style="color: #ffc107; margin-top: 0; border-bottom: 2px solid #eee; padding-bottom: 10px; text-shadow: 1px 1px 1px rgba(0,0,0,0.1);">📝 個案回饋與結案</h2>
-        <p style="font-size: 1.05em; color: #555;">個案編號：<strong id="fb_case_display" style="color:#0056b3;"></strong></p>
+        <h2 style="color: var(--amber); margin-top: 0; border-bottom: 2px solid var(--line); padding-bottom: 10px; text-shadow: 1px 1px 1px rgba(0,0,0,0.1);">📝 個案回饋與結案</h2>
+        <p style="font-size: 1.05em; color: var(--ink);">個案編號：<strong id="fb_case_display" style="color:var(--teal-700);"></strong></p>
 
         <div class="req-row">
-            <div class="req-group"><label>Door Time (轉出端)</label><input type="text" id="fb_door" readonly style="background:#e9ecef;"></div>
-            <div class="req-group"><label>Door-out Time</label><input type="text" id="fb_doorout" readonly style="background:#e9ecef;"></div>
+            <div class="req-group"><label>Door Time (轉出端)</label><input type="text" id="fb_door" readonly style="background:var(--line);"></div>
+            <div class="req-group"><label>Door-out Time</label><input type="text" id="fb_doorout" readonly style="background:var(--line);"></div>
             <div class="req-group"><label>DIDO</label><input type="text" id="fb_dido" placeholder="系統自動計算..."></div>
         </div>
 
         <div class="req-row" style="flex-wrap: wrap;">
-            <div class="req-group" style="min-width: 100px;"><label>Arrival Time</label><input type="text" id="fb_arrival" readonly style="background:#e9ecef;"></div>
+            <div class="req-group" style="min-width: 100px;"><label>Arrival Time</label><input type="text" id="fb_arrival" readonly style="background:var(--line);"></div>
             <div class="req-group" style="min-width: 100px;"><label>Puncture Time</label><input type="text" id="fb_puncture" placeholder="時間或文字" oninput="autoCalcDTPDTR()"></div>
             <div class="req-group" style="min-width: 100px;"><label>Recanalization</label><input type="text" id="fb_recanalization" placeholder="時間或文字" oninput="autoCalcDTPDTR()"></div>
             <div class="req-group" style="min-width: 80px;"><label>DTP</label><input type="text" id="fb_dtp" placeholder="自動計算..."></div>
@@ -279,10 +401,10 @@
             <div class="req-group"><label>Desposition</label><input type="text" id="fb_desposition" placeholder="例如: 出院 / 轉院 / 死亡..."></div>
         </div>
         
-        <!-- 🌟 新增：拖曳上傳圖檔區塊 -->
+        <!-- 拖曳上傳圖檔區塊 -->
         <div class="req-row" style="margin-top: 15px;">
             <div class="req-group" style="flex: 1;">
-                <label style="color: #0056b3;">📎 附加回饋圖檔 (可拖曳多張圖片上傳)</label>
+                <label style="color: var(--teal-700);">📎 附加回饋圖檔 (可拖曳多張圖片上傳)</label>
                 <div id="fb_drop_zone" class="drop-zone" onclick="document.getElementById('fb_file_input').click()">
                     📸 點擊此處選擇檔案，或將圖片拖曳至此
                 </div>
@@ -291,29 +413,34 @@
             </div>
         </div>
 
-        <button id="btn_submit_feedback" class="btn-success" style="width: 100%; padding: 12px; font-size: 1.1em; margin-top: 15px;" onclick="submitFeedback()">💾 紀錄時間並送出結案</button>
+        <!-- 🌟 改用統一的 .btn-custom -->
+        <button id="btn_submit_feedback" class="btn-custom btn-theme-success w-100 py-3 fs-6 mt-3" onclick="submitFeedback()">💾 紀錄時間並送出結案</button>
     </div>
 </div>
 
-<!-- ★ 其他 Modals (月報表、系統設定、通訊錄、班表...維持原樣) ★ -->
+
+<!-- ★ 品管月報表 Modal ★ -->
 <div id="reportModal" class="modal" style="align-items: center; padding-top: 0;">
     <div class="modal-content" style="max-width: 400px; text-align: left; margin-bottom: 0;">
         <span class="close-btn" onclick="closeReportModal()">&times;</span>
-        <h2 style="color: #6f42c1; margin-top: 0; border-bottom: 2px solid #eee; padding-bottom: 10px;">📊 下載品管月報表</h2>
+        <h2 style="color: var(--teal-700); margin-top: 0; border-bottom: 2px solid var(--line); padding-bottom: 10px;">📊 下載品管月報表</h2>
         <div class="req-group" style="margin-bottom: 15px;">
             <label>請選擇報表月份：</label>
             <select id="report_month_select" style="width: 100%; padding: 8px;"></select>
         </div>
-        <div style="font-size: 0.85em; color: #666; margin-bottom: 15px;">💡 系統將自動彙整 <b><span id="report_hosp_display"></span></b> 在該月份成功轉入且結案的資訊，合併三個分頁為一份完整的 Excel(CSV) 檔案。</div>
-        <button class="btn-main" id="btn_download_report" style="width: 100%; padding: 12px; font-size: 1.1em; background: #6f42c1;" onclick="executeDownloadReport()">📥 產生並下載</button>
+        <div style="font-size: 0.85em; color: var(--ink); margin-bottom: 15px;">💡 系統將自動彙整 <b><span id="report_hosp_display"></span></b> 在該月份成功轉入且結案的資訊，合併三個分頁為一份完整的 Excel(CSV) 檔案。</div>
+        
+        <!-- 🌟 改用統一的 .btn-custom -->
+        <button class="btn-custom btn-theme-primary w-100 py-3 fs-6" id="btn_download_report" onclick="executeDownloadReport()">📥 產生並下載</button>
     </div>
 </div>
 
+<!-- ★ 撥打電話 Modal ★ -->
 <div id="callModal" class="modal" style="align-items: center; padding-top: 0;">
     <div class="modal-content" style="max-width: 350px; text-align: center; margin-bottom: 0;">
         <span class="close-btn" onclick="closeCallModal()">&times;</span>
-        <h2 style="color: #0056b3; margin-top: 0; border-bottom: 2px solid #eee; padding-bottom: 10px;">📞 聯絡 <span id="call_hosp_name"></span></h2>
-        <p style="color: #666; margin-bottom: 20px;">請選擇您要撥打的對象：</p>
+        <h2 style="color: var(--teal-700); margin-top: 0; border-bottom: 2px solid var(--line); padding-bottom: 10px;">📞 聯絡 <span id="call_hosp_name"></span></h2>
+        <p style="color: var(--ink); margin-bottom: 20px;">請選擇您要撥打的對象：</p>
         <a id="btn_call_er" href="#" class="btn-call er">🏥 急診專線</a>
         <a id="btn_call_dr" href="#" class="btn-call dr">👨‍⚕️ 值班醫師手機</a>
     </div>
@@ -322,44 +449,59 @@
 <div id="hospSysSettingsModal" class="modal">
     <div class="modal-content" style="max-width: 550px;">
         <span class="close-btn" onclick="closeHospSysSettingsModal()">&times;</span>
-        <h2 style="color: #0056b3; margin-top: 0; border-bottom: 2px solid #eee; padding-bottom: 10px;">⚙️ 醫院系統與通訊錄設定</h2>
-        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-            <h4 style="margin: 0 0 10px 0; color: #333;">🏥 基本設定</h4>
-            <div class="req-row"><div class="req-group"><label>急診電話/取栓專線</label><input type="text" id="sys_set_er_phone"></div><div class="req-group"><label>LINE 群組連結</label><input type="text" id="sys_set_line"></div></div>
+        <h2 style="color: var(--teal-700); margin-top: 0; border-bottom: 2px solid var(--teal-100); padding-bottom: 10px;">⚙️ 醫院系統與通訊錄設定</h2>
+        
+        <div style="background: var(--paper); padding: 16px; border-radius: 10px; margin-bottom: 15px;">
+            <h4 style="margin: 0 0 10px 0; color: var(--ink);">🏥 基本設定</h4>
+            <div class="req-row">
+                <div class="req-group"><label>急診電話/取栓專線</label><input type="text" id="sys_set_er_phone"></div>
+                <div class="req-group"><label>LINE 群組連結</label><input type="text" id="sys_set_line"></div>
+            </div>
             <div class="req-group" style="margin-bottom: 10px;"><label>Google Drive 專屬資料夾 ID (Folder)</label><input type="text" id="sys_set_folder" placeholder="例如: 1mKrQfQWL_oIHu0YVyXycBTd8lZXG5GX2"></div>
             <div class="req-group" style="margin-bottom: 10px;"><label>登入密碼修改</label><input type="password" id="sys_set_pwd" placeholder="若不修改請留空 (預設 admin)"></div>
-            <div class="req-row" style="align-items: flex-end; border-top: 1px dashed #ccc; padding-top: 10px;"><div class="req-group" style="flex: 2;"><label style="color:#d35400;">覆寫今日值班醫師 (強制取代班表)</label><input type="text" id="sys_set_today_dr" placeholder="輸入醫師姓名"></div><div class="req-group" style="flex: 1;"><button class="btn-warning" onclick="alert('請在下方點擊儲存以執行覆寫')">強制覆寫</button></div></div>
+            
+            <div class="req-row" style="align-items: flex-end; border-top: 1px dashed var(--line); padding-top: 10px;">
+                <div class="req-group" style="flex: 2;"><label style="color:var(--amber);">覆寫今日值班醫師 (強制取代班表)</label><input type="text" id="sys_set_today_dr" placeholder="輸入醫師姓名"></div>
+                <div class="req-group" style="flex: 1;"><button class="btn-custom btn-theme-warning w-100" onclick="alert('請在下方點擊儲存以執行覆寫')">強制覆寫</button></div>
+            </div>
         </div>
-        <div style="background: #e8f4f8; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #17a2b8;">
-            <h4 style="margin: 0 0 10px 0; color: #0056b3;">📞 取栓醫師通訊錄設定 </h4>
+
+        <!-- 🌟 取栓醫師通訊錄設定 (僅保留正確的唯一一組) -->
+        <div style="background: var(--teal-100); padding: 16px; border-radius: 10px; margin-bottom: 15px; border: 1px solid var(--teal-500);">
+            <h4 style="margin: 0 0 10px 0; color: var(--teal-700);">📞 取栓醫師通訊錄設定 </h4>
             <div class="req-group" style="margin-bottom: 10px;"><label>取栓醫師姓名</label><input type="text" id="addr_dr_name" placeholder="姓名"></div>
             <div class="req-group" style="margin-bottom: 10px;"><label>取栓醫師 Email</label><input type="email" id="addr_dr_email" placeholder="Email"></div>
             <div class="req-group" style="margin-bottom: 10px;"><label>取栓醫師 連絡電話</label><input type="text" id="addr_dr_phone" placeholder="電話"></div>
+            
             <div class="req-group" style="margin-bottom: 15px;">
                 <label>LINE ID</label>
                 <div style="display: flex; gap: 10px; align-items: center;">
                     <input type="text" id="addr_dr_lineid" placeholder="LINE 帳號 (提供給同仁加入用)" style="flex: 1; margin: 0;">
-                    <a href="https://line.me/R/ti/p/%40964pltbx" target="_blank" style="display: inline-flex; align-items: center; justify-content: center; background-color: #06C755; color: white; padding: 6px 12px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; white-space: nowrap; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: 0.2s;">
-                        <img src="https://chuanhsiufu-neuro.github.io/EVTtransfer/littlehelper.png" alt="小幫手" style="width: 24px; height: 24px; margin-right: 8px; border-radius: 50%; background: white;">
+                    <a href="https://line.me/R/ti/p/%40964pltbx" target="_blank" class="btn-custom" style="background-color: #06C755; color: white; white-space: nowrap;">
+                        <img src="https://chuanhsiufu-neuro.github.io/EVTtransfer/littlehelper.png" alt="小幫手" style="width: 22px; height: 22px; margin-right: 4px; border-radius: 50%; background: white;">
                         加入小幫手
                     </a>
                 </div>
             </div>
+            
             <div class="req-row" style="margin-top: 15px; margin-bottom: 0;">
                 <div class="req-group" style="flex: 1;"><select id="addr_dr_selector" onchange="loadAddressBookDr()"><option value="1">Dr 1</option><option value="2">Dr 2</option><option value="3">Dr 3</option><option value="4">Dr 4</option><option value="5">Dr 5</option></select></div>
-                <div class="req-group" style="flex: 1;"><button class="btn-success" onclick="saveAddressBookDr()">儲存醫師資訊</button></div>
+                <div class="req-group" style="flex: 1;"><button class="btn-custom btn-theme-success w-100" onclick="saveAddressBookDr()">儲存醫師資訊</button></div>
             </div>
         </div>
-        <button class="btn-main" style="width: 100%; padding: 12px; font-size: 1.1em;" onclick="saveHospSysSettings()">💾 儲存所有基本設定並關閉</button>
+        
+        <button class="btn-custom btn-theme-primary w-100 py-3 fs-6" onclick="saveHospSysSettings()">💾 儲存所有基本設定並關閉</button>
     </div>
 </div>
 
+<!-- ★ Excel 班表 Modal ★ -->
 <div id="hospRosterModal" class="modal">
     <div class="modal-content" style="max-width: 500px;">
         <span class="close-btn" onclick="closeHospRosterModal()">&times;</span>
-        <h2 style="color: #0056b3; margin-top: 0; border-bottom: 2px solid #eee; padding-bottom: 10px;">📅 Excel 班表</h2>
-        <div style="margin-bottom: 20px; border-bottom: 1px dashed #ccc; padding-bottom: 20px;">
-            <label style="display:block; margin-bottom: 8px; font-weight:bold; color:#0056b3;">🔍 查詢今日班表</label>
+        <h2 style="color: var(--teal-700); margin-top: 0; border-bottom: 2px solid var(--teal-100); padding-bottom: 10px;">📅 Excel 班表</h2>
+        
+        <div style="margin-bottom: 20px; border-bottom: 1px dashed var(--line); padding-bottom: 20px;">
+            <label style="display:block; margin-bottom: 8px; font-weight:bold; color:var(--teal-700);">🔍 查詢今日班表</label>
             <select id="roster_query_hosp_sel" style="width: 100%; padding: 8px; margin-bottom: 10px;" onchange="queryTodayRoster()">
                 <option value="">-- 請選擇醫院 --</option>
                 <option value="1st Line 優先排班表">1st Line 優先排班表</option><option value="新竹台大">新竹台大</option><option value="東元醫院">東元醫院</option><option value="新竹中國">新竹中國</option><option value="大千醫院">大千醫院</option><option value="聯新國際">聯新國際</option><option value="林口長庚">林口長庚</option>
@@ -368,14 +510,16 @@
                 <table class="neuro-duty-table" style="margin-top: 0; min-width: 100%;"><thead><tr><th>醫院</th><th>08:00~12:00</th><th>12:00~17:00</th><th>夜間</th></tr></thead><tbody id="query_roster_tbody"></tbody></table>
             </div>
         </div>
-        <div style="margin-bottom: 20px; border-bottom: 1px dashed #ccc; padding-bottom: 20px;">
-            <label style="display:block; margin-bottom: 8px; font-weight:bold; color:#0056b3;">📥 下載範本</label>
-            <button class="btn-main" style="background:#17a2b8; width: 100%; padding: 10px;" onclick="downloadRosterTemplate()">📥 請參考班表查詢醫院名稱更新檔名(醫院名稱_YYYYMM.csv)</button>
+        
+        <div style="margin-bottom: 20px; border-bottom: 1px dashed var(--line); padding-bottom: 20px;">
+            <label style="display:block; margin-bottom: 8px; font-weight:bold; color:var(--teal-700);">📥 下載範本</label>
+            <button class="btn-custom btn-theme-info w-100 py-2" onclick="downloadRosterTemplate()">📥 下載班表命名範本 (醫院名稱_YYYYMM.csv)</button>
         </div>
+        
         <div style="margin-bottom: 10px;">
-            <label style="display:block; margin-bottom: 8px; font-weight:bold; color:#0056b3;">📤 上傳當月班表 (支援 CSV)</label>
-            <input type="file" id="roster_file_input" accept=".csv" style="width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
-            <button class="btn-success" style="width: 100%; padding: 10px;" onclick="uploadRosterCsv()">上傳並自動附加</button>
+            <label style="display:block; margin-bottom: 8px; font-weight:bold; color:var(--teal-700);">📤 上傳當月班表 (支援 CSV)</label>
+            <input type="file" id="roster_file_input" accept=".csv" style="width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid var(--line); border-radius: 8px; box-sizing: border-box;">
+            <button class="btn-custom btn-theme-success w-100 py-2" onclick="uploadRosterCsv()">上傳並自動附加</button>
         </div>
     </div>
 </div>
@@ -383,7 +527,7 @@
 <div id="hospSettingsModal" class="modal" style="align-items: center; padding-top: 0;">
     <div class="modal-content" style="max-width: 400px; text-align: left; margin-bottom: 0;">
         <span class="close-btn" onclick="closeHospSettingsModal()">&times;</span>
-        <h2 style="color: #0056b3; margin-top: 0; border-bottom: 2px solid #eee; padding-bottom: 10px;">⚙️ 更新醫院量能狀態</h2>
+        <h2 style="color: #0F5C61; margin-top: 0; border-bottom: 2px solid #E3E9E5; padding-bottom: 10px;">⚙️ 更新醫院量能狀態</h2>
         <div class="req-group" style="margin-bottom: 15px;"><label>設定醫院</label><select id="set_hosp_name" disabled></select></div>
         <div class="req-group" style="margin-bottom: 15px;"><label>管理員密碼</label><input type="password" id="set_hosp_pwd" placeholder="輸入密碼 (預設 admin)"></div>
         <label>目前量能燈號設定：</label>
@@ -393,33 +537,36 @@
             <button class="toggle-btn red" data-val="red">無人力</button>
         </div>
         <div class="req-group" style="margin-top: 15px;">
-            <label style="font-size: 0.9em; color: #555;">自訂狀態文字 (預設為上方選項文字)</label>
+            <label style="font-size: 0.9em; color: #4A5652;">自訂狀態文字 (預設為上方選項文字)</label>
             <input type="text" id="set_hosp_status_text" placeholder="例如：CT維修中，暫停取栓">
         </div>
-        <button class="btn-success" style="width: 100%; margin-top: 20px; padding: 12px; font-size: 1.1em;" onclick="saveHospSettings()">💾 儲存並更新看板</button>
+        <button class="btn-custom btn-theme-success w-100 mt-3 py-2 fs-6" onclick="saveHospSettings()">💾 儲存並更新看板</button>
     </div>
 </div>
 
 <div id="replyModal" class="modal" style="align-items: center; padding-top: 0;">
     <div class="modal-content" style="max-width: 400px; text-align: center; margin-bottom: 0;">
         <span class="close-btn" onclick="closeReplyModal()">&times;</span>
-        <h2 style="color: #0056b3; margin-top: 0;">🏥 醫院量能回覆</h2>
+        <h2 style="color: #0F5C61; margin-top: 0;">🏥 醫院量能回覆</h2>
         <p style="font-size: 1.1em;">個案編號：<strong id="reply_case_display"></strong></p>
-        <button class="btn-success" style="width: 100%; padding: 15px; margin-bottom: 10px; font-size: 1.1em;" onclick="submitReply('可轉院 (請聯繫急診)')">✅ 可轉院 (請聯繫急診)</button>
-        <button class="btn-danger" style="width: 100%; padding: 15px; margin-bottom: 10px; font-size: 1.1em;" onclick="submitReply('不建議轉院 (無床/無人力)')">❌ 不建議轉院 (無床/無人力)</button>
-        <button class="btn-main" style="width: 100%; padding: 15px; font-size: 1.1em; background-color: #343a40;" onclick="openPendingReplyBox()">⏳ 待確認 (須了解詳情)</button>
+        
+        <button class="btn-custom btn-theme-success w-100 py-3 mb-2 fs-6" onclick="submitReply('可轉院 (請聯繫急診)')">✅ 可轉院 (請聯繫急診)</button>
+        <button class="btn-custom btn-theme-danger w-100 py-3 mb-2 fs-6" onclick="submitReply('不建議轉院 (無床/無人力)')">❌ 不建議轉院 (無床/無人力)</button>
+        <button class="btn-custom btn-theme-dark w-100 py-3 fs-6" onclick="openPendingReplyBox()">⏳ 待確認 (須了解詳情)</button>
+        
         <div id="pending_reply_box" style="display: none; margin-top: 15px; text-align: left;">
-            <label style="color: #333; margin-bottom: 5px;">輸入待確認原因 (如: 需補 CTA 影像)</label>
+            <label style="color: #0F2A2E; margin-bottom: 5px;">輸入待確認原因 (如: 需補 CTA 影像)</label>
             <input type="text" id="pending_reason_input" style="margin-bottom: 10px;">
-            <button class="btn-success" style="width: 100%;" onclick="submitPendingReply()">送出待確認通知</button>
+            <button class="btn-custom btn-theme-success w-100 py-2" onclick="submitPendingReply()">送出待確認通知</button>
         </div>
     </div>
 </div>
 
 <div id="viewCaseModal" class="modal">
-    <div class="modal-content" style="background: #fafafa; max-width: 800px;">
+    <div class="modal-content" style="background: var(--card); max-width: 800px;">
         <span class="close-btn" onclick="closeViewCaseModal()">&times;</span>
-        <h2 style="color: #0056b3; margin-top: 0; border-bottom: 2px solid #b8daff; padding-bottom: 10px;">📜 臨床資訊與影像檢視</h2>
+        <h2 style="color: var(--teal-700); margin-top: 0; border-bottom: 2px solid var(--teal-100); padding-bottom: 10px;">📜 臨床資訊與影像檢視</h2>
+        
         <div class="view-section">
             <h4>基本與時間資訊</h4>
             <div class="view-data"><span class="view-label">轉出端:</span><span id="vc_hosp"></span></div>
@@ -428,22 +575,26 @@
             <div class="view-data"><span class="view-label">LKW / Onset:</span><span id="vc_onset"></span></div>
             <div class="view-data"><span class="view-label">Door Time:</span><span id="vc_door"></span></div>
         </div>
+        
         <div class="view-section">
             <h4>臨床病程與評估</h4>
             <div class="view-data"><span class="view-label">臨床病程:</span><span id="vc_symptoms" style="white-space: pre-wrap; line-height:1.4;"></span></div>
             <div class="view-data"><span class="view-label">阻塞位置:</span><span id="vc_occlusion"></span></div>
-            <div class="view-data"><span class="view-label">NIHSS 分數:</span><span id="vc_nihss" style="color:#d9534f; font-weight:bold;"></span></div>
+            <div class="view-data"><span class="view-label">NIHSS 分數:</span><span id="vc_nihss" style="color: var(--alert); font-weight:bold;"></span></div>
             <div class="view-data"><span class="view-label">過去病史:</span><span id="vc_pmh"></span></div>
         </div>
+        
         <div class="view-section">
             <h4>檢驗與處置</h4>
             <div class="view-data"><span class="view-label">檢驗數據:</span><span id="vc_lab"></span></div>
             <div class="view-data"><span class="view-label">tPA 處置:</span><span id="vc_tpa"></span></div>
         </div>
+        
         <div class="view-section">
             <h4>家屬決策</h4>
             <div class="view-data"><span class="view-label">決策家屬:</span><span id="vc_family"></span></div>
         </div>
+        
         <div class="view-section" style="border-bottom: none;">
             <h4>🖼️ 臨床影像</h4>
             <div id="vc_images_container" style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;"></div>
@@ -494,7 +645,7 @@
     }
 
     function formatDateTime(d = new Date()) {
-        const YYYY = d.getFullYear(); // 🌟 改成帶有年份的格式，方便結案報告顯示
+        const YYYY = d.getFullYear(); 
         const MM = String(d.getMonth() + 1).padStart(2, '0'); const DD = String(d.getDate()).padStart(2, '0');
         const HH = String(d.getHours()).padStart(2, '0'); const mm = String(d.getMinutes()).padStart(2, '0');
         return `${YYYY}/${MM}/${DD} ${HH}:${mm}`;
@@ -502,7 +653,6 @@
 
     function getCaseTimeStr(c) {
         if (!c.requestTime) return "";
-        // 只取字串的後半段 (MM/DD HH:mm) 來顯示，讓畫面不要太擁擠
         let reqClean = c.requestTime.length > 10 ? c.requestTime.substring(5) : c.requestTime;
         let parts = [`提出: ${reqClean}`];
         if (c.cancelTime) {
@@ -510,7 +660,8 @@
             let canClean = c.cancelTime.length > 10 ? c.cancelTime.substring(5) : c.cancelTime;
             parts.push(`取消${byHosp}: ${canClean}`);
         }
-        return `(${parts.join(', ')})`;
+        // 加上 span 並指定 color: #ffffff 確保是白字
+        return `<span style="color: #ffffff; font-size: 0.85em; font-family: var(--mono);">(${parts.join(', ')})</span>`;
     }
 
     window.onload = function() {
@@ -527,7 +678,6 @@
         const today = new Date(); const dateString = today.getFullYear() + "/" + String(today.getMonth() + 1).padStart(2, '0') + "/" + String(today.getDate()).padStart(2, '0');
         document.getElementById('footer_version_display').innerText = `(版本資訊: ${document.title} | 當前日期: ${dateString})`;
 
-        // 🌟 綁定圖檔拖曳上傳事件
         const fbDropZone = document.getElementById('fb_drop_zone');
         if (fbDropZone) {
             fbDropZone.addEventListener('dragover', (e) => { e.preventDefault(); fbDropZone.style.backgroundColor = '#e8f4f8'; });
@@ -558,9 +708,9 @@
         const area = document.getElementById('fb_preview_area');
         area.innerHTML = '';
         feedbackImages.forEach((img, idx) => {
-            area.innerHTML += `<div style="padding: 6px 12px; background: #e2e3e5; border-radius: 20px; font-size: 0.85em; display: flex; align-items: center; gap: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                <span style="font-weight: bold; color: #333;">📸 ${img.name}</span>
-                <span style="color: white; background: #dc3545; width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; cursor: pointer; font-weight: bold;" onclick="removeFbImg(${idx})">&times;</span>
+            area.innerHTML += `<div class="badge bg-secondary d-flex align-items: center; gap-2 p-2">
+                <span class="text-white">📸 ${img.name}</span>
+                <span class="badge bg-danger rounded-circle p-1" style="cursor: pointer;" onclick="removeFbImg(${idx})">&times;</span>
             </div>`;
         });
     }
@@ -581,7 +731,7 @@
 
     function fetchDataFromGAS() {
         if (!GAS_URL) return alert("尚未設定 GAS URL！");
-        document.getElementById('hospital_status_board').innerHTML = '<h3 style="color: #666; text-align: center; width: 100%;">⏳ 正在從雲端載入各醫院即時量能，請稍候...</h3>';
+        document.getElementById('hospital_status_board').innerHTML = '<h3 class="text-muted text-center w-100">⏳ 正在從雲端載入各醫院即時量能，請稍候...</h3>';
         fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "fetchActiveData" }) })
         .then(res => res.json()).then(resData => {
             if (resData.status === "success") {
@@ -607,7 +757,7 @@
                 sortedHospitals.forEach(h => {
                     let colorCode = h.status === 'green' ? '#28a745' : (h.status === 'orange' ? '#fd7e14' : '#dc3545');
                     let isChecked = (h.status === 'green' || h.status === 'orange') ? 'checked' : '';
-                    container.innerHTML += `<label style="padding: 5px 10px; border: 1px solid ${colorCode}; border-radius: 4px; background: white;"><input type="checkbox" class="target-hosp-cb" value="${h.name}" ${isChecked}> <span style="font-weight:bold;">${h.name}</span> <span style="color:${colorCode}; font-size:0.9em;">(${h.statusText})</span></label>`;
+                    container.innerHTML += `<label class="p-2 border rounded bg-white" style="border-color: ${colorCode} !important;"><input type="checkbox" class="target-hosp-cb" value="${h.name}" ${isChecked}> <span class="fw-bold">${h.name}</span> <span style="color:${colorCode}; font-size:0.9em;">(${h.statusText})</span></label>`;
                 });
                 if (currentRosterData['1st Line 優先排班表']) document.getElementById('priority_hosp_display').innerText = currentRosterData['1st Line 優先排班表'].activeName;
                 renderHospitalBoard(); renderQuickUpdateBoard();
@@ -624,7 +774,7 @@
                     }
                 }
             } else { alert("雲端資料讀取失敗: " + resData.error); }
-        }).catch(err => { console.error(err); document.getElementById('hospital_status_board').innerHTML = '<h3 style="color: #dc3545; text-align: center; width: 100%;">❌ 雲端連線失敗，請檢查網路。</h3>'; });
+        }).catch(err => { console.error(err); document.getElementById('hospital_status_board').innerHTML = '<h3 class="text-danger text-center w-100">❌ 雲端連線失敗，請檢查網路。</h3>'; });
     }
 
     function switchTab(tabId) {
@@ -640,18 +790,26 @@
         }, 1000);
     }
 
-    function renderHospitalBoard() {
+   function renderHospitalBoard() {
         const board = document.getElementById('hospital_status_board'); board.innerHTML = "";
         hospitals.forEach(hosp => {
-            const topColor = hosp.status === 'green' ? '#28a745' : (hosp.status === 'orange' ? '#fd7e14' : '#dc3545');
-            let updateTimeHtml = hosp.lightUpdateTime ? `<span style="font-size: 0.75em; color: #888; margin-left: 8px;">(更新於: ${hosp.lightUpdateTime})</span>` : "";
+            const topColor = hosp.status === 'green' ? 'var(--success)' : (hosp.status === 'orange' ? 'var(--amber)' : 'var(--alert)');
+            let updateTimeHtml = hosp.lightUpdateTime ? `<span class="text-muted small ms-2">(更新於: ${hosp.lightUpdateTime})</span>` : "";
+            
             board.innerHTML += `
                 <div class="hosp-card" style="border-top-color: ${topColor}">
-                    <div class="hosp-card-icons"><span class="edit-icon" onclick="openCallModal('${hosp.name}')" title="撥打電話">📞</span><span class="edit-icon" onclick="openHospSettingsModal('${hosp.name}')" title="系統設定">⚙️</span></div>
-                    <h3 style="padding-right: 60px;">${hosp.name}</h3>
-                    <div style="margin-bottom: 5px; display: flex; align-items: center; flex-wrap: wrap;"><span class="status-indicator status-${hosp.status}">${hosp.statusText}</span>${updateTimeHtml}</div>
-                    <div class="hosp-info" style="margin-top: 8px;">📞 急診: <strong>${hosp.erPhone}</strong><br>👨‍⚕️ 當前值班: <strong>${hosp.docName}</strong><br>📱 手機: <strong>${hosp.docPhone}</strong></div>
-                    <a href="${hosp.lineGroup}" target="_blank" class="line-btn">💬 開啟取栓 LINE 群組</a>
+                    <!-- 🌟 在右上角圖示群中加入 LINE 小圖示 (綠色圓形或配合莫蘭迪風格) -->
+                    <div class="hosp-card-icons" style="gap: 6px;">
+                        <span class="edit-icon" onclick="openCallModal('${hosp.name}')" title="撥打電話">📞</span>
+                        <a href="${hosp.lineGroup}" target="_blank" class="edit-icon" style="text-decoration: none;" title="開啟取栓 LINE 群組">💬</a>
+                        <span class="edit-icon" onclick="openHospSettingsModal('${hosp.name}')" title="系統設定">⚙️</span>
+                    </div>
+                    
+                    <h3 class="pe-5">${hosp.name}</h3>
+                    <div class="mb-2 d-flex align-items-center flex-wrap">
+                        <span class="status-indicator status-${hosp.status}">${hosp.statusText}</span>${updateTimeHtml}
+                    </div>
+                    <div class="hosp-info mt-2">📞 急診: <strong>${hosp.erPhone}</strong><br>👨‍⚕️ 當前值班: <strong>${hosp.docName}</strong><br>📱 手機: <strong>${hosp.docPhone}</strong></div>
                 </div>`;
         });
     }
@@ -689,31 +847,21 @@
 
     function resetFormStatusCard() {
         const card = document.getElementById('form_status_card'); const title = document.getElementById('form_status_title');
-        card.classList.remove('filled'); title.innerText = "尚未讀取臨床資訊"; title.style.color = "#6c757d";
+        card.classList.remove('filled'); title.innerText = "尚未讀Trust臨床資訊"; title.style.color = "#6c757d";
     }
-    // ==========================================
-    // 💡 自動帶入今天日期作為「追蹤個案編號」前綴 (例如: 20260809-)
-    // ==========================================
+
     function prefillTodayDate() {
         let today = new Date();
         let yyyy = today.getFullYear();
-        // getMonth() 回傳 0-11，所以要加 1；padStart(2, '0') 確保單數月份前面會補零
         let mm = String(today.getMonth() + 1).padStart(2, '0');
         let dd = String(today.getDate()).padStart(2, '0');
-        
-        // 組合出今天的日期字串，並在後面加上一槓
         let dateString = yyyy + mm + dd + "-"; 
-    
-        // 抓取追蹤個案的輸入框
         let trackInput = document.getElementById('track_case_id'); 
-        
-        // 如果輸入框存在，且裡面是空的，就幫醫師把日期填進去
         if (trackInput && !trackInput.value) {
             trackInput.value = dateString;
         }
     }
     
-    // 確保網頁一載入完成，就立刻執行自動填入功能
     window.addEventListener('load', prefillTodayDate);
     
     function editExistingClinical() {
@@ -759,7 +907,6 @@
     }
 
     function downloadRosterTemplate() {
-        // 🌟 改變範本表頭，使用波浪號避免被 Excel 自動轉成日期
         let csvContent = "\uFEFFDate,08:00~12:00,12:00~17:00,夜間\n";
         let now = new Date();
         for(let i = 1; i <= 3; i++) {
@@ -798,7 +945,7 @@
         resDiv.style.display = 'block';
         if (currentRosterData[hospName]) {
             const r = currentRosterData[hospName]; tbody.innerHTML = `<tr><td style="color:#ecf0f1; font-weight:normal;">${hospName}</td><td style="color:#f1c40f;">${r.m}</td><td style="color:#f1c40f;">${r.a}</td><td style="color:#f1c40f;">${r.n}</td></tr>`;
-        } else { tbody.innerHTML = `<tr><td colspan="4" style="color:#aaa; text-align:center;">無排班資料</td></tr>`; }
+        } else { tbody.innerHTML = `<tr><td colspan="4" class="text-muted text-center">無排班資料</td></tr>`; }
     }
 
     function openReportModal() {
@@ -859,16 +1006,15 @@
         const reqTime = `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
 
         let hospStatusObj = {}; let hospReplyObj = {}; targets.forEach(hName => { hospStatusObj[hName] = "尚未讀取個案"; hospReplyObj[hName] = null; });
-        // 修改後 (把 delete 那段刪掉，保留這樣即可)：
-let payloadClinicalData = JSON.parse(JSON.stringify(pendingClinicalData));
+        let payloadClinicalData = JSON.parse(JSON.stringify(pendingClinicalData));
 
-        document.getElementById('submit_result_area').style.display = 'block'; document.getElementById('submit_result_area').innerHTML = `⏳ <strong style="color:#0056b3;">正在秒速建檔並發送通知信，請稍候...</strong>`;
+        document.getElementById('submit_result_area').style.display = 'block'; document.getElementById('submit_result_area').innerHTML = `⏳ <strong class="text-primary">正在秒速建檔並發送通知信，請稍候...</strong>`;
         
         fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "createCase", payload: { caseId: caseId, requestTime: reqTime, reqHospOut: hospOut, reqPhone: phone, reqEmail: email, targetHospitals: targets, clinicalData: payloadClinicalData } }) })
         .then(res => res.json()).then(data => {
             if(data.status === "success") {
                 cases[caseId].clinicalData.folderUrl = data.data.folderUrl; 
-                document.getElementById('submit_result_area').innerHTML = `<div style="text-align: center;"><h3 style="color: #28a745; margin-bottom: 5px;">✅ 資訊與通知已秒速發送！</h3><p style="font-size: 1.1em; color: #0056b3; font-weight: bold; margin-bottom: 15px;">個案代碼：${caseId}</p><p style="color: #dc3545; font-weight: bold; font-size: 1.1em; margin-bottom: 10px;">⚠️ 最後一步：請點擊下方按鈕上傳臨床影像 ⚠️</p><a href="${data.data.folderUrl}" target="_blank" style="display: inline-block; background-color: #0056b3; color: white; padding: 15px 30px; border-radius: 8px; font-size: 1.2em; font-weight: bold; text-decoration: none; box-shadow: 0 4px 6px rgba(0,0,0,0.2); animation: pulse 1.5s infinite;">📂 點此開啟專屬資料夾，並將影像拖曳進入</a><p style="font-size: 0.85em; color: #666; margin-top: 10px;">(上傳完成後，接收端醫院即可在信件中查看)</p></div>`;
+                document.getElementById('submit_result_area').innerHTML = `<div class="text-center"><h3 class="text-success mb-2">✅ 資訊與通知已秒速發送！</h3><p class="fs-5 text-primary fw-bold mb-3">個案代碼：${caseId}</p><p class="text-danger fw-bold fs-5 mb-2">⚠️ 最後一步：請點擊下方按鈕上傳臨床影像 ⚠️</p><a href="${data.data.folderUrl}" target="_blank" class="btn btn-primary btn-lg fw-bold shadow">📂 點此開啟專屬資料夾，並將影像拖曳進入</a><p class="text-muted small mt-2">(上傳完成後，接收端醫院即可在信件中查看)</p></div>`;
                 setTimeout(fetchRecentCasesFromGAS, 3000);
             } else { document.getElementById('submit_result_area').innerHTML = `❌ <strong>上傳發生錯誤：</strong> ${data.error}`; }
         }).catch(e => { document.getElementById('submit_result_area').innerHTML = `❌ <strong>網路連線錯誤，請檢查 GAS 網址是否正確。</strong>`; });
@@ -884,40 +1030,35 @@ let payloadClinicalData = JSON.parse(JSON.stringify(pendingClinicalData));
             const c = cases[caseId];
             if (now - c.timestamp <= 14400000) { 
                 hasActiveCases = true;
-                let destStatus = c.finalDest ? `<span style="color:#28a745; font-weight:bold;">已鎖定：${c.finalDest} (${c.lockTime})</span>` : `<span style="color:#fd7e14;">媒合中...</span>`;
-                let btnDepart = c.departTime ? `<button class="btn-recorded" onclick="undoTime('${caseId}', 'depart')">已出發 ${c.departTime} ↺</button>` : `<button class="btn-warning" onclick="markTime('${caseId}', 'depart')">🚑 記錄出發</button>`;
-                let btnArrive = c.arriveTime ? `<button class="btn-recorded" onclick="undoTime('${caseId}', 'arrive')">已抵達 ${c.arriveTime} ↺</button>` : `<button class="btn-danger" onclick="markTime('${caseId}', 'arrive')">🏥 記錄抵達</button>`;
-                board.innerHTML += `<div class="quick-case-card"><div class="cid">📄 ${caseId} <div style="font-size: 0.75em; color: #666; font-weight: normal; margin-top: 2px;">${getCaseTimeStr(c)}</div></div><div class="info">狀態: ${destStatus}</div><div class="action-grid">${btnDepart}${btnArrive}</div><button class="btn-success" style="width: 100%; margin-top:5px;" onclick="quickUpdateLocation('${caseId}')">📍 傳送 GPS 位置</button></div>`;
+                let destStatus = c.finalDest ? `<span class="text-success fw-bold">已鎖定：${c.finalDest} (${c.lockTime})</span>` : `<span class="text-warning fw-bold">媒合中...</span>`;
+                let btnDepart = c.departTime ? 
+                    `<button class="btn-custom btn-theme-secondary" onclick="undoTime('${caseId}', 'depart')">已出發 ${c.departTime} ↺</button>` : 
+                    `<button class="btn-custom btn-theme-warning" onclick="markTime('${caseId}', 'depart')">🚑 記錄出發</button>`;
+                let btnArrive = c.arriveTime ? 
+                    `<button class="btn-custom btn-theme-secondary" onclick="undoTime('${caseId}', 'arrive')">已抵達 ${c.arriveTime} ↺</button>` : 
+                    `<button class="btn-custom btn-theme-danger" onclick="markTime('${caseId}', 'arrive')">🏥 記錄抵達</button>`;
+                board.innerHTML += `<div class="quick-case-card"><div class="cid">📄 ${caseId} <div class="text-muted small mt-1">${getCaseTimeStr(c)}</div></div><div class="info">狀態: ${destStatus}</div><div class="action-grid">${btnDepart}${btnArrive}</div><button class="btn btn-success btn-sm w-100 mt-1 fw-bold" onclick="quickUpdateLocation('${caseId}')">📍 傳送 GPS 位置</button></div>`;
             }
         }
-        if (!hasActiveCases) board.innerHTML = `<span style="color: #888; padding: 10px;">目前近4小時無進行中個案。</span>`;
+        if (!hasActiveCases) board.innerHTML = `<span class="text-muted p-2">目前近4小時無進行中個案。</span>`;
     }
     
     function openPrepGuide(caseId) {
         let targetHosp = "";
         let targetPhone = "";
-        
-        // 1. 取得該個案目前選擇或鎖定的目標醫院名稱
         if (typeof cases !== 'undefined' && cases[caseId]) {
             targetHosp = cases[caseId].finalDest || "";
         }
-
-        // 2. 從全域的 hospitalsConfig (這是從 GAS fetchActiveData 抓回來的醫院設定) 尋找該醫院的真實電話
         if (targetHosp && typeof hospitalsConfig !== 'undefined' && hospitalsConfig[targetHosp]) {
             targetPhone = hospitalsConfig[targetHosp].erPhone || "";
         }
-
-        // 3. 組合成帶有醫院名稱與電話參數的網址
         let guideUrl = "prep_guide.html";
         let params = [];
         if (targetHosp) params.push(`hospital=${encodeURIComponent(targetHosp)}`);
         if (targetPhone) params.push(`phone=${encodeURIComponent(targetPhone)}`);
-        
         if (params.length > 0) {
             guideUrl += "?" + params.join("&");
         }
-        
-        // 4. 彈出小視窗
         window.open(guideUrl, '_blank', 'width=600,height=700,top=100,left=200');
     }
     
@@ -950,7 +1091,7 @@ let payloadClinicalData = JSON.parse(JSON.stringify(pendingClinicalData));
 
    function renderTrackerDashboard() {
         const c = cases[currentTrackCaseId]; 
-        document.getElementById('disp_track_id').innerHTML = `${currentTrackCaseId} <span style="font-size: 0.7em; color: #666; font-weight: normal;">${getCaseTimeStr(c)}</span>`;
+        document.getElementById('disp_track_id').innerHTML = `${currentTrackCaseId} <span class="text-muted small fw-normal">${getCaseTimeStr(c)}</span>`;
         const container = document.getElementById('track_list_container'); const chatArea = document.getElementById('track_chat_area');
         container.innerHTML = ""; chatArea.innerHTML = ""; chatArea.style.display = "none";
 
@@ -958,33 +1099,29 @@ let payloadClinicalData = JSON.parse(JSON.stringify(pendingClinicalData));
             chatArea.style.display = "flex"; chatArea.className = "chat-room-banner";
             let folderLink = c.clinicalData.folderUrl ? c.clinicalData.folderUrl : "#";
             
-            // 🌟 產生出發與抵達按鈕
-            let btnDepart = c.departTime ? `<button class="btn-recorded" onclick="undoTime('${currentTrackCaseId}', 'depart')">已出發 ${c.departTime} ↺</button>` : `<button class="btn-warning" onclick="markTime('${currentTrackCaseId}', 'depart')">🚑 記錄出發</button>`;
-            let btnArrive = c.arriveTime ? `<button class="btn-recorded" onclick="undoTime('${currentTrackCaseId}', 'arrive')">已抵達 ${c.arriveTime} ↺</button>` : `<button class="btn-danger" onclick="markTime('${currentTrackCaseId}', 'arrive')">🏥 記錄抵達</button>`;
+            let btnDepart = c.departTime ? `<button class="btn btn-secondary btn-sm fw-bold" onclick="undoTime('${currentTrackCaseId}', 'depart')">已出發 ${c.departTime} ↺</button>` : `<button class="btn btn-warning btn-sm fw-bold text-dark" onclick="markTime('${currentTrackCaseId}', 'depart')">🚑 記錄出發</button>`;
+            let btnArrive = c.arriveTime ? `<button class="btn btn-secondary btn-sm fw-bold" onclick="undoTime('${currentTrackCaseId}', 'arrive')">已抵達 ${c.arriveTime} ↺</button>` : `<button class="btn btn-danger btn-sm fw-bold" onclick="markTime('${currentTrackCaseId}', 'arrive')">🏥 記錄抵達</button>`;
 
-            // 🌟 防呆重點：如果已經出發或抵達，就不允許取消！隱藏取消按鈕
             let cancelBtnHtml = "";
-            if (!c.departTime && !c.arriveTime) {
-                cancelBtnHtml = `<button class="btn-danger" onclick="cancelFinalDest('${currentTrackCaseId}', '${c.reqHospOut}')">❌ 取消</button>`;
+        if (!c.departTime && !c.arriveTime) {
+            cancelBtnHtml = `<button class="btn-custom btn-theme-danger" onclick="cancelFinalDest('${currentTrackCaseId}', '${c.reqHospOut}')">❌ 取消</button>`;
             }
 
-            // 🌟 將所有按鈕組合輸出 (包含動態判斷的取消按鈕)
             chatArea.innerHTML = `
-                <div style="width: 100%; margin-bottom: 5px;">
-                    <strong style="color:#0056b3; font-size: 1.1em;">💬 已鎖定：${c.finalDest} (${c.lockTime})</strong>
-                </div>
-                <div style="display:flex; gap:10px; flex-wrap: wrap; width: 100%;">
-                    ${btnDepart}
-                    ${btnArrive}
-                    <button class="btn-success" onclick="quickUpdateLocation('${currentTrackCaseId}')">📍 更新 GPS</button>
-                    <button class="btn-main" style="background:#28a745;" onclick="window.open('${folderLink}', '_blank')">📂 開啟影像</button>
-                    <button class="btn-main" style="background:#17a2b8;" onclick="openMessenger('${currentTrackCaseId}', 1, 'requester', '需求端')">💬 即時溝通</button>
-                    <button class="btn-main" style="background-color:#ffc107; color:#333;" onclick="openPrepGuide('${currentTrackCaseId}')" title="出發前準備與注意事項">🚨 注意事項</button>
-                    ${cancelBtnHtml} <!-- 🌟 只有在還沒出發時，才顯示取消按鈕 -->
-                </div>`;
+            <div class="w-100 mb-1">
+                <strong style="color:#0056b3; font-size: 1.1em;">💬 已鎖定：${c.finalDest} (${c.lockTime})</strong>
+            </div>
+            <div style="display:flex; gap:10px; flex-wrap: wrap; width: 100%;">
+                ${btnDepart}
+                ${btnArrive}
+                <button class="btn-custom btn-theme-success" onclick="quickUpdateLocation('${currentTrackCaseId}')">📍 更新 GPS</button>
+                <button class="btn-custom btn-theme-success" onclick="window.open('${folderLink}', '_blank')">📂 開啟影像</button>
+                <button class="btn-custom btn-theme-info" onclick="openMessenger('${currentTrackCaseId}', 1, 'requester', '需求端')">💬 即時溝通</button>
+                <button class="btn-custom btn-theme-warning" onclick="openPrepGuide('${currentTrackCaseId}')" title="出發前準備與注意事項">🚨 注意事項</button>
+                ${cancelBtnHtml}
+            </div>`;
         }
         
-        // --- 這裡以下是印出「各醫院回覆量能狀態」的迴圈，不要動它 ---
         c.targets.forEach(hospName => {
             const status = c.hospStatus[hospName]; 
             let statusClass = "eval";
@@ -992,16 +1129,16 @@ let payloadClinicalData = JSON.parse(JSON.stringify(pendingClinicalData));
             else if(status.includes("不建議")) statusClass = "no";
             else if(status.includes("待確認")) statusClass = "pending";
 
-            let replyTimeStr = c.hospReplyTime[hospName] ? ` <span style="font-size:0.85em; color:#666;">(${c.hospReplyTime[hospName]})</span>` : "";
+            let replyTimeStr = c.hospReplyTime[hospName] ? ` <span class="text-muted small">(${c.hospReplyTime[hospName]})</span>` : "";
             let itemClass = "track-item"; let actionHtml = "";
             
             if (c.finalDest) { itemClass += (c.finalDest === hospName) ? " selected" : " disabled"; } 
-            else if (statusClass === "ok") { actionHtml = `<button class="btn-success" onclick="selectFinalDest('${hospName}')">✅ 選擇此院</button>`; }
+            else if (statusClass === "ok") { actionHtml = `<button class="btn btn-success btn-sm fw-bold" onclick="selectFinalDest('${hospName}')">✅ 選擇此院</button>`; }
             
             let pendingReason = (statusClass === 'pending' && c.hospPendingReason[hospName]) ? ` (${c.hospPendingReason[hospName]})` : "";
             let statusTextHtml = `<span class="track-status ${statusClass}">${status}${pendingReason}</span>`;
             
-            container.innerHTML += `<div class="${itemClass}"><div><span style="font-weight:bold; font-size:1.1em; color:#004085; display:inline-block; min-width:90px;">${hospName}</span>${statusTextHtml}${replyTimeStr}</div><div>${actionHtml}</div></div>`;
+            container.innerHTML += `<div class="${itemClass}"><div><span class="fw-bold text-primary" style="display:inline-block; min-width:90px;">${hospName}</span>${statusTextHtml}${replyTimeStr}</div><div>${actionHtml}</div></div>`;
         });
     }
 
@@ -1011,7 +1148,6 @@ let payloadClinicalData = JSON.parse(JSON.stringify(pendingClinicalData));
             cases[currentTrackCaseId].finalDest = hospName; 
             cases[currentTrackCaseId].lockTime = t; 
             
-            // 🌟 讓畫面瞬間連動：立刻更新上方的即時看板
             renderQuickUpdateBoard();
             renderTrackerDashboard();
 
@@ -1025,7 +1161,6 @@ let payloadClinicalData = JSON.parse(JSON.stringify(pendingClinicalData));
             .then(res => res.json())
             .then(data => { 
                 if(data.status === "success") { 
-                    // 當雲端確認寫入成功後，再次確保所有畫面狀態一致
                     renderTrackerDashboard(); 
                     renderQuickUpdateBoard();
                     if(loggedInHosp) renderHospitalCases(); 
@@ -1040,7 +1175,7 @@ let payloadClinicalData = JSON.parse(JSON.stringify(pendingClinicalData));
     function openMessenger(caseId, attempt, senderType, senderName) {
       currentChatContext = { caseId, attempt, senderType, senderName };
       document.getElementById('messengerTitle').innerText = senderType === 'requester' ? `與 取栓醫院 即時溝通` : `與 轉出醫院 即時溝通`;
-      document.getElementById('chatHistoryBox').innerHTML = "<div style='text-align:center; color:#fff; margin-top: 50px;'>載入對話紀錄中...</div>";
+      document.getElementById('chatHistoryBox').innerHTML = "<div class='text-center text-white mt-5'>載入對話紀錄中...</div>";
       document.getElementById('chatInput').value = ""; document.getElementById('messengerModal').style.display = 'flex';
       refreshChat(); chatPollInterval = setInterval(refreshChat, 3000);
     }
@@ -1054,16 +1189,16 @@ let payloadClinicalData = JSON.parse(JSON.stringify(pendingClinicalData));
                 let box = document.getElementById('chatHistoryBox'); let isScrolledToBottom = box.scrollHeight - box.clientHeight <= box.scrollTop + 10;
                 let rawText = data.data || ""; let chatHtml = "";
                 if (!rawText.trim()) {
-                    chatHtml = "<div style='text-align:center; color:#fff; background: rgba(0,0,0,0.2); padding: 5px 10px; border-radius: 15px; width: fit-content; margin: 20px auto; font-size: 0.85em;'>目前尚無對話紀錄，請直接在下方輸入訊息開始對話。</div>";
+                    chatHtml = "<div class='text-center text-white bg-dark bg-opacity-25 px-3 py-1 rounded-pill mx-auto my-3 small'>目前尚無對話紀錄，請直接在下方輸入訊息開始對話。</div>";
                 } else {
                     let lines = rawText.split('\n');
                     lines.forEach(line => {
                         if(!line.trim()) return; let match = line.match(/^([^：]+)：(.*) \(([^)]+)\)$/);
                         if(match) {
                             let sender = match[1]; let msg = match[2]; let time = match[3]; let isMe = (sender === currentChatContext.senderName);
-                            if(isMe) { chatHtml += `<div style="display: flex; justify-content: flex-end; margin-bottom: 12px;"><div style="display: flex; flex-direction: column; align-items: flex-end; max-width: 80%;"><div style="background-color: #dcf8c6; padding: 8px 12px; border-radius: 15px 15px 0 15px; color: #333; box-shadow: 0 1px 2px rgba(0,0,0,0.1); word-break: break-word; text-align: left;">${msg}</div><div style="font-size: 0.7em; color: rgba(255,255,255,0.8); margin-top: 3px;">${time}</div></div></div>`; } 
-                            else { chatHtml += `<div style="display: flex; justify-content: flex-start; margin-bottom: 12px;"><div style="display: flex; flex-direction: column; align-items: flex-start; max-width: 80%;"><div style="font-size: 0.75em; color: #333; margin-bottom: 3px; margin-left: 5px; font-weight: bold;">${sender}</div><div style="background-color: #ffffff; padding: 8px 12px; border-radius: 15px 15px 15px 0; color: #333; box-shadow: 0 1px 2px rgba(0,0,0,0.1); word-break: break-word; text-align: left;">${msg}</div><div style="font-size: 0.7em; color: rgba(255,255,255,0.8); margin-top: 3px;">${time}</div></div></div>`; }
-                        } else { chatHtml += `<div style='text-align:center; color:#fff; background: rgba(0,0,0,0.2); padding: 3px 10px; border-radius: 15px; width: fit-content; margin: 10px auto; font-size: 0.8em;'>${line}</div>`; }
+                            if(isMe) { chatHtml += `<div class="d-flex justify-content-end mb-2"><div class="d-flex flex-column align-items-end" style="max-width: 80%;"><div class="bg-success text-white p-2 rounded-3 text-start shadow-sm word-break">${msg}</div><div class="small text-white-50 mt-1">${time}</div></div></div>`; } 
+                            else { chatHtml += `<div class="d-flex justify-content-start mb-2"><div class="d-flex flex-column align-items-start" style="max-width: 80%;"><div class="small text-dark fw-bold ms-1 mb-1">${sender}</div><div class="bg-white text-dark p-2 rounded-3 text-start shadow-sm word-break">${msg}</div><div class="small text-white-50 mt-1">${time}</div></div></div>`; }
+                        } else { chatHtml += `<div class='text-center text-white bg-dark bg-opacity-25 px-2 py-1 rounded-pill mx-auto my-2 small'>${line}</div>`; }
                     });
                 }
                 box.innerHTML = chatHtml; if (isScrolledToBottom) box.scrollTop = box.scrollHeight;
@@ -1080,13 +1215,9 @@ let payloadClinicalData = JSON.parse(JSON.stringify(pendingClinicalData));
     }
 
     function cancelFinalDest(caseId, cancelHospName) { 
-        // 🌟 1. 跳出視窗要求填寫取消原因，預設文字為「家屬有其他偏好醫院」
         let reason = prompt(`確定要取消轉入 ${cases[caseId].finalDest} 嗎？\n請輸入取消原因：`, "家屬有其他偏好醫院");
-        
-        // 如果使用者沒有按「取消」關閉視窗，才繼續執行
         if(reason !== null) { 
             let t = formatDateTime(); 
-            // 🌟 2. 組合字串格式：原因 (當下時間)
             let cancelStr = `${reason} (${t})`; 
             
             cases[caseId].finalDest = null; 
@@ -1101,11 +1232,9 @@ let payloadClinicalData = JSON.parse(JSON.stringify(pendingClinicalData));
                 cases[caseId].hospStatus[loggedInHosp] = "評估中";
             }
 
-            // 讓畫面瞬間連動
             renderQuickUpdateBoard();
             renderTrackerDashboard();
 
-            // 🌟 3. 將包含原因的 cancelStr 送給後端 (已移除舊版次數限制的報錯判斷)
             fetch(GAS_URL, { 
                 method: 'POST', 
                 body: JSON.stringify({ 
@@ -1123,7 +1252,6 @@ let payloadClinicalData = JSON.parse(JSON.stringify(pendingClinicalData));
         } 
     }
 
-    // 🌟 智慧計算 DTP 與 DTR 
     function autoCalcDTPDTR() {
         let arrival = document.getElementById('fb_arrival').value;
         let puncture = document.getElementById('fb_puncture').value;
@@ -1136,17 +1264,13 @@ let payloadClinicalData = JSON.parse(JSON.stringify(pendingClinicalData));
 
     function openFeedbackModal(caseId) {
         currentFeedbackCaseId = caseId; const c = cases[caseId]; document.getElementById('fb_case_display').innerText = caseId;
-        
         let door = (c.clinicalData && c.clinicalData.door) ? formatClinicalTime(c.clinicalData.door) : ""; let doorOut = c.departTime || ""; let arrival = c.arriveTime || "";
         document.getElementById('fb_door').value = door; document.getElementById('fb_doorout').value = doorOut; document.getElementById('fb_arrival').value = arrival;
         document.getElementById('fb_dido').value = calculateTimeDiffStr(door, doorOut); 
-        
         document.getElementById('fb_puncture').value = ""; document.getElementById('fb_recanalization').value = ""; document.getElementById('fb_dtp').value = ""; document.getElementById('fb_dtr').value = ""; document.getElementById('fb_mtici').value = ""; document.getElementById('fb_complication').value = ""; document.getElementById('fb_mrs').value = ""; document.getElementById('fb_desposition').value = "";
 
-        // 清空之前的圖檔預覽
         feedbackImages = [];
         document.getElementById('fb_preview_area').innerHTML = "";
-
         document.getElementById('feedbackModal').style.display = 'flex';
     }
 
@@ -1154,7 +1278,6 @@ let payloadClinicalData = JSON.parse(JSON.stringify(pendingClinicalData));
 
     function submitFeedback() {
         if (!confirm("確定要紀錄結案時間並送出回饋嗎？")) return;
-        
         let payload = {
             caseId: currentFeedbackCaseId, hospName: loggedInHosp,
             door: document.getElementById('fb_door').value, doorOut: document.getElementById('fb_doorout').value,
@@ -1164,10 +1287,9 @@ let payloadClinicalData = JSON.parse(JSON.stringify(pendingClinicalData));
             mTICI: document.getElementById('fb_mtici').value, complication: document.getElementById('fb_complication').value,
             dischargeMRS: document.getElementById('fb_mrs').value, desposition: document.getElementById('fb_desposition').value,
             closeTime: formatDateTime(),
-            images: feedbackImages // 🌟 將圖檔打包進去
+            images: feedbackImages
         };
 
-        // 鎖定按鈕狀態
         let btn = document.getElementById('btn_submit_feedback');
         let origText = btn.innerText;
         btn.innerText = feedbackImages.length > 0 ? "⏳ 正在上傳圖檔並發送報告，請稍候..." : "⏳ 正在處理結案，請稍候...";
@@ -1194,49 +1316,50 @@ let payloadClinicalData = JSON.parse(JSON.stringify(pendingClinicalData));
         for (let caseId in cases) {
             const c = cases[caseId];
             if (c.targets.includes(loggedInHosp)) {
-                // 1. 如果自己已經結案，不顯示
                 if (c.hospStatus[loggedInHosp] && c.hospStatus[loggedInHosp].includes("已結案")) continue; 
                 
-                // 🌟 2. 依照您的需求：只有在「已抵達 (arriveTime)」時，才從其他未接手的醫院清單中徹底清除/隱藏！
                 if (c.finalDest && c.finalDest !== loggedInHosp) {
                     if (c.arriveTime) {
-                        continue; // 只有在抵達目標醫院後，才跳過並隱藏這筆個案
+                        continue; 
                     }
                 }
 
                 if (c.hospStatus[loggedInHosp] === "尚未讀取個案") c.hospStatus[loggedInHosp] = "評估中";
                 
                 let intentText = "評估中"; 
-                let actionBtns = `<button class="btn-main" style="background:#fd7e14;" onclick="openReplyModal('${caseId}')">🏥 回覆量能</button>`;
-                
-                if (c.finalDest === loggedInHosp) {
-                        if (c.arriveTime) { intentText = `<span style="color:#17a2b8; font-weight:bold;">🏥 已抵達本院 (${c.arriveTime})</span>`; } 
-                        else if (c.departTime) { intentText = `<span style="color:#fd7e14; font-weight:bold;">🚑 救護車已出發 (${c.departTime})</span>`; } 
-                        else { intentText = `<span style="color:green; font-weight:bold;">✅ 已轉入本院 (${c.lockTime})</span>`; }
+                // 3. 取栓醫院介面按鈕 (renderHospitalCases)
+    let actionBtns = `<button class="btn-custom btn-theme-orange" onclick="openReplyModal('${caseId}')">🏥 回覆量能</button>`;
+    
+    if (c.finalDest === loggedInHosp) {
+        if (c.arriveTime) { intentText = `<span class="text-info fw-bold">🏥 已抵達本院 (${c.arriveTime})</span>`; } 
+        else if (c.departTime) { intentText = `<span class="text-warning fw-bold">🚑 救護車已出發 (${c.departTime})</span>`; } 
+        else { intentText = `<span class="text-success fw-bold">✅ 已轉入本院 (${c.lockTime})</span>`; }
 
-                        let mapBtn = c.location ? `<button class="btn-main" style="background:#28a745;" onclick="window.open('https://www.google.com/maps/search/?api=1&query=${c.location.lat},${c.location.lng}', '_blank')">🗺️ GPS地圖</button>` : `<span style="font-size:0.85em; color:#888;">(尚未回報GPS)</span>`;
-                        let chatBtn = `<button class="btn-main" style="background:#17a2b8;" onclick="openMessenger('${caseId}', 1, 'evt', '${loggedInHosp}')">💬 即時文字溝通</button>`;
-                        
-                        if (c.arriveTime) {
-                            let feedbackBtn = `<button class="btn-main" style="background:#ffc107; color:#333;" onclick="openFeedbackModal('${caseId}')">📝 個案回饋與結案</button>`;
-                            actionBtns = `${mapBtn} ${chatBtn} ${feedbackBtn}`; 
-                        } else {
-                            let cancelBtn = `<button class="btn-main" style="background:#dc3545;" onclick="cancelFinalDest('${caseId}', '${loggedInHosp}')">❌ 取消轉入</button>`;
-                            actionBtns = `${mapBtn} ${chatBtn} ${cancelBtn}`; 
-                        }
-                } else if (c.finalDest) { 
-                    // 🌟 3. 如果已被別人鎖定，但病人還沒抵達：畫面保留個案，但「拔除回覆按鈕」防呆
-                    if (c.departTime) {
-                        intentText = `<span style="color:red; font-weight:bold;">已出發轉至 ${c.finalDest}</span>`;
-                    } else {
-                        intentText = `<span style="color:red; font-weight:bold;">已鎖定轉至 ${c.finalDest}</span>`; 
-                    }
-                    actionBtns = ``; // 拔除操作按鈕，其他醫院只能看，不能動
-                }
+        // 🌟 將地圖與聊天按鈕改為 .btn-custom
+        let mapBtn = c.location ? `<button class="btn-custom btn-theme-success" onclick="window.open('https://www.google.com/maps/search/?api=1&query=${c.location.lat},${c.location.lng}', '_blank')">🗺️ GPS地圖</button>` : `<span style="font-size:0.85em; color:#888;">(尚未回報GPS)</span>`;
+        let chatBtn = `<button class="btn-custom btn-theme-info" onclick="openMessenger('${caseId}', 1, 'evt', '${loggedInHosp}')">💬 即時文字溝通</button>`;
+        
+        if (c.arriveTime) {
+            // 🌟 結案按鈕改為 .btn-custom
+            let feedbackBtn = `<button class="btn-custom btn-theme-warning" onclick="openFeedbackModal('${caseId}')">📝 個案回饋與結案</button>`;
+            actionBtns = `${mapBtn} ${chatBtn} ${feedbackBtn}`; 
+        } else {
+            // 🌟 取消轉入按鈕改為 .btn-custom
+            let cancelBtn = `<button class="btn-custom btn-theme-danger" onclick="cancelFinalDest('${caseId}', '${loggedInHosp}')">❌ 取消轉入</button>`;
+            actionBtns = `${mapBtn} ${chatBtn} ${cancelBtn}`; 
+        }
+    } else if (c.finalDest) { 
+        if (c.departTime) {
+            intentText = `<span class="text-danger fw-bold">已出發轉至 ${c.finalDest}</span>`;
+        } else {
+            intentText = `<span class="text-danger fw-bold">已鎖定轉至 ${c.finalDest}</span>`; 
+        }
+        actionBtns = ``; 
+    }
 
-                let timesInfo = getCaseTimeStr(c); let replyTimeStr = c.hospReplyTime[loggedInHosp] ? ` <span style="font-size:0.85em; color:#666;">(${c.hospReplyTime[loggedInHosp]})</span>` : "";
+                let timesInfo = getCaseTimeStr(c); let replyTimeStr = c.hospReplyTime[loggedInHosp] ? ` <span class="small text-muted">(${c.hospReplyTime[loggedInHosp]})</span>` : "";
 
-                tbody.innerHTML += `<tr><td style="border-bottom: 1px solid #ccc; padding: 15px; width: 140px;"><b>${caseId}</b><br><span style="font-size: 0.8em; color: #666;">${timesInfo}</span></td><td style="border-bottom: 1px solid #ccc; padding: 15px;"><div style="display:flex; gap:8px; flex-wrap: wrap; margin-bottom: 8px;"><button class="btn-main" style="background:#6c757d;" onclick="openViewCaseModal('${caseId}')">📜 檢視完整病史</button>${actionBtns}</div><div style="font-size:0.9em;">狀態: <span style="color:#0056b3;">${c.hospStatus[loggedInHosp]}</span>${replyTimeStr} | 轉出端: ${intentText}</div></td></tr>`;
+                tbody.innerHTML += `<tr><td class="border-bottom p-3" style="width: 140px;"><b>${caseId}</b><br><span class="small text-muted">${timesInfo}</span></td><td class="border-bottom p-3"><div class="d-flex gap-2 flex-wrap mb-2"><button class="btn btn-secondary btn-sm fw-bold" onclick="openViewCaseModal('${caseId}')">📜 檢視完整病史</button>${actionBtns}</div><div class="small">狀態: <span class="text-primary">${c.hospStatus[loggedInHosp]}</span>${replyTimeStr} | 轉出端: ${intentText}</div></td></tr>`;
             }
         }
     }
@@ -1268,7 +1391,7 @@ let payloadClinicalData = JSON.parse(JSON.stringify(pendingClinicalData));
         document.getElementById('vc_pmh').innerText = pmhStr || "無"; document.getElementById('vc_symptoms').innerText = d.symptoms || "無"; document.getElementById('vc_lab').innerText = `Cre: ${d.cre||"-"} / 其他: ${d.labOther||"-"}`;
         let tpaStr = d.tpaStatus || "未填寫"; if(d.tpaStatus === '有施打') tpaStr += ` (${d.tpaDose||""}, Bolus: ${d.tpaBolusTime ? formatClinicalTime(d.tpaBolusTime) : "-"}, 備註: ${d.tpaYesNote||"-"})`; else if(d.tpaStatus === '未施打') tpaStr += ` (原因: ${d.tpaNoNote||"-"})`;
         document.getElementById('vc_tpa').innerText = tpaStr; document.getElementById('vc_family').innerText = `${d.famSel||"-"} - ${d.famText||"-"}`;
-        const imgContainer = document.getElementById('vc_images_container'); imgContainer.innerHTML = `<p style="margin-top:5px;"><a href="${c.clinicalData.folderUrl}" target="_blank" style="color:#0056b3; font-weight:bold;">📂 開啟 Google Drive 影像資料夾</a></p>`;
+        const imgContainer = document.getElementById('vc_images_container'); imgContainer.innerHTML = `<p class="mt-1"><a href="${c.clinicalData.folderUrl}" target="_blank" class="fw-bold text-primary">📂 開啟 Google Drive 影像資料夾</a></p>`;
         document.getElementById('viewCaseModal').style.display = 'flex';
     }
     function closeViewCaseModal() { document.getElementById('viewCaseModal').style.display = 'none'; }
