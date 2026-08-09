@@ -3,12 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>中風區域聯防轉診平台 v36 </title>
-    
-    <!-- 🌟 修復 2：在此引入 Bootstrap 核心套件 (確保 Messenger 對話框能正常彈出) -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
+    <title>中風區域聯防轉診平台 v37 </title>
     <style>
         body { font-family: "Microsoft JhengHei", sans-serif; margin: 0; padding: 20px; background-color: #f0f2f5; color: #333; }
         .app-container { max-width: 1100px; margin: 0 auto; background: transparent; }
@@ -88,7 +83,6 @@
         .view-section h4 { color: #17a2b8; margin: 0 0 8px 0; font-size: 1.1em; border-left: 4px solid #17a2b8; padding-left: 8px;}
         .view-data { display: grid; grid-template-columns: 100px 1fr; gap: 8px; font-size: 0.95em; margin-bottom: 6px; }
         .view-label { color: #666; font-weight: bold; }
-        .img-preview { max-width: 100%; border-radius: 4px; margin-top: 5px; border: 1px solid #ddd; }
 
         .disclaimer { margin-top: 20px; padding: 15px; background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404; border-radius: 6px; font-size: 0.9em; line-height: 1.5; text-align: center; font-weight: bold; }
         .live-clock-banner { background: #e8f4f8; border-left: 4px solid #17a2b8; padding: 15px; border-radius: 4px; margin-bottom: 15px; }
@@ -98,6 +92,10 @@
             70% { box-shadow: 0 0 0 15px rgba(0, 86, 179, 0); }
             100% { box-shadow: 0 0 0 0 rgba(0, 86, 179, 0); }
         }
+        
+        /* 客製化滾動條給 Messenger 使用 */
+        #chatHistoryBox::-webkit-scrollbar { width: 6px; }
+        #chatHistoryBox::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -124,30 +122,6 @@
         <button class="tab-btn" onclick="switchTab('tab4')">4. 班表與系統設定</button>
     </div>
 
-<!-- Messenger 對話框 Modal -->
-<div class="modal fade" id="messengerModal" tabindex="-1" data-bs-backdrop="static">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title" id="messengerTitle">即時溝通 (Messenger)</h5>
-        <!-- 關閉按鈕，點擊後回到平台 -->
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="stopChatPolling()"></button>
-      </div>
-      <div class="modal-body bg-light">
-        <!-- 顯示對話紀錄的區塊 -->
-        <div id="chatHistoryBox" class="p-3 mb-3 bg-white rounded" style="height: 350px; overflow-y: auto; border: 1px solid #dee2e6; white-space: pre-wrap; font-size: 0.95rem;">
-          載入中...
-        </div>
-        <!-- 訊息輸入區 -->
-        <div class="input-group">
-          <input type="text" id="chatInput" class="form-control" placeholder="請輸入訊息..." onkeypress="handleChatEnter(event)">
-          <button class="btn btn-primary" onclick="submitChatMessage()">送出</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-    
     <!-- ========================================== -->
     <!-- 分頁 1: 提出取栓需求 -->
     <!-- ========================================== -->
@@ -219,6 +193,8 @@
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                 <h3 style="color: #0056b3; margin:0;"><span id="disp_login_hosp"></span> - 收到的需求</h3>
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <!-- 🌟 補上立即更新按鈕，讓醫師可以瞬間手動刷出最新 GPS 與對話 -->
+                    <button class="btn-main" style="background:#28a745;" onclick="fetchRecentCasesFromGAS()">🔄 立即更新</button>
                     <button class="btn-main" style="background:#17a2b8;" onclick="openHospSysSettingsModal()">⚙️ 系統設定 (含通訊錄)</button>
                     <button class="btn-main" onclick="logoutHospital()" style="background:#6c757d;">登出</button>
                 </div>
@@ -233,7 +209,6 @@
     <!-- 分頁 4: 班表與系統設定 -->
     <!-- ========================================== -->
     <div id="tab4" class="tab-content">
-        <!-- 🌟 將 Excel 班表按鈕收納至淺藍色區塊右側 -->
         <div class="live-clock-banner" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
             <div>
                 <div style="font-size: 1.1em; font-weight: bold; color: #0056b3; margin-bottom: 5px;">現在時間：<span id="system_live_clock" style="font-family: monospace; font-size: 1.1em;">載入中...</span></div>
@@ -249,10 +224,7 @@
 
     <div class="disclaimer">
         此平台為新竹台大分院傅傳修醫師為協助桃竹苗地區轉診生成的網頁，<br>為了協助資訊傳遞，請注意避免輸入含病人個資之資訊 (如: 姓名/病歷號/電話等)，謝謝合作！
-        <div id="footer_version_display" style="margin-top: 8px; font-size: 0.85em; color: #6c757d; font-weight: normal;">
-            <!-- JS 會自動將 Title 與日期填入此處 -->
-        </div>
-    <!-- 🌟 修復 3：補齊缺少的標籤括號 -->
+        <div id="footer_version_display" style="margin-top: 8px; font-size: 0.85em; color: #6c757d; font-weight: normal;"></div>
     </div>
 
 </div>
@@ -260,6 +232,28 @@
 <!-- ========================================== -->
 <!-- 彈出視窗群 (Modals)                        -->
 <!-- ========================================== -->
+
+<!-- ★ LINE 風格的 Messenger 對話框 Modal ★ -->
+<div id="messengerModal" class="modal" style="align-items: center; padding-top: 0;">
+    <div class="modal-content" style="max-width: 500px; padding: 0; overflow: hidden; display: flex; flex-direction: column; height: 85vh; max-height: 650px; background-color: #8bbccf;">
+        <!-- 標題區 -->
+        <div style="background-color: #0056b3; color: white; padding: 15px; position: relative; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 10;">
+            <h3 id="messengerTitle" style="margin: 0; font-size: 1.2em; text-align: center;">💬 即時溝通</h3>
+            <span class="close-btn" style="color: white; top: 8px; right: 15px; font-size: 32px;" onclick="closeMessenger()">&times;</span>
+        </div>
+        
+        <!-- 對話顯示區 -->
+        <div id="chatHistoryBox" style="flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column;">
+            <div style="text-align:center; color:#fff; margin-top: 50px;">載入對話紀錄中...</div>
+        </div>
+        
+        <!-- 輸入區 -->
+        <div style="padding: 10px; background-color: #f8f9fa; border-top: 1px solid #ddd; display: flex; gap: 8px;">
+            <input type="text" id="chatInput" placeholder="請輸入訊息..." style="flex: 1; padding: 10px 15px; border: 1px solid #ccc; border-radius: 20px; outline: none; font-size: 1em;" onkeypress="handleChatEnter(event)">
+            <button style="background-color: #0056b3; color: white; border: none; padding: 0 18px; border-radius: 20px; font-weight: bold; cursor: pointer; transition: 0.2s;" onclick="submitChatMessage()">送出</button>
+        </div>
+    </div>
+</div>
 
 <!-- ★ 一鍵撥號 Modal ★ -->
 <div id="callModal" class="modal" style="align-items: center; padding-top: 0;">
@@ -304,16 +298,12 @@
         <div class="req-group" style="margin-bottom: 15px;">
     <label>LINE ID</label>
     <div style="display: flex; gap: 10px; align-items: center;">
-        <!-- 原本的輸入框 -->
         <input type="text" id="addr_dr_lineid" placeholder="LINE 帳號 (提供給同仁加入用)" style="flex: 1; margin: 0;">
-        
-        <!-- 🌟 加入小幫手快捷鈕 -->
         <a href="https://line.me/R/ti/p/%40964pltbx" target="_blank" style="display: inline-flex; align-items: center; justify-content: center; background-color: #06C755; color: white; padding: 6px 12px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; white-space: nowrap; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: 0.2s;">
             <img src="https://chuanhsiufu-neuro.github.io/EVTtransfer/littlehelper.png" alt="小幫手" style="width: 24px; height: 24px; margin-right: 8px; border-radius: 50%; background: white;">
             加入小幫手
             </a>
         </div>
-        <!-- 貼心提示文字 -->
         <small style="color: #6c757d; font-size: 12px; margin-top: 5px; display: block;">
             💡 系統綁定前，請醫師先點擊右方按鈕 (或搜尋 ID: <b style="color:#0056b3;">@964pltbx</b>) 將小幫手加為好友，並在聊天室輸入「綁定 醫院名稱 醫師姓名」。
         </small>
@@ -359,7 +349,6 @@
                         <tr><th>醫院</th><th>8-12</th><th>12-17</th><th>夜間</th></tr>
                     </thead>
                     <tbody id="query_roster_tbody">
-                        <!-- JS 動態寫入 -->
                     </tbody>
                 </table>
             </div>
@@ -469,7 +458,7 @@
     // ==========================================
     // ⚙️ 系統設定與 GAS API 網址
     // ==========================================
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbx11GSPEe_n-lrlASxdFXCoIp7SXvn_3FE7H32M2mts-ILM9wjApUB-o6W2UG03EdDqzg/exec"; 
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbx-9d8sHLtgMsj7TrHO3uNzc8DYZQ-MoI2dNEoQXKQGB9xqM-xtXnZC8uq-KPV-YiIKgA/exec"; 
 
     let hospitalsConfigData = {};
     let currentRosterData = {};
@@ -1048,7 +1037,6 @@
                     <button class="btn-success" onclick="quickUpdateLocation('${currentTrackCaseId}')">📍 更新 GPS</button>
                     <button class="btn-main" style="background:#28a745;" onclick="window.open('${folderLink}', '_blank')">📂 開啟影像資料夾</button>
                     
-                    <!-- 🌟 這是替換的 Messenger 按鈕 -->
                     <button class="btn-main" style="background:#17a2b8;" onclick="openMessenger('${currentTrackCaseId}', 1, 'requester', '需求端')">💬 開啟即時溝通</button>
                     
                     <button class="btn-danger" onclick="cancelFinalDest('${currentTrackCaseId}', '${c.reqHospOut}')">❌ 取消</button>
@@ -1098,7 +1086,7 @@
         } 
     }
 
-    // 🌟 替換為標準 API fetch 的即時對話系統 
+    // 🌟 全新改寫：純客製化、無衝突且具備 LINE 風格氣泡的對話模組
     let chatPollInterval;
     let currentChatContext = { caseId: "", attempt: 1, senderType: "", senderName: "" };
 
@@ -1106,19 +1094,19 @@
       currentChatContext = { caseId, attempt, senderType, senderName };
       
       document.getElementById('messengerTitle').innerText = 
-        senderType === 'requester' ? `與 取栓醫院 即時溝通 (第${attempt}次鎖定)` : `與 轉出醫院 即時溝通`;
+        senderType === 'requester' ? `與 取栓醫院 即時溝通` : `與 轉出醫院 即時溝通`;
       
-      document.getElementById('chatHistoryBox').innerText = "載入對話紀錄中...";
+      document.getElementById('chatHistoryBox').innerHTML = "<div style='text-align:center; color:#fff; margin-top: 50px;'>載入對話紀錄中...</div>";
       document.getElementById('chatInput').value = "";
       
-      var chatModal = new bootstrap.Modal(document.getElementById('messengerModal'));
-      chatModal.show();
+      document.getElementById('messengerModal').style.display = 'flex';
 
       refreshChat();
       chatPollInterval = setInterval(refreshChat, 3000);
     }
 
-    function stopChatPolling() {
+    function closeMessenger() {
+      document.getElementById('messengerModal').style.display = 'none';
       if (chatPollInterval) clearInterval(chatPollInterval);
     }
 
@@ -1135,7 +1123,50 @@
             if(data.status === "success") {
                 let box = document.getElementById('chatHistoryBox');
                 let isScrolledToBottom = box.scrollHeight - box.clientHeight <= box.scrollTop + 10;
-                box.innerText = data.data || "目前尚無對話紀錄，請直接在下方輸入訊息開始對話。";
+                
+                let rawText = data.data || "";
+                let chatHtml = "";
+                
+                if (!rawText.trim()) {
+                    chatHtml = "<div style='text-align:center; color:#fff; background: rgba(0,0,0,0.2); padding: 5px 10px; border-radius: 15px; width: fit-content; margin: 20px auto; font-size: 0.85em;'>目前尚無對話紀錄，請直接在下方輸入訊息開始對話。</div>";
+                } else {
+                    let lines = rawText.split('\n');
+                    lines.forEach(line => {
+                        if(!line.trim()) return;
+                        
+                        // 使用正則表達式拆解發送者、訊息與時間
+                        let match = line.match(/^(.*?)：(.*) \((.*)\)$/);
+                        if(match) {
+                            let sender = match[1];
+                            let msg = match[2];
+                            let time = match[3];
+                            let isMe = (sender === currentChatContext.senderName);
+                            
+                            if(isMe) {
+                                chatHtml += `
+                                <div style="display: flex; justify-content: flex-end; margin-bottom: 12px;">
+                                    <div style="display: flex; flex-direction: column; align-items: flex-end; max-width: 80%;">
+                                        <div style="background-color: #dcf8c6; padding: 8px 12px; border-radius: 15px 15px 0 15px; color: #333; box-shadow: 0 1px 2px rgba(0,0,0,0.1); word-break: break-word; text-align: left;">${msg}</div>
+                                        <div style="font-size: 0.7em; color: #333; margin-top: 3px;">${time}</div>
+                                    </div>
+                                </div>`;
+                            } else {
+                                chatHtml += `
+                                <div style="display: flex; justify-content: flex-start; margin-bottom: 12px;">
+                                    <div style="display: flex; flex-direction: column; align-items: flex-start; max-width: 80%;">
+                                        <div style="font-size: 0.75em; color: #111; margin-bottom: 3px; margin-left: 5px; font-weight: bold;">${sender}</div>
+                                        <div style="background-color: #ffffff; padding: 8px 12px; border-radius: 15px 15px 15px 0; color: #333; box-shadow: 0 1px 2px rgba(0,0,0,0.1); word-break: break-word; text-align: left;">${msg}</div>
+                                        <div style="font-size: 0.7em; color: #333; margin-top: 3px;">${time}</div>
+                                    </div>
+                                </div>`;
+                            }
+                        } else {
+                            chatHtml += `<div style='text-align:center; color:#fff; background: rgba(0,0,0,0.2); padding: 3px 10px; border-radius: 15px; width: fit-content; margin: 10px auto; font-size: 0.8em;'>${line}</div>`;
+                        }
+                    });
+                }
+                
+                box.innerHTML = chatHtml;
                 if (isScrolledToBottom) box.scrollTop = box.scrollHeight;
             }
         }).catch(e => console.log("讀取對話失敗", e));
@@ -1234,7 +1265,6 @@
                         
                         let cancelBtn = `<button class="btn-main" style="background:#dc3545;" onclick="cancelFinalDest('${caseId}', '${loggedInHosp}')">❌ 取消轉入</button>`;
                         
-                        // 🌟 這是給接收醫院端的 Messenger 按鈕
                         let chatBtn = `<button class="btn-main" style="background:#17a2b8;" onclick="openMessenger('${caseId}', 1, 'evt', '${loggedInHosp}')">💬 即時文字溝通</button>`;
                         
                         actionBtns = `${mapBtn} ${chatBtn} ${cancelBtn}`;
@@ -1315,7 +1345,7 @@
         document.getElementById('vc_family').innerText = `${d.famSel||"-"} - ${d.famText||"-"}`;
 
         const imgContainer = document.getElementById('vc_images_container'); 
-        imgContainer.innerHTML = `<p style="margin-top:5px;"><a href="https://drive.google.com/drive/folders/${c.clinicalData.folderUrl.split('id=')[1]}" target="_blank" style="color:#0056b3; font-weight:bold;">📂 開啟 Google Drive 影像資料夾</a></p>`;
+        imgContainer.innerHTML = `<p style="margin-top:5px;"><a href="${c.clinicalData.folderUrl}" target="_blank" style="color:#0056b3; font-weight:bold;">📂 開啟 Google Drive 影像資料夾</a></p>`;
 
         document.getElementById('viewCaseModal').style.display = 'flex';
     }
