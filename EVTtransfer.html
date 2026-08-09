@@ -362,12 +362,12 @@
                 <option value="1st Line 優先排班表">1st Line 優先排班表</option><option value="新竹台大">新竹台大</option><option value="東元醫院">東元醫院</option><option value="新竹中國">新竹中國</option><option value="大千醫院">大千醫院</option><option value="聯新國際">聯新國際</option><option value="林口長庚">林口長庚</option>
             </select>
             <div id="query_roster_result" style="display:none; overflow-x: auto; margin-top: 10px;">
-                <table class="neuro-duty-table" style="margin-top: 0; min-width: 100%;"><thead><tr><th>醫院</th><th>8-12</th><th>12-17</th><th>夜間</th></tr></thead><tbody id="query_roster_tbody"></tbody></table>
+                <table class="neuro-duty-table" style="margin-top: 0; min-width: 100%;"><thead><tr><th>醫院</th><th>08:00~12:00</th><th>12:00~17:00</th><th>夜間</th></tr></thead><tbody id="query_roster_tbody"></tbody></table>
             </div>
         </div>
         <div style="margin-bottom: 20px; border-bottom: 1px dashed #ccc; padding-bottom: 20px;">
             <label style="display:block; margin-bottom: 8px; font-weight:bold; color:#0056b3;">📥 下載範本</label>
-            <button class="btn-main" style="background:#17a2b8; width: 100%; padding: 10px;" onclick="downloadRosterTemplate()">下載範本格式 (醫院名稱_YYYYMM.csv)</button>
+            <button class="btn-main" style="background:#17a2b8; width: 100%; padding: 10px;" onclick="downloadRosterTemplate()">📥 下載防跑版範本 (醫院名稱_YYYYMM.csv)</button>
         </div>
         <div style="margin-bottom: 10px;">
             <label style="display:block; margin-bottom: 8px; font-weight:bold; color:#0056b3;">📤 上傳當月班表 (支援 CSV)</label>
@@ -449,7 +449,7 @@
 </div>
 
 <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbw7txyMaWIzivZR1UVkIPf8UDxforkMnbN-5EUbxa86eiMmdrCyAueUEIJnsSGiKacGBw/exec"; 
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbwXKpizDjM72Q6jjzYTMSpgjycxqrp1pHFn8-plOp4GedcqXa3C0HYYmAoGidCw7FoYGg/exec"; 
 
     let hospitalsConfigData = {}; let currentRosterData = {}; let hospitals = []; 
     let cases = {}; let currentTrackCaseId = null; let loggedInHosp = null;
@@ -732,10 +732,19 @@
     }
 
     function downloadRosterTemplate() {
-        let csvContent = "\uFEFFDate,8-12,12-17,夜間\n"; let now = new Date();
-        for(let i = 1; i <= 3; i++) { let dStr = `${now.getFullYear()}/${now.getMonth() + 1}/${i}`; csvContent += `${dStr},,,\n`; }
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }); const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url;
-        let defaultMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`; link.setAttribute("download", `醫院名稱_${defaultMonth}.csv`);
+        // 🌟 改變範本表頭，使用波浪號避免被 Excel 自動轉成日期
+        let csvContent = "\uFEFFDate,08:00~12:00,12:00~17:00,夜間\n";
+        let now = new Date();
+        for(let i = 1; i <= 3; i++) {
+            let dStr = `${now.getFullYear()}/${now.getMonth() + 1}/${i}`;
+            csvContent += `${dStr},,,\n`;
+        }
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        let defaultMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
+        link.setAttribute("download", `醫院名稱_${defaultMonth}.csv`);
         document.body.appendChild(link); link.click(); document.body.removeChild(link);
     }
 
