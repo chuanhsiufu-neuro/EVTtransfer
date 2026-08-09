@@ -452,7 +452,7 @@
 </div>
 
 <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbyKP5l1uxmJXYOx_2DF-_TtydKgV0pw4EvRRXezFN9hcQV9-0ntS193BiJnkvPXuljOxA/exec"; 
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxN4pLABA2ixliL-ZvKLLT2scrdk6yOjGAsHv1jfjDuwWbUduh-kdA_NRmXRspfkMTcNQ/exec"; 
 
     let hospitalsConfigData = {}; let currentRosterData = {}; let hospitals = []; 
     let cases = {}; let currentTrackCaseId = null; let loggedInHosp = null;
@@ -868,7 +868,15 @@ let payloadClinicalData = JSON.parse(JSON.stringify(pendingClinicalData));
         }
         if (!hasActiveCases) board.innerHTML = `<span style="color: #888; padding: 10px;">目前近4小時無進行中個案。</span>`;
     }
-
+    
+    function openPrepGuide(caseId) {
+        // 您可以將這裡替換成您專屬的注意事項 HTML 網頁連結，或是 Google 雲端硬碟的 SOP 圖片/PDF 檔案連結
+        const guideUrl = "prep_guide.html"; // 或是寫死您的雲端檔案網址
+        
+        // 彈出一個小視窗供醫護快速查閱
+        window.open(guideUrl, '_blank', 'width=600,height=700,top=100,left=200');
+    }
+    
     function markTime(caseId, type) {
         if(confirm(type === 'depart' ? "標記【已出發】？" : "標記【已抵達】？")) { 
             let t = formatDateTime(); cases[caseId][type === 'depart' ? 'departTime' : 'arriveTime'] = t; 
@@ -1145,7 +1153,11 @@ let payloadClinicalData = JSON.parse(JSON.stringify(pendingClinicalData));
 
                         let mapBtn = c.location ? `<button class="btn-main" style="background:#28a745;" onclick="window.open('https://www.google.com/maps/search/?api=1&query=${c.location.lat},${c.location.lng}', '_blank')">🗺️ GPS地圖</button>` : `<span style="font-size:0.85em; color:#888;">(尚未回報GPS)</span>`;
                         let chatBtn = `<button class="btn-main" style="background:#17a2b8;" onclick="openMessenger('${caseId}', 1, 'evt', '${loggedInHosp}')">💬 即時文字溝通</button>`;
+                        // 🌟 新增：警示小圖示按鈕 (點擊後可開啟注意事項網頁或圖片)
+                        let prepGuideBtn = `<button class="btn-main" style="background-color: #ffc107; color: #333; font-size: 0.8em; padding: 4px 8px; margin-left: 5px;" onclick="openPrepGuide('${caseId}')" title="出發前準備與注意事項">🚨 注意事項</button>`;
                         
+                        // 將兩個按鈕組合在一起輸出到看板上
+                        let actionButtons = chatBtn + prepGuideBtn;
                         if (c.arriveTime) {
                             let feedbackBtn = `<button class="btn-main" style="background:#ffc107; color:#333;" onclick="openFeedbackModal('${caseId}')">📝 個案回饋與結案</button>`;
                             actionBtns = `${mapBtn} ${chatBtn} ${feedbackBtn}`;
