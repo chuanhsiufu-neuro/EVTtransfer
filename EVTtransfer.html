@@ -1111,7 +1111,14 @@
         .then(res => res.json()).then(data => {
             if(data.status === "success") {
                 cases[caseId].clinicalData.folderUrl = data.data.folderUrl; 
-                document.getElementById('submit_result_area').innerHTML = `<div class="text-center"><h3 class="text-success mb-2">✅ 資訊與通知已秒速發送！</h3><p class="fs-5 text-primary fw-bold mb-3">個案代碼：${caseId}</p><p class="text-danger fw-bold fs-5 mb-2">⚠️ 最後一步 : 請點擊下方按鈕上傳臨床影像 ⚠️</p><a href="${data.data.folderUrl}" target="_blank" class="btn btn-primary btn-lg fw-bold shadow">📂 點此開啟專屬資料夾，並將影像拖曳進入</a><p class="text-muted small mt-2">(上傳完成後，接收端醫院即可在信件中查看)</p></div>`;
+                document.getElementById('submit_result_area').innerHTML = `
+    <div class="text-center">
+        <h3 class="text-success mb-2">✅ 資訊與通知已秒速發送！</h3>
+        <p class="fs-5 fw-bold mb-3" style="color: var(--teal-700);">個案代碼：${caseId}</p>
+        <p class="text-danger fw-bold fs-5 mb-2">⚠️ 最後一步：請點擊下方按鈕上傳臨床影像 ⚠️</p>
+        <a href="${data.data.folderUrl}" target="_blank" class="btn-custom btn-theme-primary py-3 px-4 fs-5 shadow" style="display: inline-flex; margin-top: 5px;">📂 點此開啟專屬資料夾，並將影像拖曳進入</a>
+        <p class="text-muted small mt-2">(上傳完成後，接收端醫院即可在信件中查看)</p>
+    </div>`;
                 setTimeout(fetchRecentCasesFromGAS, 3000);
             } else { 
                 document.getElementById('submit_result_area').innerHTML = `❌ <strong>上傳發生錯誤：</strong> ${data.error}`; 
@@ -1217,7 +1224,7 @@
 
    function renderTrackerDashboard() {
         const c = cases[currentTrackCaseId]; 
-        document.getElementById('disp_track_id').innerHTML = `${currentTrackCaseId} <span class="text-muted small fw-normal">${getCaseTimeStr(c)}</span>`;
+        document.getElementById('disp_track_id').innerHTML = `${currentTrackCaseId} <span style="color: #ffffff; font-size: 0.85em; font-weight: normal; font-family: var(--mono);">${getCaseTimeStr(c)}</span>`;
         const container = document.getElementById('track_list_container'); const chatArea = document.getElementById('track_chat_area');
         container.innerHTML = ""; chatArea.innerHTML = ""; chatArea.style.display = "none";
 
@@ -1264,7 +1271,15 @@
             let pendingReason = (statusClass === 'pending' && c.hospPendingReason[hospName]) ? ` (${c.hospPendingReason[hospName]})` : "";
             let statusTextHtml = `<span class="track-status ${statusClass}">${status}${pendingReason}</span>`;
             
-            container.innerHTML += `<div class="${itemClass}"><div><span class="fw-bold text-primary" style="display:inline-block; min-width:90px;">${hospName}</span>${statusTextHtml}${replyTimeStr}</div><div>${actionHtml}</div></div>`;
+            container.innerHTML += `
+            <div class="${itemClass}">
+                <div>
+                    <span class="fw-bold" style="display: inline-block; padding: 4px 12px; background-color: var(--teal-700); color: #ffffff; border-radius: 6px; min-width: 100px; text-align: center; font-size: 0.95em;">${hospName}</span>
+                    ${statusTextHtml}
+                    ${replyTimeStr}
+                </div>
+                <div>${actionHtml}</div>
+            </div>`
         });
     }
 
