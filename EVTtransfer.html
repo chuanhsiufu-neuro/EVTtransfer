@@ -367,7 +367,7 @@
         </div>
         <div style="margin-bottom: 20px; border-bottom: 1px dashed #ccc; padding-bottom: 20px;">
             <label style="display:block; margin-bottom: 8px; font-weight:bold; color:#0056b3;">📥 下載範本</label>
-            <button class="btn-main" style="background:#17a2b8; width: 100%; padding: 10px;" onclick="downloadRosterTemplate()">📥 下載防跑版範本 (醫院名稱_YYYYMM.csv)</button>
+            <button class="btn-main" style="background:#17a2b8; width: 100%; padding: 10px;" onclick="downloadRosterTemplate()">📥 請參考班表查詢醫院名稱更新檔名(醫院名稱_YYYYMM.csv)</button>
         </div>
         <div style="margin-bottom: 10px;">
             <label style="display:block; margin-bottom: 8px; font-weight:bold; color:#0056b3;">📤 上傳當月班表 (支援 CSV)</label>
@@ -942,9 +942,31 @@
 
     function selectFinalDest(hospName) { 
         if(confirm(`確定轉至 ${hospName}？`)) { 
-            let t = formatDateTime(); cases[currentTrackCaseId].finalDest = hospName; cases[currentTrackCaseId].lockTime = t; 
-            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "updateCaseTracking", payload: { caseId: currentTrackCaseId, actionType: "lock", value1: hospName, value2: t } }) })
-            .then(res => res.json()).then(data => { if(data.status === "success") { renderTrackerDashboard(); if(loggedInHosp) renderHospitalCases(); } }).catch(e => console.log("鎖定失敗", e));
+            let t = formatDateTime(); 
+            cases[currentTrackCaseId].finalDest = hospName; 
+            cases[currentTrackCaseId].lockTime = t; 
+            
+            // 🌟 讓畫面瞬間連動：立刻更新上方的即時看板
+            renderQuickUpdateBoard();
+            renderTrackerDashboard();
+
+            fetch(GAS_URL, { 
+                method: 'POST', 
+                body: JSON.stringify({ 
+                    action: "updateCaseTracking", 
+                    payload: { caseId: currentTrackCaseId, actionType: "lock", value1: hospName, value2: t } 
+                }) 
+            })
+            .then(res => res.json())
+            .then(data => { 
+                if(data.status === "success") { 
+                    // 當雲端確認寫入成功後，再次確保所有畫面狀態一致
+                    renderTrackerDashboard(); 
+                    renderQuickUpdateBoard();
+                    if(loggedInHosp) renderHospitalCases(); 
+                } 
+            })
+            .catch(e => console.log("鎖定失敗", e));
         } 
     }
 
