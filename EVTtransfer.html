@@ -172,6 +172,27 @@
 
         h1, h2, h3 { font-family: var(--serif); }
         code, .cid, #system_live_clock { font-family: var(--mono); }
+
+        /* 🌟 分頁 4 班表查詢的點擊區塊樣式 */
+        .roster-radio-label {
+            border-color: var(--teal-500) !important; /* 統一使用 #17878A 深綠邊框 */
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .roster-radio-label:hover {
+            background-color: var(--teal-100) !important;
+            transform: translateY(-1px);
+        }
+        .roster-radio-label input[type="radio"] {
+            accent-color: var(--teal-700);
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+            margin: 0;
+        }
     </style>
 </head>
 <body>
@@ -312,7 +333,7 @@
 <!-- 分頁 4 -->
 <div id="tab4" class="tab-content">
     
-    <!-- 📅 時間與第一線排班指示 -->
+    <!-- 📅 時間與第一線排班指示、按鈕區 -->
     <div style="background: var(--teal-100); border-left: 5px solid var(--teal-500); padding: 20px; border-radius: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; box-shadow: 0 2px 8px rgba(11,58,63,0.05);">
         <div>
             <div style="font-size: 1.15em; font-weight: bold; color: var(--teal-700); margin-bottom: 8px; font-family: var(--sans);">
@@ -322,54 +343,41 @@
                 📍 區域聯防排班 - 第一線優先聯絡醫院：<span id="priority_hosp_display">載入中...</span>
             </div>
         </div>
-        <button class="btn-custom btn-theme-info py-2 px-4" style="font-size: 1.05em;" onclick="fetchDataFromGAS()">🔄 重新同步最新看板與排班資料</button>
+        
+        <!-- 🌟 新的按鈕排版區 -->
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button class="btn-custom btn-theme-info" style="padding: 10px 14px; font-size: 1.1em;" onclick="fetchDataFromGAS()" title="重新同步">🔄</button>
+            <button class="btn-custom btn-theme-primary" style="padding: 10px 14px;" onclick="downloadRosterTemplate()">📥 下載班表範本</button>
+            <button class="btn-custom btn-theme-success" style="padding: 10px 14px;" onclick="openUploadRosterModal()">📤 上傳班表</button>
+        </div>
     </div>
 
-    <!-- 📅 查詢與管理班表區塊 (拉回主頁面直接顯示) -->
+    <!-- 📅 查詢班表區塊 -->
     <div style="background: var(--paper); border: 1px solid var(--line); padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-        <h4 style="color: var(--teal-700); margin-top: 0; margin-bottom: 15px; font-family: var(--serif); font-size: 1.2em; border-bottom: 2px solid var(--teal-100); padding-bottom: 10px;">📅 Excel 班表查詢與上傳</h4>
+        <h4 style="color: var(--teal-700); margin-top: 0; margin-bottom: 15px; font-family: var(--serif); font-size: 1.2em; border-bottom: 2px solid var(--teal-100); padding-bottom: 10px;">📅 Excel 班表查詢</h4>
         
-        <div class="req-row" style="align-items: flex-end;">
-            <div class="req-group" style="flex: 2;">
-                <label style="color: var(--teal-700);">🔍 查詢今日班表</label>
-                <select id="roster_query_hosp_sel" onchange="queryTodayRoster()">
-                    <option value="">-- 請選擇醫院 --</option>
-                    <option value="1st Line 優先排班表">1st Line 優先排班表</option><option value="新竹台大">新竹台大</option><option value="東元醫院">東元醫院</option><option value="新竹中國">新竹中國</option><option value="大千醫院">大千醫院</option><option value="聯新國際">聯新國際</option><option value="林口長庚">林口長庚</option>
-                </select>
-            </div>
-            <div class="req-group" style="flex: 1;">
-                <button class="btn-custom btn-theme-primary w-100" style="padding: 10px;" onclick="downloadRosterTemplate()">📥 下載班表範本</button>
+        <div style="margin-bottom: 15px;">
+            <label style="color: var(--teal-700); font-weight: bold; margin-bottom: 8px; display: block;">🔍 點選醫院查詢今日班表</label>
+            <div id="roster_query_hospitals_container" style="display: flex; gap: 12px; flex-wrap: wrap; padding: 12px; background: var(--teal-100); border: 1px dashed var(--teal-500); border-radius: 8px;">
+                <span style="color:#5B6B65;">載入中...</span>
             </div>
         </div>
 
         <!-- 查詢結果表格 (預設隱藏，選擇後浮現) -->
-        <div id="query_roster_result" style="display:none; overflow-x: auto; margin-top: 15px; margin-bottom: 20px;">
+        <div id="query_roster_result" style="display:none; overflow-x: auto; margin-top: 15px; margin-bottom: 10px;">
             <table class="neuro-duty-table" style="margin-top: 0; min-width: 100%;">
                 <thead><tr><th>醫院</th><th>08:00~12:00</th><th>12:00~17:00</th><th>夜間</th></tr></thead>
                 <tbody id="query_roster_tbody"></tbody>
             </table>
         </div>
-
-        <div style="border-top: 1px dashed var(--line); padding-top: 15px; margin-top: 15px;">
-            <label style="display:block; margin-bottom: 8px; font-weight:bold; color:var(--teal-700);">📤 上傳當月班表 (支援 CSV)</label>
-            <div class="req-row" style="margin-bottom: 0;">
-                <div class="req-group" style="flex: 2;">
-                    <input type="file" id="roster_file_input" accept=".csv" style="padding: 8px; border: 1px solid var(--line); border-radius: 8px; width: 100%; box-sizing: border-box; background: #fff;">
-                </div>
-                <div class="req-group" style="flex: 1;">
-                    <button class="btn-custom btn-theme-success w-100" style="padding: 10px;" onclick="uploadRosterCsv()">上傳並自動附加</button>
-                </div>
-            </div>
-        </div>
     </div>
 
-    <!-- ⚙️ 系統同步與設定提示卡片 -->
+    <!-- ⚙️ 系統設定提示 -->
     <div style="background: var(--paper); border: 1px dashed var(--teal-500); border-radius: 10px; padding: 20px; text-align: center;">
         <p style="color: var(--ink); font-size: 0.95em; margin-bottom: 0;">
             💡 提示：若需修改「醫院專屬通訊錄」或「LINE 群組設定」，請至 <strong>分頁 3</strong> 登入您的醫院後，點擊「⚙️ 系統設定」。
         </p>
     </div>
-
 </div>
 
 <div class="disclaimer">
@@ -607,7 +615,20 @@
         </div>
     </div>
 </div>
-
+<!-- ★ 上傳班表 Modal ★ -->
+<div id="uploadRosterModal" class="modal" style="align-items: center; padding-top: 0;">
+    <div class="modal-content" style="max-width: 400px; padding: 25px; border-radius: 12px;">
+        <span class="close-btn" onclick="closeUploadRosterModal()">&times;</span>
+        <h3 style="font-family: var(--serif); color: var(--teal-700); margin-top: 0; border-bottom: 2px solid var(--teal-100); padding-bottom: 10px;">📤 上傳當月班表 (支援 CSV)</h3>
+        
+        <div style="margin-top: 15px;">
+            <input type="file" id="roster_file_input" accept=".csv" style="width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 8px; box-sizing: border-box; background: var(--paper); margin-bottom: 20px; font-family: var(--sans);">
+            
+            <button class="btn-custom btn-theme-success w-100 py-2 fs-6" style="padding: 12px;" onclick="uploadRosterCsv()">📤 確定上傳</button>
+        </div>
+    </div>
+</div>
+    
 <script>
     const GAS_URL = "https://script.google.com/macros/s/AKfycbzDu3WgF3hol7yx5tG8-w0x0DDNgN1B8CFpBqNduI_GniSHiOQG5_4NhJekDDRuXmfXVA/exec"; 
 
@@ -758,13 +779,23 @@
                     for(let i=1; i<=5; i++) { hObj.addressBook[i] = config.doctors[i-1] || { name: "", email: "", phone: "", lineId: "" }; }
                     hospitals.push(hObj); selLogin.innerHTML += `<option value="${hName}">${hName}</option>`; selSet.innerHTML += `<option value="${hName}">${hName}</option>`;
                 }
+                // 🌟 修改：將顯示文字改為「區域聯防排班」
+                const rosterContainer = document.getElementById('roster_query_hospitals_container');
+                rosterContainer.innerHTML = `<label class="p-2 border rounded bg-white roster-radio-label"><input type="radio" name="roster_query_hosp_radio" value="1st Line 優先排班表" onchange="queryTodayRoster()"> <span class="fw-bold" style="color: var(--ink);">區域聯防排班</span></label>`;
+
                 const statusOrder = { "green": 1, "orange": 2, "red": 3 };
                 let sortedHospitals = [...hospitals].sort((a, b) => statusOrder[a.status] - statusOrder[b.status]);
+                
                 sortedHospitals.forEach(h => {
+                    // 分頁 1 的動態生成 (依燈號變換顏色)
                     let colorCode = h.status === 'green' ? '#28a745' : (h.status === 'orange' ? '#fd7e14' : '#dc3545');
                     let isChecked = (h.status === 'green' || h.status === 'orange') ? 'checked' : '';
-                    container.innerHTML += `<label class="p-2 border rounded bg-white" style="border-color: ${colorCode} !important;"><input type="checkbox" class="target-hosp-cb" value="${h.name}" ${isChecked}> <span class="fw-bold">${h.name}</span> <span style="color:${colorCode}; font-size:0.9em;">(${h.statusText})</span></label>`;
+                    container.innerHTML += `<label class="p-2 border rounded bg-white" style="border-color: ${colorCode} !important; cursor: pointer;"><input type="checkbox" class="target-hosp-cb" value="${h.name}" ${isChecked}> <span class="fw-bold">${h.name}</span> <span style="color:${colorCode}; font-size:0.9em;">(${h.statusText})</span></label>`;
+                    
+                    // 🌟 2. 新增：分頁 4 的動態生成 (統一深綠色邊框，不受燈號影響)
+                    rosterContainer.innerHTML += `<label class="p-2 border rounded bg-white roster-radio-label"><input type="radio" name="roster_query_hosp_radio" value="${h.name}" onchange="queryTodayRoster()"> <span class="fw-bold" style="color: var(--ink);">${h.name}</span></label>`;
                 });
+
                 if (currentRosterData['1st Line 優先排班表']) document.getElementById('priority_hosp_display').innerText = currentRosterData['1st Line 優先排班表'].activeName;
                 renderHospitalBoard(); renderQuickUpdateBoard();
                 
@@ -928,32 +959,58 @@
         document.body.appendChild(link); link.click(); document.body.removeChild(link);
     }
 
+    // 🌟 控制上傳 Modal 開關的函數
+    function openUploadRosterModal() { 
+        document.getElementById('roster_file_input').value = ""; // 打開時先清空檔案
+        document.getElementById('uploadRosterModal').style.display = 'flex'; 
+    }
+    function closeUploadRosterModal() { 
+        document.getElementById('uploadRosterModal').style.display = 'none'; 
+    }
+
+    // 🌟 更新後的上傳函數
     function uploadRosterCsv() {
         const fileInput = document.getElementById('roster_file_input');
-        if (!fileInput.files || fileInput.files.length === 0) return alert("請先點擊「選擇檔案」挑選一個 CSV 班表！");
+        if (!fileInput.files || fileInput.files.length === 0) return alert("請先點選「選擇檔案」挑選一個 CSV 班表！");
         const file = fileInput.files[0]; const fileName = file.name; const reader = new FileReader();
         reader.onload = function(e) {
-            const base64Data = e.target.result; const btn = event.target; const originalText = btn.innerText; btn.innerText = "⏳ 正在分析與上傳，請稍候..."; btn.disabled = true;
-            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "uploadRoster", payload: { filename: fileName, csvContent: base64Data } }) }).then(res => res.json()).then(data => {
+            const base64Data = e.target.result; const btn = event.target; const originalText = btn.innerText; 
+            btn.innerText = "⏳ 上傳中..."; btn.disabled = true;
+            
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "uploadRoster", payload: { filename: fileName, csvContent: base64Data } }) })
+            .then(res => res.json()).then(data => {
                 btn.innerText = originalText; btn.disabled = false;
                 if (data.status === "success") { 
                     alert(data.data.message); 
                     fetchDataFromGAS(); 
-                    // 這裡原本的 closeHospRosterModal(); 已經安全移除
-                    document.getElementById('roster_file_input').value = ""; // 順便幫您加一行：上傳成功後清空選擇的檔案
-                } else { alert("上傳失敗: " + data.error); }
-            }).catch(err => { alert("上傳發生錯誤，請檢查網路連線。"); btn.innerText = originalText; btn.disabled = false; console.log(err); });
+                    closeUploadRosterModal(); // 🌟 上傳成功後自動關閉 Modal
+                } else { 
+                    alert("上傳失敗: " + data.error); 
+                }
+            }).catch(err => { 
+                alert("上傳發生錯誤，請檢查網路連線。"); 
+                btn.innerText = originalText; btn.disabled = false; console.log(err); 
+            });
         };
         reader.readAsDataURL(file);
     }
 
     function queryTodayRoster() {
-        const hospName = document.getElementById('roster_query_hosp_sel').value; const resDiv = document.getElementById('query_roster_result'); const tbody = document.getElementById('query_roster_tbody');
+        // 🌟 改為抓取目前被選中的 radio 按鈕的值
+        const selectedOpt = document.querySelector('input[name="roster_query_hosp_radio"]:checked');
+        const hospName = selectedOpt ? selectedOpt.value : "";
+        
+        const resDiv = document.getElementById('query_roster_result'); 
+        const tbody = document.getElementById('query_roster_tbody');
+        
         if (!hospName) { resDiv.style.display = 'none'; return; }
         resDiv.style.display = 'block';
         if (currentRosterData[hospName]) {
-            const r = currentRosterData[hospName]; tbody.innerHTML = `<tr><td style="color:#ecf0f1; font-weight:normal;">${hospName}</td><td style="color:#f1c40f;">${r.m}</td><td style="color:#f1c40f;">${r.a}</td><td style="color:#f1c40f;">${r.n}</td></tr>`;
-        } else { tbody.innerHTML = `<tr><td colspan="4" class="text-muted text-center">無排班資料</td></tr>`; }
+            const r = currentRosterData[hospName]; 
+            tbody.innerHTML = `<tr><td style="color:#ecf0f1; font-weight:normal;">${hospName}</td><td style="color:#f1c40f;">${r.m}</td><td style="color:#f1c40f;">${r.a}</td><td style="color:#f1c40f;">${r.n}</td></tr>`;
+        } else { 
+            tbody.innerHTML = `<tr><td colspan="4" class="text-muted text-center">無排班資料</td></tr>`; 
+        }
     }
 
     function openReportModal() {
