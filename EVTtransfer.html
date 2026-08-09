@@ -835,7 +835,8 @@
         const reqTime = `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
 
         let hospStatusObj = {}; let hospReplyObj = {}; targets.forEach(hName => { hospStatusObj[hName] = "尚未讀取個案"; hospReplyObj[hName] = null; });
-        let payloadClinicalData = JSON.parse(JSON.stringify(pendingClinicalData)); delete payloadClinicalData.images; 
+        // 修改後 (把 delete 那段刪掉，保留這樣即可)：
+let payloadClinicalData = JSON.parse(JSON.stringify(pendingClinicalData));
 
         document.getElementById('submit_result_area').style.display = 'block'; document.getElementById('submit_result_area').innerHTML = `⏳ <strong style="color:#0056b3;">正在秒速建檔並發送通知信，請稍候...</strong>`;
         
