@@ -1189,10 +1189,20 @@ let payloadClinicalData = JSON.parse(JSON.stringify(pendingClinicalData));
         for (let caseId in cases) {
             const c = cases[caseId];
             if (c.targets.includes(loggedInHosp)) {
+                // 1. 如果自己已經結案，不顯示
                 if (c.hospStatus[loggedInHosp] && c.hospStatus[loggedInHosp].includes("已結案")) continue; 
+                
+                // 🌟 2. 依照您的需求：只有在「已抵達 (arriveTime)」時，才從其他未接手的醫院清單中徹底清除/隱藏！
+                if (c.finalDest && c.finalDest !== loggedInHosp) {
+                    if (c.arriveTime) {
+                        continue; // 只有在抵達目標醫院後，才跳過並隱藏這筆個案
+                    }
+                }
+
                 if (c.hospStatus[loggedInHosp] === "尚未讀取個案") c.hospStatus[loggedInHosp] = "評估中";
                 
-                let intentText = "評估中"; let actionBtns = `<button class="btn-main" style="background:#fd7e14;" onclick="openReplyModal('${caseId}')">🏥 回覆量能</button>`;
+                let intentText = "評估中"; 
+                let actionBtns = `<button class="btn-main" style="background:#fd7e14;" onclick="openReplyModal('${caseId}')">🏥 回覆量能</button>`;
                 
                 if (c.finalDest === loggedInHosp) {
                         if (c.arriveTime) { intentText = `<span style="color:#17a2b8; font-weight:bold;">🏥 已抵達本院 (${c.arriveTime})</span>`; } 
@@ -1202,7 +1212,6 @@ let payloadClinicalData = JSON.parse(JSON.stringify(pendingClinicalData));
                         let mapBtn = c.location ? `<button class="btn-main" style="background:#28a745;" onclick="window.open('https://www.google.com/maps/search/?api=1&query=${c.location.lat},${c.location.lng}', '_blank')">🗺️ GPS地圖</button>` : `<span style="font-size:0.85em; color:#888;">(尚未回報GPS)</span>`;
                         let chatBtn = `<button class="btn-main" style="background:#17a2b8;" onclick="openMessenger('${caseId}', 1, 'evt', '${loggedInHosp}')">💬 即時文字溝通</button>`;
                         
-                        // 🌟 這裡已將錯誤放置的注意事項按鈕移除
                         if (c.arriveTime) {
                             let feedbackBtn = `<button class="btn-main" style="background:#ffc107; color:#333;" onclick="openFeedbackModal('${caseId}')">📝 個案回饋與結案</button>`;
                             actionBtns = `${mapBtn} ${chatBtn} ${feedbackBtn}`; 
@@ -1210,7 +1219,15 @@ let payloadClinicalData = JSON.parse(JSON.stringify(pendingClinicalData));
                             let cancelBtn = `<button class="btn-main" style="background:#dc3545;" onclick="cancelFinalDest('${caseId}', '${loggedInHosp}')">❌ 取消轉入</button>`;
                             actionBtns = `${mapBtn} ${chatBtn} ${cancelBtn}`; 
                         }
-                } else if (c.finalDest) { intentText = `<span style="color:red;">已轉至 ${c.finalDest}</span>`; actionBtns = ``; }
+                } else if (c.finalDest) { 
+                    // 🌟 3. 如果已被別人鎖定，但病人還沒抵達：畫面保留個案，但「拔除回覆按鈕」防呆
+                    if (c.departTime) {
+                        intentText = `<span style="color:red; font-weight:bold;">已出發轉至 ${c.finalDest}</span>`;
+                    } else {
+                        intentText = `<span style="color:red; font-weight:bold;">已鎖定轉至 ${c.finalDest}</span>`; 
+                    }
+                    actionBtns = ``; // 拔除操作按鈕，其他醫院只能看，不能動
+                }
 
                 let timesInfo = getCaseTimeStr(c); let replyTimeStr = c.hospReplyTime[loggedInHosp] ? ` <span style="font-size:0.85em; color:#666;">(${c.hospReplyTime[loggedInHosp]})</span>` : "";
 
