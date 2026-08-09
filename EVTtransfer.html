@@ -3,7 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>中風區域聯防轉診平台 v35 </title>
+    <title>中風區域聯防轉診平台 v36 </title>
+    
+    <!-- 🌟 修復 2：在此引入 Bootstrap 核心套件 (確保 Messenger 對話框能正常彈出) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
     <style>
         body { font-family: "Microsoft JhengHei", sans-serif; margin: 0; padding: 20px; background-color: #f0f2f5; color: #333; }
         .app-container { max-width: 1100px; margin: 0 auto; background: transparent; }
@@ -247,7 +252,8 @@
         <div id="footer_version_display" style="margin-top: 8px; font-size: 0.85em; color: #6c757d; font-weight: normal;">
             <!-- JS 會自動將 Title 與日期填入此處 -->
         </div>
-    </div
+    <!-- 🌟 修復 3：補齊缺少的標籤括號 -->
+    </div>
 
 </div>
 
@@ -294,15 +300,15 @@
         <div class="req-group" style="margin-bottom: 10px;"><label>取栓醫師姓名</label><input type="text" id="addr_dr_name" placeholder="姓名"></div>
         <div class="req-group" style="margin-bottom: 10px;"><label>取栓醫師 Email</label><input type="email" id="addr_dr_email" placeholder="Email"></div>
         <div class="req-group" style="margin-bottom: 10px;"><label>取栓醫師 連絡電話</label><input type="text" id="addr_dr_phone" placeholder="電話"></div>
-        <!-- 🌟 修正：將 ID 改為 addr_dr_lineid -->
+        
         <div class="req-group" style="margin-bottom: 15px;">
     <label>LINE ID</label>
     <div style="display: flex; gap: 10px; align-items: center;">
         <!-- 原本的輸入框 -->
         <input type="text" id="addr_dr_lineid" placeholder="LINE 帳號 (提供給同仁加入用)" style="flex: 1; margin: 0;">
         
-        <!-- 🌟 新增：加入小幫手快捷鈕 -->
-        <a href="https://line.me/R/ti/p/%40964pltbx" target="_blank" style="display: inline-flex; align-items: center; justify-content: center; background-color: #06C755; color: white; padding: 6px 12px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; white-space: nowrap; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: 0.2s;">            <!-- 請將 src 替換為該圖片實際存放在網路上的網址 -->
+        <!-- 🌟 加入小幫手快捷鈕 -->
+        <a href="https://line.me/R/ti/p/%40964pltbx" target="_blank" style="display: inline-flex; align-items: center; justify-content: center; background-color: #06C755; color: white; padding: 6px 12px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; white-space: nowrap; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: 0.2s;">
             <img src="https://chuanhsiufu-neuro.github.io/EVTtransfer/littlehelper.png" alt="小幫手" style="width: 24px; height: 24px; margin-right: 8px; border-radius: 50%; background: white;">
             加入小幫手
             </a>
@@ -334,7 +340,6 @@
         <span class="close-btn" onclick="closeHospRosterModal()">&times;</span>
         <h2 style="color: #0056b3; margin-top: 0; border-bottom: 2px solid #eee; padding-bottom: 10px;">📅 Excel 班表</h2>
         
-        <!-- 🌟 新增：查詢今日單一醫院班表 -->
         <div style="margin-bottom: 20px; border-bottom: 1px dashed #ccc; padding-bottom: 20px;">
             <label style="display:block; margin-bottom: 8px; font-weight:bold; color:#0056b3;">🔍 查詢今日班表</label>
             <select id="roster_query_hosp_sel" style="width: 100%; padding: 8px; margin-bottom: 10px;" onchange="queryTodayRoster()">
@@ -487,7 +492,6 @@
         if (!c.requestTime) return "";
         let parts = [`提出: ${c.requestTime}`];
         if (c.cancelTime) {
-            // 🌟 加上取消醫院的顯示
             let byHosp = c.cancelHosp ? `(由 ${c.cancelHosp} 取消)` : "";
             parts.push(`取消${byHosp}: ${c.cancelTime}`);
         }
@@ -511,7 +515,6 @@
             });
         });
 
-        // 🌟 自動抓取網頁 Title 與當天日期，填入置底宣告
         const today = new Date();
         const dateString = today.getFullYear() + "/" + String(today.getMonth() + 1).padStart(2, '0') + "/" + String(today.getDate()).padStart(2, '0');
         const pageTitle = document.title;
@@ -526,7 +529,6 @@
             if (resData.status === "success" && resData.data.cases) {
                 let newCases = resData.data.cases;
                 const now = Date.now();
-                // 🌟 保護機制：如果前端有剛建立不到 20 秒的個案（代表雲端可能還沒寫入），就保留它避免畫面閃爍消失
                 for (let cid in cases) {
                     if (!newCases[cid] && (now - cases[cid].timestamp < 20000)) {
                         newCases[cid] = cases[cid];
@@ -540,9 +542,6 @@
         }).catch(e => console.log("即時同步背景執行失敗", e));
     }
 
-    // ==========================================
-    // ☁️ 從 GAS 讀取最新醫院狀態與班表
-    // ==========================================
     function fetchDataFromGAS() {
         if (!GAS_URL) return alert("尚未設定 GAS URL！");
         
@@ -607,15 +606,13 @@
                 }
 
                 renderHospitalBoard(); renderQuickUpdateBoard();
-                // 🌟 網址導航解析：如果是從 Email 跳轉來的，自動切換至 Tab 3 並預選醫院
+
                 const urlParams = new URLSearchParams(window.location.search);
                 if (urlParams.get('tab') === 'tab3') {
                     switchTab('tab3');
                     const urlHosp = urlParams.get('hosp');
-                    // 確認下拉選單中有這個醫院
                     if (urlHosp && document.querySelector(`#login_hosp_name option[value="${urlHosp}"]`)) {
                         document.getElementById('login_hosp_name').value = urlHosp;
-                        // 自動讓密碼框發光，醫師直接打密碼就能登入
                         setTimeout(() => document.getElementById('login_hosp_pwd').focus(), 500);
                     }
                 }
@@ -717,23 +714,17 @@
         } else { alert("⚠️ 目前沒有暫存的臨床資料，請先開啟表單填寫。"); }
     }
     
-   // ==========================================
-    // 🌟 智慧識別：開啟全新臨床表單，避免與舊個案殘留資料衝突
-    // ==========================================
     function openNewClinicalForm() {
         const savedStr = localStorage.getItem('stroke_transfer_clinical_data');
         
         if (savedStr) {
             try {
                 let existingData = JSON.parse(savedStr);
-                // 判斷 1：如果裡面有 caseId，代表這是從「Tab 2 個案追蹤」留下來的舊資料
                 if (existingData.caseId) {
-                    localStorage.removeItem('stroke_transfer_clinical_data'); // 直接無聲清空
+                    localStorage.removeItem('stroke_transfer_clinical_data'); 
                     pendingClinicalData = {};
                     resetFormStatusCard();
-                } 
-                // 判斷 2：如果沒有 caseId，代表這是 Tab 1 填到一半還沒送出的「草稿」
-                else {
+                } else {
                     let confirmClear = confirm("💡 系統偵測到您有一筆【尚未送出】的新個案草稿。\n\n👉 點擊【確定】：捨棄草稿，開啟全新空白表單\n👉 點擊【取消】：保留草稿，繼續編輯該病人資料");
                     if (confirmClear) {
                         localStorage.removeItem('stroke_transfer_clinical_data');
@@ -742,16 +733,13 @@
                     }
                 }
             } catch (e) {
-                // 如果解析失敗，直接清空防呆
                 localStorage.removeItem('stroke_transfer_clinical_data');
             }
         }
         
-        // 處理完暫存後，開啟表單網頁
         window.open('clinical.html', '_blank');
     }
 
-    // 重置 Tab 1 狀態卡的 UI 顯示
     function resetFormStatusCard() {
         const card = document.getElementById('form_status_card'); 
         const title = document.getElementById('form_status_title');
@@ -779,9 +767,6 @@
         } else { alert("⚠️ 請先開啟表單修改並儲存後，再點擊同步。"); }
     }
 
-    // ==========================================
-    // 系統設定與後台
-    // ==========================================
     function openHospSysSettingsModal() {
         if (!loggedInHosp) return;
         const hosp = hospitals.find(h => h.name === loggedInHosp);
@@ -796,52 +781,46 @@
     }
     function closeHospSysSettingsModal() { document.getElementById('hospSysSettingsModal').style.display = 'none'; }
     
-    // 儲存醫師資訊 (覆蓋舊資料)
-function saveAddressBookDr() {
-    const hosp = hospitals.find(h => h.name === loggedInHosp);
-    const idx = document.getElementById('addr_dr_selector').value;
-    
-    // 🌟 將畫面上的 lineid 抓出來存入物件
-    hosp.addressBook[idx] = { 
-        name: document.getElementById('addr_dr_name').value, 
-        email: document.getElementById('addr_dr_email').value, 
-        phone: document.getElementById('addr_dr_phone').value,
-        lineId: document.getElementById('addr_dr_lineid').value 
-    };
-    
-    // 🌟 在 payload 中新增 lineId，準備送給 GAS
-    fetch(GAS_URL, {
-        method: 'POST',
-        body: JSON.stringify({ 
-            action: "updateAddressBook", 
-            payload: { 
-                hospName: loggedInHosp, 
-                drIndex: idx, 
-                name: hosp.addressBook[idx].name, 
-                email: hosp.addressBook[idx].email, 
-                phone: hosp.addressBook[idx].phone,
-                lineId: hosp.addressBook[idx].lineId
-            } 
-        })
-    }).catch(e => console.log("GAS 錯誤", e));
+    function saveAddressBookDr() {
+        const hosp = hospitals.find(h => h.name === loggedInHosp);
+        const idx = document.getElementById('addr_dr_selector').value;
+        
+        hosp.addressBook[idx] = { 
+            name: document.getElementById('addr_dr_name').value, 
+            email: document.getElementById('addr_dr_email').value, 
+            phone: document.getElementById('addr_dr_phone').value,
+            lineId: document.getElementById('addr_dr_lineid').value 
+        };
+        
+        fetch(GAS_URL, {
+            method: 'POST',
+            body: JSON.stringify({ 
+                action: "updateAddressBook", 
+                payload: { 
+                    hospName: loggedInHosp, 
+                    drIndex: idx, 
+                    name: hosp.addressBook[idx].name, 
+                    email: hosp.addressBook[idx].email, 
+                    phone: hosp.addressBook[idx].phone,
+                    lineId: hosp.addressBook[idx].lineId
+                } 
+            })
+        }).catch(e => console.log("GAS 錯誤", e));
 
-    alert(`✅ Dr ${idx} 通訊錄已更新，系統將於背景同步雲端。`);
-}
+        alert(`✅ Dr ${idx} 通訊錄已更新，系統將於背景同步雲端。`);
+    }
 
-// 切換下拉選單時，把對應醫師的資料填回畫面上
-function loadAddressBookDr() {
-    const hosp = hospitals.find(h => h.name === loggedInHosp);
-    const idx = document.getElementById('addr_dr_selector').value;
-    
-    // 如果找不到資料就給空字串防呆
-    const drInfo = hosp.addressBook[idx] || { name: '', email: '', phone: '', lineId: '' };
-    
-    document.getElementById('addr_dr_name').value = drInfo.name || '';
-    document.getElementById('addr_dr_email').value = drInfo.email || '';
-    document.getElementById('addr_dr_phone').value = drInfo.phone || '';
-    // 🌟 讀取時，也要把 Line ID 顯示出來
-    document.getElementById('addr_dr_lineid').value = drInfo.lineId || ''; 
-}
+    function loadAddressBookDr() {
+        const hosp = hospitals.find(h => h.name === loggedInHosp);
+        const idx = document.getElementById('addr_dr_selector').value;
+        
+        const drInfo = hosp.addressBook[idx] || { name: '', email: '', phone: '', lineId: '' };
+        
+        document.getElementById('addr_dr_name').value = drInfo.name || '';
+        document.getElementById('addr_dr_email').value = drInfo.email || '';
+        document.getElementById('addr_dr_phone').value = drInfo.phone || '';
+        document.getElementById('addr_dr_lineid').value = drInfo.lineId || ''; 
+    }
 
     function saveHospSysSettings() {
         const hosp = hospitals.find(h => h.name === loggedInHosp);
@@ -877,7 +856,6 @@ function loadAddressBookDr() {
         document.getElementById('hospRosterModal').style.display = 'none'; 
     }
 
-    // 🌟 新增：查詢單一醫院的當日排班
     function queryTodayRoster() {
         const hospName = document.getElementById('roster_query_hosp_sel').value;
         const resDiv = document.getElementById('query_roster_result');
@@ -942,9 +920,6 @@ function loadAddressBookDr() {
         alert(`✅ ${hospName} 燈號已更新！`); closeHospSettingsModal(); 
     }
 
-    // ==========================================
-    // ★ 建立個案與極速上傳核心 ★
-    // ==========================================
     function submitCase() {
         const phone = document.getElementById('req_doc_phone').value;
         const email = document.getElementById('req_doc_email').value;
@@ -975,7 +950,7 @@ function loadAddressBookDr() {
         .then(res => res.json())
         .then(data => {
             if(data.status === "success") {
-                cases[caseId].clinicalData.folderUrl = data.data.folderUrl; // 將網址寫入暫存
+                cases[caseId].clinicalData.folderUrl = data.data.folderUrl; 
                 document.getElementById('submit_result_area').innerHTML = `
                     <div style="text-align: center;">
                         <h3 style="color: #28a745; margin-bottom: 5px;">✅ 資訊與通知已秒速發送！</h3>
@@ -987,7 +962,6 @@ function loadAddressBookDr() {
                         <p style="font-size: 0.85em; color: #666; margin-top: 10px;">(上傳完成後，接收端醫院即可在信件中查看)</p>
                     </div>
                 `;
-                // 強制在背景再刷一次最新資料
                 setTimeout(fetchRecentCasesFromGAS, 3000);
             } else { document.getElementById('submit_result_area').innerHTML = `❌ <strong>上傳發生錯誤：</strong> ${data.error}`; }
         })
@@ -1074,7 +1048,7 @@ function loadAddressBookDr() {
                     <button class="btn-success" onclick="quickUpdateLocation('${currentTrackCaseId}')">📍 更新 GPS</button>
                     <button class="btn-main" style="background:#28a745;" onclick="window.open('${folderLink}', '_blank')">📂 開啟影像資料夾</button>
                     
-                    <!-- 🌟 新增這顆：Messenger 對話快捷鈕 -->
+                    <!-- 🌟 這是替換的 Messenger 按鈕 -->
                     <button class="btn-main" style="background:#17a2b8;" onclick="openMessenger('${currentTrackCaseId}', 1, 'requester', '需求端')">💬 開啟即時溝通</button>
                     
                     <button class="btn-danger" onclick="cancelFinalDest('${currentTrackCaseId}', '${c.reqHospOut}')">❌ 取消</button>
@@ -1124,85 +1098,88 @@ function loadAddressBookDr() {
         } 
     }
 
+    // 🌟 替換為標準 API fetch 的即時對話系統 
     let chatPollInterval;
-let currentChatContext = { caseId: "", attempt: 1, senderType: "", senderName: "" };
+    let currentChatContext = { caseId: "", attempt: 1, senderType: "", senderName: "" };
 
-// 打開對話框並啟動輪詢 (需求端與取栓端共用此函數)
-// 範例呼叫：openMessenger('case123', 1, 'requester', '需求端');
-// 範例呼叫：openMessenger('case123', 1, 'evt', '台大新竹');
-function openMessenger(caseId, attempt, senderType, senderName) {
-  currentChatContext = { caseId, attempt, senderType, senderName };
-  
-  // 設定標題
-  document.getElementById('messengerTitle').innerText = 
-    senderType === 'requester' ? `與 取栓醫院 即時溝通 (第${attempt}次鎖定)` : `與 轉出醫院 即時溝通`;
-  
-  document.getElementById('chatHistoryBox').innerText = "載入對話紀錄中...";
-  document.getElementById('chatInput').value = "";
-  
-  var chatModal = new bootstrap.Modal(document.getElementById('messengerModal'));
-  chatModal.show();
+    function openMessenger(caseId, attempt, senderType, senderName) {
+      currentChatContext = { caseId, attempt, senderType, senderName };
+      
+      document.getElementById('messengerTitle').innerText = 
+        senderType === 'requester' ? `與 取栓醫院 即時溝通 (第${attempt}次鎖定)` : `與 轉出醫院 即時溝通`;
+      
+      document.getElementById('chatHistoryBox').innerText = "載入對話紀錄中...";
+      document.getElementById('chatInput').value = "";
+      
+      var chatModal = new bootstrap.Modal(document.getElementById('messengerModal'));
+      chatModal.show();
 
-  // 立即刷新一次，並啟動每 3 秒輪詢更新
-  refreshChat();
-  chatPollInterval = setInterval(refreshChat, 3000);
-}
-
-// 關閉 Modal 時停止輪詢，避免浪費資源
-function stopChatPolling() {
-  if (chatPollInterval) {
-    clearInterval(chatPollInterval);
-  }
-}
-
-// 抓取最新對話紀錄
-function refreshChat() {
-  google.script.run.withSuccessHandler(function(history) {
-    let box = document.getElementById('chatHistoryBox');
-    let isScrolledToBottom = box.scrollHeight - box.clientHeight <= box.scrollTop + 10;
-    
-    box.innerText = history || "目前尚無對話紀錄，請直接在下方輸入訊息開始對話。";
-    
-    // 如果原本就在最底下，更新後自動滾動到底部
-    if (isScrolledToBottom) {
-      box.scrollTop = box.scrollHeight;
+      refreshChat();
+      chatPollInterval = setInterval(refreshChat, 3000);
     }
-  }).getChatHistory(currentChatContext.caseId, currentChatContext.attempt);
-}
 
-// 支援按 Enter 送出
-function handleChatEnter(event) {
-  if (event.key === "Enter") {
-    submitChatMessage();
-  }
-}
+    function stopChatPolling() {
+      if (chatPollInterval) clearInterval(chatPollInterval);
+    }
 
-// 送出訊息
-function submitChatMessage() {
-  let input = document.getElementById('chatInput');
-  let msg = input.value.trim();
-  if(!msg) return;
+    function refreshChat() {
+        fetch(GAS_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                action: "getChatHistory", 
+                payload: { caseId: currentChatContext.caseId, attempt: currentChatContext.attempt }
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.status === "success") {
+                let box = document.getElementById('chatHistoryBox');
+                let isScrolledToBottom = box.scrollHeight - box.clientHeight <= box.scrollTop + 10;
+                box.innerText = data.data || "目前尚無對話紀錄，請直接在下方輸入訊息開始對話。";
+                if (isScrolledToBottom) box.scrollTop = box.scrollHeight;
+            }
+        }).catch(e => console.log("讀取對話失敗", e));
+    }
 
-  // 鎖定輸入框避免重複發送
-  input.disabled = true;
-  let payload = {
-    caseId: currentChatContext.caseId,
-    attempt: currentChatContext.attempt,
-    senderType: currentChatContext.senderType,
-    senderName: currentChatContext.senderName,
-    message: msg
-  };
+    function handleChatEnter(event) {
+      if (event.key === "Enter") submitChatMessage();
+    }
 
-  google.script.run.withSuccessHandler(function(res) {
-    input.value = ""; 
-    input.disabled = false;
-    input.focus();
-    refreshChat(); // 送出成功後立即刷新畫面
-  }).sendMessage(payload);
-}
+    function submitChatMessage() {
+      let input = document.getElementById('chatInput');
+      let msg = input.value.trim();
+      if(!msg) return;
 
-    
-    // 🌟 參數加入 caseId 與 cancelHospName
+      input.disabled = true;
+      let payload = {
+        caseId: currentChatContext.caseId,
+        attempt: currentChatContext.attempt,
+        senderType: currentChatContext.senderType,
+        senderName: currentChatContext.senderName,
+        message: msg
+      };
+
+      fetch(GAS_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: "sendMessage", payload: payload })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.status === "success") {
+                input.value = ""; 
+                input.disabled = false;
+                input.focus();
+                refreshChat(); 
+            } else {
+                alert("發送失敗：" + data.error);
+                input.disabled = false;
+            }
+        }).catch(e => {
+            console.log("發送失敗", e);
+            input.disabled = false;
+        });
+    }
+
     function cancelFinalDest(caseId, cancelHospName) { 
         if(confirm(`確定要取消轉入 ${cases[caseId].finalDest} 嗎？\n(操作方：${cancelHospName})`)) { 
             let t = formatDateTime();
@@ -1212,13 +1189,13 @@ function submitChatMessage() {
             cases[caseId].arriveTime = null; 
             cases[caseId].lockTime = null; 
             cases[caseId].cancelTime = t;
-            cases[caseId].cancelHosp = cancelHospName; // 寫入前端暫存
+            cases[caseId].cancelHosp = cancelHospName; 
             
             fetch(GAS_URL, { 
                 method: 'POST', 
                 body: JSON.stringify({ 
                     action: "updateCaseTracking", 
-                    payload: { caseId: caseId, actionType: "cancel", value1: t, value3: cancelHospName } // 🌟 傳送 value3 給後端
+                    payload: { caseId: caseId, actionType: "cancel", value1: t, value3: cancelHospName } 
                 }) 
             })
             .then(res => res.json())
@@ -1257,15 +1234,13 @@ function submitChatMessage() {
                         
                         let cancelBtn = `<button class="btn-main" style="background:#dc3545;" onclick="cancelFinalDest('${caseId}', '${loggedInHosp}')">❌ 取消轉入</button>`;
                         
-                        // 🌟 新增這顆：Messenger 對話快捷鈕，並取代原本的 Google Doc
+                        // 🌟 這是給接收醫院端的 Messenger 按鈕
                         let chatBtn = `<button class="btn-main" style="background:#17a2b8;" onclick="openMessenger('${caseId}', 1, 'evt', '${loggedInHosp}')">💬 即時文字溝通</button>`;
                         
-                        // 把三顆按鈕組合起來
                         actionBtns = `${mapBtn} ${chatBtn} ${cancelBtn}`;
-                    } else { 
+                    } else if (c.finalDest) { 
                         intentText = `<span style="color:red;">已轉至 ${c.finalDest}</span>`; actionBtns = ``; 
                     }
-                }
 
                 let timesInfo = getCaseTimeStr(c);
                 let replyTimeStr = c.hospReplyTime[loggedInHosp] ? ` <span style="font-size:0.85em; color:#666;">(${c.hospReplyTime[loggedInHosp]})</span>` : "";
