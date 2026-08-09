@@ -695,8 +695,8 @@
             let canClean = c.cancelTime.length > 10 ? c.cancelTime.substring(5) : c.cancelTime;
             parts.push(`取消${byHosp}: ${canClean}`);
         }
-        // 🌟 拿掉強制白字，這樣在深綠色標題中會繼承白色，在白色卡片中會繼承深色
-        return `<span style="font-size: 0.85em; font-family: var(--mono);">(${parts.join(', ')})</span>`;
+        // 🌟 使用 currentColor 讓它自動隨環境背景變色（深綠變白字、白卡變黑字）
+        return `<span style="font-size: 0.85em; font-family: var(--mono); color: currentColor;">(${parts.join(', ')})</span>`;
     }
 
     window.onload = function() {
@@ -1158,7 +1158,7 @@
                 <div class="quick-case-card">
                     <div class="cid">
                         📄 ${caseId} 
-                        <div style="color: #5B6B65; font-size: 0.65em; font-weight: normal; margin-top: 4px;">${getCaseTimeStr(c)}</div>
+                        <div style="font-size: 0.65em; font-weight: normal; margin-top: 4px;">${getCaseTimeStr(c)}</div>
                     </div>
                     <div class="info">狀態: ${destStatus}</div>
                     <div class="action-grid">${btnDepart}${btnArrive}</div>
