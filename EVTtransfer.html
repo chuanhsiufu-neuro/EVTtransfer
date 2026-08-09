@@ -199,6 +199,65 @@
             color: white !important;
             border-color: var(--teal-700) !important;
         }
+        .skeleton-card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 16px;
+            border-top: 4px solid var(--line);
+            box-shadow: 0 2px 10px rgba(11,58,63,0.06);
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .skeleton-bar {
+            height: 12px;
+            border-radius: 6px;
+            background: linear-gradient(90deg, #E4F1EF 25%, #F4F6F4 37%, #E4F1EF 63%);
+            background-size: 400% 100%;
+            animation: skeleton-shimmer 1.6s ease-in-out infinite;
+        }
+        .skeleton-bar.w-60 { width: 60%; height: 15px; }
+        .skeleton-bar.w-40 { width: 40%; }
+        .skeleton-bar.w-80 { width: 80%; }
+        .skeleton-bar.w-100 { width: 100%; }
+        .skeleton-pill {
+            width: 72px; height: 22px; border-radius: 20px;
+            background: linear-gradient(90deg, #E4F1EF 25%, #F4F6F4 37%, #E4F1EF 63%);
+            background-size: 400% 100%;
+            animation: skeleton-shimmer 1.6s ease-in-out infinite;
+        }
+        @keyframes skeleton-shimmer {
+            0% { background-position: 100% 50%; }
+            100% { background-position: 0 50%; }
+        }
+        .loading-caption {
+            grid-column: 1 / -1;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            font-family: var(--mono);
+            font-size: 13px;
+            letter-spacing: .04em;
+            color: var(--teal-500);
+            padding: 4px 0 2px;
+        }
+        .loading-caption .dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: var(--teal-500);
+            animation: loading-pulse 1.1s ease-in-out infinite;
+        }
+        .loading-caption .dot:nth-child(2) { animation-delay: .15s; }
+        .loading-caption .dot:nth-child(3) { animation-delay: .3s; }
+        @keyframes loading-pulse {
+            0%, 80%, 100% { opacity: .25; transform: scale(0.8); }
+            40% { opacity: 1; transform: scale(1.15); }
+        }
+        .board-error {
+            grid-column: 1 / -1;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            background: var(--alert-100);
+            border: 1px solid #E7C6BE;
+            color: var(--alert);
+            font-weight: 700;
+            border-radius: 10px;
+            padding: 16px;
+        }
     </style>
 </head>
 <body>
@@ -236,7 +295,10 @@
 </div>
     
     <div class="status-board" id="hospital_status_board">
-        <h3 style="color: #5B6B65; text-align: center; width: 100%;">⏳ 正在從雲端載入各醫院即時量能，請稍候...</h3>
+        <div class="loading-caption"><span class="dot"></span><span class="dot"></span><span class="dot"></span>&nbsp;正在從雲端載入各醫院即時量能</div>
+        <div class="skeleton-card"><div class="skeleton-bar w-60"></div><div class="skeleton-pill"></div><div class="skeleton-bar w-100"></div><div class="skeleton-bar w-80"></div><div class="skeleton-bar w-40"></div></div>
+        <div class="skeleton-card"><div class="skeleton-bar w-60"></div><div class="skeleton-pill"></div><div class="skeleton-bar w-100"></div><div class="skeleton-bar w-80"></div><div class="skeleton-bar w-40"></div></div>
+        <div class="skeleton-card"><div class="skeleton-bar w-60"></div><div class="skeleton-pill"></div><div class="skeleton-bar w-100"></div><div class="skeleton-bar w-80"></div><div class="skeleton-bar w-40"></div></div>
     </div>
 
     <div class="section-header" style="border-bottom-color: var(--teal-500); color: var(--teal-500);">
@@ -766,7 +828,15 @@
 
     function fetchDataFromGAS() {
         if (!GAS_URL) return alert("尚未設定 GAS URL！");
-        document.getElementById('hospital_status_board').innerHTML = '<h3 class="text-muted text-center w-100">⏳ 正在從雲端載入各醫院即時量能，請稍候...</h3>';
+        
+        // 🌟 重新整理或載入時，先秀出動態骨架屏
+        document.getElementById('hospital_status_board').innerHTML = `
+            <div class="loading-caption"><span class="dot"></span><span class="dot"></span><span class="dot"></span>&nbsp;正在從雲端載入各醫院即時量能</div>
+            <div class="skeleton-card"><div class="skeleton-bar w-60"></div><div class="skeleton-pill"></div><div class="skeleton-bar w-100"></div><div class="skeleton-bar w-80"></div><div class="skeleton-bar w-40"></div></div>
+            <div class="skeleton-card"><div class="skeleton-bar w-60"></div><div class="skeleton-pill"></div><div class="skeleton-bar w-100"></div><div class="skeleton-bar w-80"></div><div class="skeleton-bar w-40"></div></div>
+            <div class="skeleton-card"><div class="skeleton-bar w-60"></div><div class="skeleton-pill"></div><div class="skeleton-bar w-100"></div><div class="skeleton-bar w-80"></div><div class="skeleton-bar w-40"></div></div>
+        `;
+
         fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "fetchActiveData" }) })
         .then(res => res.json()).then(resData => {
             if (resData.status === "success") {
@@ -787,7 +857,7 @@
                     for(let i=1; i<=5; i++) { hObj.addressBook[i] = config.doctors[i-1] || { name: "", email: "", phone: "", lineId: "" }; }
                     hospitals.push(hObj); selLogin.innerHTML += `<option value="${hName}">${hName}</option>`; selSet.innerHTML += `<option value="${hName}">${hName}</option>`;
                 }
-                // 🌟 第一個預設按鈕 (拿掉內聯 color，讓 CSS 控制白字)
+                
                 const rosterContainer = document.getElementById('roster_query_hospitals_container');
                 rosterContainer.innerHTML = `<label class="roster-radio-label"><input type="radio" name="roster_query_hosp_radio" value="1st Line 優先排班表" onchange="queryTodayRoster()"> <span class="fw-bold">區域聯防排班</span></label>`;
 
@@ -799,7 +869,6 @@
                     let isChecked = (h.status === 'green' || h.status === 'orange') ? 'checked' : '';
                     container.innerHTML += `<label class="p-2 border rounded bg-white" style="border-color: ${colorCode} !important; cursor: pointer;"><input type="checkbox" class="target-hosp-cb" value="${h.name}" ${isChecked}> <span class="fw-bold">${h.name}</span> <span style="color:${colorCode}; font-size:0.9em;">(${h.statusText})</span></label>`;
                     
-                    // 🌟 其他醫院按鈕 (拿掉內聯 color，改套用純潔的 label)
                     rosterContainer.innerHTML += `<label class="roster-radio-label"><input type="radio" name="roster_query_hosp_radio" value="${h.name}" onchange="queryTodayRoster()"> <span class="fw-bold">${h.name}</span></label>`;
                 });
 
@@ -817,8 +886,14 @@
                         }
                     }
                 }
-            } else { alert("雲端資料讀取失敗: " + resData.error); }
-        }).catch(err => { console.error(err); document.getElementById('hospital_status_board').innerHTML = '<h3 class="text-danger text-center w-100">❌ 雲端連線失敗，請檢查網路。</h3>'; });
+            } else { 
+                alert("雲端資料讀取失敗: " + resData.error); 
+            }
+        }).catch(err => { 
+            console.error(err); 
+            // 🌟 連線失敗時顯示具美感的錯誤提示框
+            document.getElementById('hospital_status_board').innerHTML = '<div class="board-error">❌ 雲端連線失敗，請檢查網路連線或 GAS 服務是否正常。</div>'; 
+        });
     }
 
     function switchTab(tabId) {
