@@ -933,6 +933,7 @@ let payloadClinicalData = JSON.parse(JSON.stringify(pendingClinicalData));
             let btnDepart = c.departTime ? `<button class="btn-recorded" onclick="undoTime('${currentTrackCaseId}', 'depart')">已出發 ${c.departTime} ↺</button>` : `<button class="btn-warning" onclick="markTime('${currentTrackCaseId}', 'depart')">🚑 記錄出發</button>`;
             let btnArrive = c.arriveTime ? `<button class="btn-recorded" onclick="undoTime('${currentTrackCaseId}', 'arrive')">已抵達 ${c.arriveTime} ↺</button>` : `<button class="btn-danger" onclick="markTime('${currentTrackCaseId}', 'arrive')">🏥 記錄抵達</button>`;
 
+            // 🌟 修正重點：在這裡加入「🚨 注意事項」按鈕
             chatArea.innerHTML = `
                 <div style="width: 100%; margin-bottom: 5px;">
                     <strong style="color:#0056b3; font-size: 1.1em;">💬 已鎖定：${c.finalDest} (${c.lockTime})</strong>
@@ -943,6 +944,7 @@ let payloadClinicalData = JSON.parse(JSON.stringify(pendingClinicalData));
                     <button class="btn-success" onclick="quickUpdateLocation('${currentTrackCaseId}')">📍 更新 GPS</button>
                     <button class="btn-main" style="background:#28a745;" onclick="window.open('${folderLink}', '_blank')">📂 開啟影像</button>
                     <button class="btn-main" style="background:#17a2b8;" onclick="openMessenger('${currentTrackCaseId}', 1, 'requester', '需求端')">💬 即時溝通</button>
+                    <button class="btn-main" style="background-color:#ffc107; color:#333;" onclick="openPrepGuide('${currentTrackCaseId}')" title="出發前準備與注意事項">🚨 注意事項</button>
                     <button class="btn-danger" onclick="cancelFinalDest('${currentTrackCaseId}', '${c.reqHospOut}')">❌ 取消</button>
                 </div>`;
         }
@@ -1168,19 +1170,16 @@ let payloadClinicalData = JSON.parse(JSON.stringify(pendingClinicalData));
 
                         let mapBtn = c.location ? `<button class="btn-main" style="background:#28a745;" onclick="window.open('https://www.google.com/maps/search/?api=1&query=${c.location.lat},${c.location.lng}', '_blank')">🗺️ GPS地圖</button>` : `<span style="font-size:0.85em; color:#888;">(尚未回報GPS)</span>`;
                         let chatBtn = `<button class="btn-main" style="background:#17a2b8;" onclick="openMessenger('${caseId}', 1, 'evt', '${loggedInHosp}')">💬 即時文字溝通</button>`;
-                        // 🌟 新增：警示小圖示按鈕 (點擊後可開啟注意事項網頁或圖片)
-                        let prepGuideBtn = `<button class="btn-main" style="background-color: #ffc107; color: #333; font-size: 0.8em; padding: 4px 8px; margin-left: 5px;" onclick="openPrepGuide('${caseId}')" title="出發前準備與注意事項">🚨 注意事項</button>`;
                         
+                        // 🌟 這裡已將錯誤放置的注意事項按鈕移除
                         if (c.arriveTime) {
                             let feedbackBtn = `<button class="btn-main" style="background:#ffc107; color:#333;" onclick="openFeedbackModal('${caseId}')">📝 個案回饋與結案</button>`;
-                            // 🌟 修正：把 prepGuideBtn 加進字串裡
-                            actionBtns = `${mapBtn} ${chatBtn} ${prepGuideBtn} ${feedbackBtn}`; 
+                            actionBtns = `${mapBtn} ${chatBtn} ${feedbackBtn}`; 
                         } else {
                             let cancelBtn = `<button class="btn-main" style="background:#dc3545;" onclick="cancelFinalDest('${caseId}', '${loggedInHosp}')">❌ 取消轉入</button>`;
-                            // 🌟 修正：把 prepGuideBtn 加進字串裡
-                            actionBtns = `${mapBtn} ${chatBtn} ${prepGuideBtn} ${cancelBtn}`; 
+                            actionBtns = `${mapBtn} ${chatBtn} ${cancelBtn}`; 
                         }
-                    } else if (c.finalDest) { intentText = `<span style="color:red;">已轉至 ${c.finalDest}</span>`; actionBtns = ``; }
+                } else if (c.finalDest) { intentText = `<span style="color:red;">已轉至 ${c.finalDest}</span>`; actionBtns = ``; }
 
                 let timesInfo = getCaseTimeStr(c); let replyTimeStr = c.hospReplyTime[loggedInHosp] ? ` <span style="font-size:0.85em; color:#666;">(${c.hospReplyTime[loggedInHosp]})</span>` : "";
 
