@@ -263,10 +263,11 @@
 
         <div class="req-row" style="flex-wrap: wrap;">
             <div class="req-group" style="min-width: 100px;"><label>Arrival Time</label><input type="text" id="fb_arrival" readonly style="background:#e9ecef;"></div>
-            <div class="req-group" style="min-width: 100px;"><label>Puncture Time</label><input type="text" id="fb_puncture" placeholder="時間或文字"></div>
-            <div class="req-group" style="min-width: 100px;"><label>Recanalization</label><input type="text" id="fb_recanalization" placeholder="時間或文字"></div>
-            <div class="req-group" style="min-width: 80px;"><label>DTP (分)</label><input type="number" id="fb_dtp" placeholder="Arrival to Puncture"></div>
-            <div class="req-group" style="min-width: 80px;"><label>DTR (分)</label><input type="number" id="fb_dtr" placeholder="Arrival to Recan."></div>
+            <!-- 🌟 加入 oninput 自動計算 DTP 與 DTR -->
+            <div class="req-group" style="min-width: 100px;"><label>Puncture Time</label><input type="text" id="fb_puncture" placeholder="時間或文字" oninput="autoCalcDTPDTR()"></div>
+            <div class="req-group" style="min-width: 100px;"><label>Recanalization</label><input type="text" id="fb_recanalization" placeholder="時間或文字" oninput="autoCalcDTPDTR()"></div>
+            <div class="req-group" style="min-width: 80px;"><label>DTP</label><input type="text" id="fb_dtp" placeholder="自動計算..."></div>
+            <div class="req-group" style="min-width: 80px;"><label>DTR</label><input type="text" id="fb_dtr" placeholder="自動計算..."></div>
         </div>
         
         <div class="req-row">
@@ -994,21 +995,40 @@
         } else { tbody.innerHTML = `<tr><td colspan="4" style="color:#aaa; text-align:center;">無排班資料</td></tr>`; }
     }
 
-    // 🌟 月報表下載彈出視窗處理
+    // 🌟 月報表下載彈出視窗處理 (動態偵測現有月份)
     function openReportModal() {
         if (!loggedInHosp) return alert("請先登入醫院！");
         document.getElementById('report_hosp_display').innerText = loggedInHosp;
 
         const sel = document.getElementById('report_month_select');
-        sel.innerHTML = "";
-        let now = new Date();
-        for (let i = 0; i < 12; i++) {
-            let d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-            let val = d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0');
-            let text = `${d.getFullYear()} 年 ${d.getMonth() + 1} 月`;
-            sel.innerHTML += `<option value="${val}">${text}</option>`;
-        }
+        const btn = document.getElementById('btn_download_report');
+        
+        // 開啟視窗時先顯示載入中，並鎖定下載按鈕
+        sel.innerHTML = "<option>⏳ 正在掃描資料庫月份...</option>";
+        sel.disabled = true;
+        btn.disabled = true;
         document.getElementById('reportModal').style.display = 'flex';
+
+        // 呼叫 GAS 取得實際有資料的月份
+        fetch(GAS_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: "getAvailableMonths" })
+        }).then(res => res.json()).then(data => {
+            sel.innerHTML = "";
+            if (data.status === "success" && data.data && data.data.length > 0) {
+                // 將掃描到的月份填入下拉選單
+                data.data.forEach(m => {
+                    sel.innerHTML += `<option value="${m.value}">${m.text}</option>`;
+                });
+                sel.disabled = false;
+                btn.disabled = false;
+            } else {
+                sel.innerHTML = "<option value=''>目前系統尚無歷史個案</option>";
+            }
+        }).catch(e => {
+            sel.innerHTML = "<option value=''>讀取失敗，請檢查網路</option>";
+            console.log("讀取月份失敗:", e);
+        });
     }
 
     function closeReportModal() { document.getElementById('reportModal').style.display = 'none'; }
@@ -1383,6 +1403,25 @@
 
     let currentFeedbackCaseId = null;
 
+    // 🌟 智慧計算 DTP 與 DTR (可自動判斷相差時間)
+    function autoCalcDTPDTR() {
+        let arrival = document.getElementById('fb_arrival').value;
+        let puncture = document.getElementById('fb_puncture').value;
+        let recan = document.getElementById('fb_recanalization').value;
+
+        if (arrival && puncture) {
+            document.getElementById('fb_dtp').value = calculateTimeDiffStr(arrival, puncture);
+        } else {
+            document.getElementById('fb_dtp').value = "";
+        }
+
+        if (arrival && recan) {
+            document.getElementById('fb_dtr').value = calculateTimeDiffStr(arrival, recan);
+        } else {
+            document.getElementById('fb_dtr').value = "";
+        }
+    }
+    
     function openFeedbackModal(caseId) {
         currentFeedbackCaseId = caseId;
         const c = cases[caseId];
