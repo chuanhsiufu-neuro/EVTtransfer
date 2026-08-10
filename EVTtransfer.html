@@ -912,20 +912,26 @@
             const topColor = hosp.status === 'green' ? 'var(--success)' : (hosp.status === 'orange' ? 'var(--amber)' : 'var(--alert)');
             let updateTimeHtml = hosp.lightUpdateTime ? `<span class="text-muted small ms-2">(更新於: ${hosp.lightUpdateTime})</span>` : "";
             
-            // 🌟 替換原本的 board.innerHTML += ...
-                board.innerHTML += `
-                <div class="quick-case-card" style="position: relative;">
-                    <!-- 🌟 新增：右上角專屬更新按鈕 -->
-                    <button style="position: absolute; top: 12px; right: 12px; background: none; border: none; cursor: pointer; font-size: 1.2em; padding: 0; transition: 0.2s;" onclick="fetchRecentCasesFromGAS()" title="立即更新此看板" onmouseover="this.style.transform='rotate(180deg)'" onmouseout="this.style.transform='rotate(0deg)'">🔄</button>
-                    
-                    <div class="cid">
-                        📄 ${caseId} 
-                        <div style="font-size: 0.65em; font-weight: normal; margin-top: 4px;">${getCaseTimeStr(c)}</div>
-                    </div>
-                    <div class="info">狀態: ${destStatus}</div>
-                    <div class="action-grid">${btnDepart}${btnArrive}</div>
-                    <button class="btn-custom btn-theme-success w-100 mt-1 py-2" onclick="quickUpdateLocation('${caseId}')">📍 傳送 GPS 位置</button>
-                </div>`;
+            let statusBadge = hosp.status === 'green' ? 'status-green' : (hosp.status === 'orange' ? 'status-orange' : 'status-red');
+            
+            // 🌟 修正：正確渲染醫院即時看板的 HTML 結構
+            board.innerHTML += `
+            <div class="hosp-card" style="border-top-color: ${topColor};">
+                <div class="hosp-card-icons">
+                    <span class="edit-icon" onclick="openHospSettingsModal('${hosp.name}')" title="更新醫院狀態">⚙️</span>
+                </div>
+                <h3>${hosp.name}</h3>
+                <span class="status-indicator ${statusBadge}">${hosp.statusText}</span>
+                <div class="hosp-info">
+                    <div><strong>👨‍⚕️ 值班醫師：</strong>${hosp.docName}</div>
+                    <div><strong>📞 醫師手機：</strong>${hosp.docPhone}</div>
+                    <div><strong>☎️ 急診專線：</strong>${hosp.erPhone}</div>
+                </div>
+                <div style="margin-top: auto; display: flex; flex-direction: column; gap: 6px;">
+                    <button class="btn-custom btn-theme-primary w-100 py-2" onclick="openCallModal('${hosp.name}')">📞 聯絡醫院 / 醫師</button>
+                    <a href="${hosp.lineGroup}" target="_blank" class="line-btn">💬 LINE 群組</a>
+                </div>
+            </div>`;
         });
     }
 
