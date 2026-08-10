@@ -910,26 +910,33 @@
         const board = document.getElementById('hospital_status_board'); board.innerHTML = "";
         hospitals.forEach(hosp => {
             const topColor = hosp.status === 'green' ? 'var(--success)' : (hosp.status === 'orange' ? 'var(--amber)' : 'var(--alert)');
-            let updateTimeHtml = hosp.lightUpdateTime ? `<span class="text-muted small ms-2">(更新於: ${hosp.lightUpdateTime})</span>` : "";
-            
             let statusBadge = hosp.status === 'green' ? 'status-green' : (hosp.status === 'orange' ? 'status-orange' : 'status-red');
             
-            // 🌟 修正：正確渲染醫院即時看板的 HTML 結構
+            // 📞 電話按鈕網址防護
+            let phoneAction = (hosp.docPhone && hosp.docPhone !== "-" && hosp.docPhone !== "無" && hosp.docPhone.trim() !== "") ? 
+                `openCallModal('${hosp.name}')` : 
+                `alert('目前無值班醫師電話資訊')`;
+
+            // 💬 LINE 按鈕處理
+            let lineAction = (hosp.lineGroup && hosp.lineGroup !== "#") ? 
+                `window.open('${hosp.lineGroup}', '_blank')` : 
+                `alert('目前無 LINE 群組連結')`;
+
             board.innerHTML += `
-            <div class="hosp-card" style="border-top-color: ${topColor};">
-                <div class="hosp-card-icons">
+            <div class="hosp-card" style="border-top-color: ${topColor}; position: relative;">
+                <!-- 🌟 右上角精緻圖示群組 (電話、LINE、設定) -->
+                <div style="position: absolute; top: 12px; right: 12px; display: flex; gap: 8px; align-items: center;">
+                    <span style="cursor: pointer; font-size: 1.1em; opacity: 0.7; transition: 0.2s;" onclick="${phoneAction}" title="撥打電話" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'">📞</span>
+                    <span style="cursor: pointer; font-size: 1.1em; opacity: 0.7; transition: 0.2s;" onclick="${lineAction}" title="開啟 LINE 群組" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'">💬</span>
                     <span class="edit-icon" onclick="openHospSettingsModal('${hosp.name}')" title="更新醫院狀態">⚙️</span>
                 </div>
+
                 <h3>${hosp.name}</h3>
                 <span class="status-indicator ${statusBadge}">${hosp.statusText}</span>
-                <div class="hosp-info">
+                <div class="hosp-info" style="margin-top: 6px;">
                     <div><strong>👨‍⚕️ 值班醫師：</strong>${hosp.docName}</div>
                     <div><strong>📞 醫師手機：</strong>${hosp.docPhone}</div>
                     <div><strong>☎️ 急診專線：</strong>${hosp.erPhone}</div>
-                </div>
-                <div style="margin-top: auto; display: flex; flex-direction: column; gap: 6px;">
-                    <button class="btn-custom btn-theme-primary w-100 py-2" onclick="openCallModal('${hosp.name}')">📞 聯絡醫院 / 醫師</button>
-                    <a href="${hosp.lineGroup}" target="_blank" class="line-btn">💬 LINE 群組</a>
                 </div>
             </div>`;
         });
