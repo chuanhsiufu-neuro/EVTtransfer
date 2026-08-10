@@ -486,8 +486,8 @@
 
         <div class="req-row" style="flex-wrap: wrap;">
             <div class="req-group" style="min-width: 100px;"><label>Arrival Time</label><input type="text" id="fb_arrival" readonly style="background:var(--line);"></div>
-            <div class="req-group" style="min-width: 100px;"><label>Puncture Time</label><input type="text" id="fb_puncture" placeholder="時間或文字" oninput="autoCalcDTPDTR()"></div>
-            <div class="req-group" style="min-width: 100px;"><label>Recanalization</label><input type="text" id="fb_recanalization" placeholder="時間或文字" oninput="autoCalcDTPDTR()"></div>
+            <div class="req-group" style="min-width: 100px;"><label>Puncture Time</label><input type="datetime-local" id="fb_puncture" oninput="autoCalcDTPDTR()"></div>
+            <div class="req-group" style="min-width: 100px;"><label>Recanalization</label><input type="datetime-local" id="fb_recanalization" oninput="autoCalcDTPDTR()"></div>
             <div class="req-group" style="min-width: 80px;"><label>DTP</label><input type="text" id="fb_dtp" placeholder="自動計算..."></div>
             <div class="req-group" style="min-width: 80px;"><label>DTR</label><input type="text" id="fb_dtr" placeholder="自動計算..."></div>
         </div>
@@ -719,10 +719,17 @@
     function calculateTimeDiffStr(startTimeStr, endTimeStr) {
         if (!startTimeStr || !endTimeStr) return "";
         function parseStr(str) {
+            // 🌟 自動相容 datetime-local 的 'T' 格式與傳統字串
+            let d = new Date(str.replace('T', ' '));
+            if (!isNaN(d.getTime())) return d.getTime();
+            
+            // 備用解析：處理沒有年份的 MM/DD HH:mm
             let match = str.match(/(\d{2})\/(\d{2}) (\d{2}):(\d{2})/);
             if (match) return new Date(new Date().getFullYear(), parseInt(match[1])-1, parseInt(match[2]), parseInt(match[3]), parseInt(match[4])).getTime();
+            
+            // 備用解析：處理純時間 HH:mm
             let matchTime = str.match(/^(\d{2}):(\d{2})$/);
-            if (matchTime) { let d = new Date(); d.setHours(parseInt(matchTime[1]), parseInt(matchTime[2]), 0, 0); return d.getTime(); }
+            if (matchTime) { let d2 = new Date(); d2.setHours(parseInt(matchTime[1]), parseInt(matchTime[2]), 0, 0); return d2.getTime(); }
             return null;
         }
         let t1 = parseStr(startTimeStr); let t2 = parseStr(endTimeStr);
@@ -905,19 +912,19 @@
             const topColor = hosp.status === 'green' ? 'var(--success)' : (hosp.status === 'orange' ? 'var(--amber)' : 'var(--alert)');
             let updateTimeHtml = hosp.lightUpdateTime ? `<span class="text-muted small ms-2">(更新於: ${hosp.lightUpdateTime})</span>` : "";
             
-            board.innerHTML += `
-                <div class="hosp-card" style="border-top-color: ${topColor}">
-                    <div class="hosp-card-icons" style="gap: 6px;">
-                        <span class="edit-icon" onclick="openCallModal('${hosp.name}')" title="撥打電話">📞</span>
-                        <a href="${hosp.lineGroup}" target="_blank" class="edit-icon" style="text-decoration: none;" title="開啟取栓 LINE 群組">💬</a>
-                        <span class="edit-icon" onclick="openHospSettingsModal('${hosp.name}')" title="系統設定">⚙️</span>
-                    </div>
+            // 🌟 替換原本的 board.innerHTML += ...
+                board.innerHTML += `
+                <div class="quick-case-card" style="position: relative;">
+                    <!-- 🌟 新增：右上角專屬更新按鈕 -->
+                    <button style="position: absolute; top: 12px; right: 12px; background: none; border: none; cursor: pointer; font-size: 1.2em; padding: 0; transition: 0.2s;" onclick="fetchRecentCasesFromGAS()" title="立即更新此看板" onmouseover="this.style.transform='rotate(180deg)'" onmouseout="this.style.transform='rotate(0deg)'">🔄</button>
                     
-                    <h3 class="pe-5">${hosp.name}</h3>
-                    <div class="mb-2 d-flex align-items-center flex-wrap">
-                        <span class="status-indicator status-${hosp.status}">${hosp.statusText}</span>${updateTimeHtml}
+                    <div class="cid">
+                        📄 ${caseId} 
+                        <div style="font-size: 0.65em; font-weight: normal; margin-top: 4px;">${getCaseTimeStr(c)}</div>
                     </div>
-                    <div class="hosp-info mt-2">📞 急診: <strong>${hosp.erPhone}</strong><br>👨‍⚕️ 當前值班: <strong>${hosp.docName}</strong><br>📱 手機: <strong>${hosp.docPhone}</strong></div>
+                    <div class="info">狀態: ${destStatus}</div>
+                    <div class="action-grid">${btnDepart}${btnArrive}</div>
+                    <button class="btn-custom btn-theme-success w-100 mt-1 py-2" onclick="quickUpdateLocation('${caseId}')">📍 傳送 GPS 位置</button>
                 </div>`;
         });
     }
@@ -1162,9 +1169,12 @@
 
         let hospStatusObj = {}; 
         let hospReplyObj = {}; 
+        let targetDocsEmail = {}; // 🌟 新增：用來存放該醫院今天值班醫師的 Email
         targets.forEach(hName => { 
             hospStatusObj[hName] = "尚未讀取個案"; 
             hospReplyObj[hName] = null; 
+            // 從 currentRosterData 中抓取該院今天值班的 Email (若無則留空)
+            targetDocsEmail[hName] = currentRosterData[hName] ? currentRosterData[hName].email : "";
         });
         
         let payloadClinicalData = JSON.parse(JSON.stringify(pendingClinicalData));
