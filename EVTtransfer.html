@@ -1022,11 +1022,43 @@
 
     function saveHospSysSettings() {
         const hosp = hospitals.find(h => h.name === loggedInHosp);
-        hosp.erPhone = document.getElementById('sys_set_er_phone').value; hosp.lineGroup = document.getElementById('sys_set_line').value; hosp.folderId = document.getElementById('sys_set_folder').value; 
-        let forceDr = document.getElementById('sys_set_today_dr').value; const newPwd = document.getElementById('sys_set_pwd').value; 
-        if (newPwd.trim() !== "") { alert("密碼將於雲端更新！"); }
-        fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "updateSysSettings", payload: { hospName: loggedInHosp, erPhone: hosp.erPhone, lineGroup: hosp.lineGroup, folderId: hosp.folderId, pwd: newPwd, overrideDr: forceDr } }) }).then(() => fetchDataFromGAS()).catch(e => console.log("GAS 錯誤", e));
-        alert("✅ 基本設定已送出！系統正在為您同步..."); closeHospSysSettingsModal(); 
+        hosp.erPhone = document.getElementById('sys_set_er_phone').value; 
+        hosp.lineGroup = document.getElementById('sys_set_line').value; 
+        hosp.folderId = document.getElementById('sys_set_folder').value; 
+        
+        // 🌟 確實抓取輸入框內的強制覆寫醫師姓名
+        let forceDr = document.getElementById('sys_set_today_dr').value.trim(); 
+        const newPwd = document.getElementById('sys_set_pwd').value; 
+        
+        if (newPwd.trim() !== "") { 
+            alert("密碼將於雲端更新！"); 
+        }
+
+        // 🌟 將 overrideDr 透過 payload 確實傳給後端 GAS
+        fetch(GAS_URL, { 
+            method: 'POST', 
+            body: JSON.stringify({ 
+                action: "updateSysSettings", 
+                payload: { 
+                    hospName: loggedInHosp, 
+                    erPhone: hosp.erPhone, 
+                    lineGroup: hosp.lineGroup, 
+                    folderId: hosp.folderId, 
+                    pwd: newPwd, 
+                    overrideDr: forceDr // 這裡就是關鍵的覆寫參數！
+                } 
+            }) 
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === "success" || data.message) {
+                fetchDataFromGAS(); // 重新同步最新資料
+            }
+        })
+        .catch(e => console.log("GAS 錯誤", e));
+
+        alert("✅ 基本設定已送出！系統正在為您同步..."); 
+        closeHospSysSettingsModal(); 
     }
 
     function downloadRosterTemplate() {
