@@ -1064,9 +1064,11 @@
         reader.readAsDataURL(file);
     }
 
-    function queryTodayRoster() {
+   function queryTodayRoster() {
+        // 清除所有按鈕的反深色狀態
         document.querySelectorAll('.roster-radio-label').forEach(lbl => lbl.classList.remove('active'));
         
+        // 找到被選中的 radio，加上 active 狀態
         const selectedOpt = document.querySelector('input[name="roster_query_hosp_radio"]:checked');
         if (selectedOpt) {
             selectedOpt.closest('.roster-radio-label').classList.add('active');
@@ -1078,6 +1080,8 @@
         
         if (!hospName) { resDiv.style.display = 'none'; return; }
         resDiv.style.display = 'block';
+
+        // 直接使用 hospName，因為後端已經改好了
         if (currentRosterData[hospName]) {
             const r = currentRosterData[hospName]; 
             tbody.innerHTML = `<tr>
@@ -1087,7 +1091,8 @@
                 <td style="color: #F1C40F; font-weight: bold;">${r.n || "-"}</td>
             </tr>`;
         } else { 
-            tbody.innerHTML = `<tr><td colspan="4" class="text-muted text-center">無排班資料</td></tr>`; 
+            // 無排班資料時顯示為亮黃色粗體
+            tbody.innerHTML = `<tr><td colspan="4" class="text-center" style="color: #F1C40F; font-weight: bold; letter-spacing: 2px;">無排班資料</td></tr>`; 
         }
     }
 
