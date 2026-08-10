@@ -694,7 +694,7 @@
 </div>
     
 <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbwD7epFg5_8BqUAMtLlLOQPUa45heyJCuDLCtYm4tmdr6dCj_JgyCm1TUv8OhrsHCsCzw/exec"; 
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyIjlkx0oXbjQUnZzLcbqZ4JIEZ5Q_z5DNUIu3Gv-YwIdEt93D9bmN6ASSZOgZpiSw2CQ/exec"; 
 
     let hospitalsConfigData = {}; let currentRosterData = {}; let hospitals = []; 
     let cases = {}; let currentTrackCaseId = null; let loggedInHosp = null;
@@ -1187,7 +1187,12 @@
             method: 'POST', 
             body: JSON.stringify({ 
                 action: "createCase", 
-                payload: { caseId: caseId, requestTime: reqTime, reqHospOut: hospOut, reqPhone: phone, reqEmail: email, targetHospitals: targets, clinicalData: payloadClinicalData } 
+                payload: { 
+                    caseId: caseId, requestTime: reqTime, reqHospOut: hospOut, 
+                    reqPhone: phone, reqEmail: email, targetHospitals: targets, 
+                    clinicalData: payloadClinicalData,
+                    targetDocsEmail: targetDocsEmail // 🌟 將今天值班醫師的 Email 名單一併送給後端
+                }
             }) 
         })
         .then(res => res.json()).then(data => {
