@@ -1552,7 +1552,17 @@
         else if (c.departTime) { intentText = `<span class="text-warning fw-bold">🚑 救護車已出發 (${c.departTime})</span>`; } 
         else { intentText = `<span class="text-success fw-bold">✅ 已轉入本院 (${c.lockTime})</span>`; }
 
-        let mapBtn = c.location ? `<button class="btn-custom btn-theme-success" onclick="window.open('https://www.google.com/maps/search/?api=1&query=${c.location.lat},${c.location.lng}', '_blank')">🗺️ GPS地圖</button>` : `<span style="font-size:0.85em; color:#888;">(尚未回報GPS)</span>`;
+        // 🌟 智慧解析 GPS 格式（相容剛點擊的物件，以及從雲端回來的文字）
+        let mapUrl = "";
+        if (c.location) {
+            if (typeof c.location === 'object' && c.location.lat) {
+                mapUrl = `https://www.google.com/maps/search/?api=1&query=${c.location.lat},${c.location.lng}`;
+            } else {
+                let match = String(c.location).match(/Lat:([^,]+),\s*Lng:([^,]+)/);
+                if (match) mapUrl = `https://www.google.com/maps/search/?api=1&query=${match[1].trim()},${match[2].trim()}`;
+            }
+        }
+        let mapBtn = mapUrl ? `<button class="btn-custom btn-theme-success" onclick="window.open('${mapUrl}', '_blank')">🗺️ GPS地圖</button>` : `<span style="font-size:0.85em; color:#888;">(尚未回報GPS)</span>`;
         let chatBtn = `<button class="btn-custom btn-theme-info" onclick="openMessenger('${caseId}', 1, 'evt', '${loggedInHosp}')">💬 即時文字溝通</button>`;
         
         if (c.arriveTime) {
