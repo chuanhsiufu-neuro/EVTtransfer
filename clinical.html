@@ -648,6 +648,32 @@
             }
         }
     }
+
+    window.addEventListener('DOMContentLoaded', () => {
+    // 檢查網址列是否帶有 draftData 參數
+    const urlParams = new URLSearchParams(window.location.search);
+    const draftDataParam = urlParams.get('draftData');
+    
+    if (draftDataParam) {
+        try {
+            // 解碼網址傳過來的資料
+            const decodedStr = decodeURIComponent(atob(draftDataParam));
+            const importedData = JSON.parse(decodedStr);
+            
+            // 寫入 clinical.html 所在網域的 localStorage
+            localStorage.setItem('stroke_transfer_clinical_data', JSON.stringify(importedData));
+            
+            // ⚠️ 呼叫 clinical.html 內原本就有的「讀取暫存資料」或「渲染畫面」函數
+            // (通常您網頁載入時本來就會讀取 localStorage，如果不確定可以加上這行手動刷新)
+            location.href = window.location.pathname; // 清除網址列參數並重新載入本地資料
+            
+        } catch (error) {
+            console.error("跨網域資料解析失敗", error);
+            alert("跨網域資料匯入失敗，請確認網址是否完整。");
+            }
+        }
+    });
+    
 </script>
 
 </body>
