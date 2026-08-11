@@ -576,19 +576,11 @@
 
         localStorage.setItem('stroke_transfer_clinical_data', JSON.stringify(data));
         
-        alert("✅ 表單已暫存成功！");
+        // 🌟 改變這裡：儲存後不關閉視窗，而是直接跳轉到轉診平台主畫面
+        alert("✅ 表單已暫存成功！點擊確定後將為您導向轉診主畫面...");
         
-        try {
-            window.close();
-        } catch (e) {
-            console.log("無法自動關閉");
-        }
-
-        setTimeout(() => {
-            if (!window.closed) {
-               alert("💡 提示：請手動關閉此分頁，回到主畫面點擊【讀取暫存資料】即可！");
-            }
-       }, 500);
+        // 跳轉到您指定的轉診平台主畫面網址
+        window.location.href = 'https://chuanhsiufu-neuro.github.io/EVTtransfer/EVTtransfer.html'; 
     }
 
     function loadFromLocal() {
