@@ -86,7 +86,7 @@
         <div id="distance_text">計算中...</div>
     </div>
 
-    <!-- 上半部：追蹤地圖 -->
+   <!-- 上半部：追蹤地圖 -->
     <div class="tracking-section">
         <div class="progress-overlay">
             <div class="progress-title">前往 <span id="dest_hosp_name" style="color: var(--teal-500);">目標醫院</span> 中</div>
@@ -94,14 +94,12 @@
                 <div class="progress-fill" id="progress_fill"></div>
                 <div class="ambulance-icon" id="ambulance_icon">🚑</div>
             </div>
-            
-            <div style="background-color: #FBE9E5; color: #B23A2E; padding: 10px 12px; border-radius: 8px; margin-top: 18px; font-size: 0.95em; font-weight: bold; text-align: justify; border-left: 5px solid #B23A2E; line-height: 1.5; box-shadow: 0 2px 5px rgba(178, 58, 46, 0.1);">
-                ⚠️ <b>重要提醒：</b>請把這個畫面『一直開著放旁邊』，<span style="text-decoration: underline;">千萬不要縮小或關掉</span>，這樣我們才能精準幫您準備手術室喔！
-            </div>
+            <!-- 🌟 警語已從此處移除，不再擋住地圖 -->
         </div>
         
         <div id="map"></div>
 
+        <!-- 抵達覆蓋層 -->
         <div class="arrival-overlay" id="arrival_overlay">
             <div class="arrival-icon">🏥</div>
             <h2 style="font-family: var(--serif); font-weight: 900; margin-bottom: 10px;">您已抵達目的地！</h2>
@@ -113,14 +111,13 @@
     <div class="edu-section">
         <div class="edu-title">📖 乘車須知與取栓衛教資訊</div>
         
-        <div id="eduCarousel" class="carousel slide" data-bs-ride="false"> <!-- 預設不自動播放，讓家屬慢慢滑 -->
+        <!-- 🌟 新增：防休眠與關閉的警語移到這裡，明顯且不擋地圖 -->
+        <div style="background-color: #FBE9E5; color: #B23A2E; padding: 10px 12px; border-radius: 8px; margin-bottom: 12px; font-size: 0.95em; font-weight: bold; text-align: justify; border-left: 5px solid #B23A2E; line-height: 1.4; box-shadow: 0 2px 5px rgba(178, 58, 46, 0.1);">
+            ⚠️ <b>重要：</b>請將手機放一旁保持此畫面開啟，<span style="text-decoration: underline;">千萬勿縮小或關閉</span>，以利醫院精準準備手術室！
+        </div>
+        
+        <div id="eduCarousel" class="carousel slide" data-bs-ride="false">
             <div class="carousel-indicators">
-                <button type="button" data-bs-target="#eduCarousel" data-bs-slide-to="0" class="active"></button>
-                <button type="button" data-bs-target="#eduCarousel" data-bs-slide-to="1"></button>
-                <button type="button" data-bs-target="#eduCarousel" data-bs-slide-to="2"></button>
-            </div>
-            
-            <div class="carousel-inner">
                 <!-- 卡片 1：到院流程 -->
                 <div class="carousel-item active">
                     <div class="card-title">1. 抵達醫院後的流程</div>
