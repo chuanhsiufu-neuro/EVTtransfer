@@ -1751,10 +1751,8 @@
             if(data.status === "success") {
                 let rawText = data.data || ""; 
                 
-                // 🌟 偵測是否有來自對方的「新訊息」
                 let prevLength = lastKnownChatLength[currentChatContext.caseId] || 0;
                 if (rawText.length > prevLength && activeChatCaseId !== currentChatContext.caseId) {
-                    // 有新訊息且目前沒開聊天室 -> 觸發未讀提醒！
                     lastKnownChatLength[currentChatContext.caseId] = rawText.length;
                     triggerChatFlash(currentChatContext.caseId, true);
                 } else {
@@ -1950,8 +1948,8 @@
                     if (c.location && c.location.lat) {
                         mapBtn = `<button class="btn-custom btn-theme-success fw-bold" onclick="openRadarModal('${caseId}')">📡 救護車即時追蹤</button>`;
                     }
-                    let chatBtn = `<button id="chat_btn_${caseId}" class="btn-custom btn-theme-info" onclick="openMessenger('${caseId}', 1, 'evt', '${loggedInHosp}')">💬 即時溝通</button>`;
-                    
+                    // 請確認這裡有帶入 id="chat_btn_${caseId}"
+let chatBtn = `<button id="chat_btn_${caseId}" class="btn-custom btn-theme-info" onclick="openMessenger('${caseId}', 1, 'evt', '${loggedInHosp}')">💬 即時溝通</button>`;
                     if (c.confirmArriveTime) {
                         let feedbackBtn = `<button class="btn-custom btn-theme-warning" onclick="openFeedbackModal('${caseId}')">📝 個案回饋與結案</button>`;
                         let undoConfirmBtn = `<button class="btn btn-secondary btn-sm fw-bold" onclick="undoTime('${caseId}', 'confirmArrive')">撤銷檢傷 ↺</button>`;
