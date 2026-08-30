@@ -559,7 +559,7 @@
             
             <div class="req-row" style="align-items: flex-end; border-top: 1px dashed var(--line); padding-top: 10px;">
                 <div class="req-group" style="flex: 2;"><label style="color:var(--amber);">覆寫今日值班醫師 (強制取代班表)</label><input type="text" id="sys_set_today_dr" placeholder="輸入醫師姓名"></div>
-                <div class="req-group" style="flex: 1;"><button class="btn-custom btn-theme-warning w-100" onclick="alert('請在下方點擊儲存以執行覆寫')">強制覆寫</button></div>
+                <div class="req-group" style="flex: 1;"><button class="btn-custom btn-theme-warning w-100" onclick="forceOverrideDr(this)">強制覆寫</button></div>
             </div>
         </div>
 
@@ -683,7 +683,7 @@
 </div>
     
 <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbyvP0vZQEPc7MrLc9cYVFKSO3q205MrlVhJ6I8r7c0GzMf8UGBfo2W5JHJwcODDHQx7Jg/exec"; 
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbwS2c3jd6bTfwFDvr5N68gIL0CT9l_AFbkJhLcmxjUPMPS51qd79TO56UZ433TDq1Gxkg/exec"; 
 
     let hospitalsConfigData = {}; let currentRosterData = {}; let hospitals = []; 
     let cases = {}; let currentTrackCaseId = null; let loggedInHosp = null;
@@ -1066,7 +1066,46 @@
         const drInfo = hosp.addressBook[idx] || { name: '', email: '', phone: '', lineId: '' };
         document.getElementById('addr_dr_name').value = drInfo.name || ''; document.getElementById('addr_dr_email').value = drInfo.email || ''; document.getElementById('addr_dr_phone').value = drInfo.phone || ''; document.getElementById('addr_dr_lineid').value = drInfo.lineId || ''; 
     }
+   // 🌟 新增：一鍵強制覆寫醫師專用函數
+    function forceOverrideDr(btn) {
+        let forceDr = document.getElementById('sys_set_today_dr').value.trim(); 
+        if (!forceDr) return alert("⚠️ 請先輸入要覆寫的醫師姓名！");
+        if (!loggedInHosp) return alert("⚠️ 請先登入醫院！");
 
+        let origText = btn.innerText;
+        btn.innerHTML = `覆寫中<span class="loading-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span>`;
+        btn.disabled = true;
+
+        fetch(GAS_URL, { 
+            method: 'POST', 
+            body: JSON.stringify({ 
+                action: "updateSysSettings", 
+                payload: { 
+                    hospName: loggedInHosp, 
+                    overrideDr: forceDr // 只傳送需要覆寫的醫師，其他設定不動
+                } 
+            }) 
+        })
+        .then(res => res.json())
+        .then(data => {
+            btn.innerText = origText;
+            btn.disabled = false;
+            if (data.status === "success" || data.message) {
+                alert(`✅ 已成功將【${loggedInHosp}】目前時段值班醫師強制覆寫為：${forceDr}`);
+                document.getElementById('sys_set_today_dr').value = ""; // 寫入成功後清空輸入框
+                fetchDataFromGAS(); // 重新同步首頁看板
+            } else {
+                alert("覆寫失敗：" + data.error);
+            }
+        })
+        .catch(e => {
+            console.log("GAS 錯誤", e);
+            btn.innerText = origText;
+            btn.disabled = false;
+            alert("網路連線失敗，請檢查網路");
+        });
+    }
+    
     function saveHospSysSettings() {
         const hosp = hospitals.find(h => h.name === loggedInHosp);
         hosp.erPhone = document.getElementById('sys_set_er_phone').value; 
