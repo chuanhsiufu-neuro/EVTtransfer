@@ -263,18 +263,12 @@
 
 <!-- 分頁 1 -->
 <div id="tab1" class="tab-content active">
-    <div class="sub-header">A. 基本聯絡資訊</div>
-    <div class="req-row">
-        <div class="req-group"><label>1. 提出需求醫院</label><input type="text" id="req_hosp_out" placeholder=""></div>
-        <div class="req-group"><label>2. 醫師電話 (作為追蹤密碼)</label><input type="tel" id="req_doc_phone" placeholder="請輸入聯絡電話"></div>
-        <div class="req-group"><label>3. e-mail (取栓回饋用)</label><input type="email" id="req_doc_email" placeholder="example@email.com"></div>
-    </div>
-
-    <div class="sub-header">B. 臨床資訊與影像 (獨立表單)</div>
+    
+    <div class="sub-header">A. 臨床資訊與影像 (獨立表單)</div>
     <div class="status-card" id="form_status_card">
         <div>
             <strong id="form_status_title" style="color: var(--teal-700);">尚未讀取臨床資訊</strong>
-            <div id="form_status_desc" style="font-size: 0.85em; color: #5B6B65; margin-top: 5px;">請點擊按鈕開啟獨立表單填寫臨床資料，填妥後點擊「讀取暫存資料」。</div>
+            <div id="form_status_desc" style="font-size: 0.85em; color: #5B6B65; margin-top: 5px;">請點擊按鈕開啟獨立表單填寫臨床與聯絡資料，填妥後點擊「讀取暫存資料」。</div>
         </div>
         <div style="display: flex; gap: 5px; flex-wrap: wrap;">
             <button class="btn-custom btn-theme-info" onclick="openNewClinicalForm()">📝 開啟臨床表單</button>
@@ -282,10 +276,9 @@
         </div>
     </div>
 
-    <div class="sub-header">C. 轉入目標與發送</div>
+    <div class="sub-header">B. 欲發送通知之取栓醫院 (可複選)</div>
     <div class="req-group" style="margin-bottom: 15px;">
-        <label>4. 欲發送通知之取栓醫院 (可複選)</label>
-        <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 5px; padding: 10px; background: var(--amber-100); border: 1px solid var(--amber); border-radius: 8px;" id="target_hospitals_container">
+        <div style="display: flex; gap: 15px; flex-wrap: wrap; padding: 10px; background: var(--amber-100); border: 1px solid var(--amber); border-radius: 8px;" id="target_hospitals_container">
             <span style="color:#5B6B65;">載入中<span class="loading-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span></span>
         </div>
     </div>
@@ -1131,9 +1124,17 @@
     }
 
     function submitCase() {
-        const phone = document.getElementById('req_doc_phone').value; const email = document.getElementById('req_doc_email').value; const hospOut = document.getElementById('req_hosp_out').value;
+        if (Object.keys(pendingClinicalData).length === 0) return alert("請先開啟臨床表單填寫並點擊「讀取暫存資料」！");
+
+        // 🌟 改為從讀取的暫存物件 pendingClinicalData 中提取聯絡資訊
+        const hospOut = pendingClinicalData.reqHospOut || "";
+        const phone = pendingClinicalData.reqDocPhone || "";
+        const email = pendingClinicalData.reqDocEmail || "";
+
+        if (!hospOut || !phone) return alert("臨床表單中的「提出需求醫院」與「醫師電話」未填寫，請重新開啟表單補齊！");
+
         let targets = []; document.querySelectorAll('.target-hosp-cb:checked').forEach(cb => targets.push(cb.value));
-        if (targets.length === 0) return alert("請勾選醫院！"); if (Object.keys(pendingClinicalData).length === 0) return alert("請先開啟臨床表單填寫並讀取暫存！");
+        if (targets.length === 0) return alert("請勾選欲發送通知的取栓醫院！"); 
 
         const now = new Date();
         const year = now.getFullYear();
