@@ -414,8 +414,8 @@
             <h3 style="color: var(--teal-700); margin:0;"><span id="disp_login_hosp"></span> - 收到的需求</h3>
             <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
                 <button style="background: none; border: none; cursor: pointer; font-size: 1.2em; padding: 4px 8px; transition: 0.2s;" onclick="fetchRecentCasesFromGAS()" title="立即更新" onmouseover="this.style.transform='rotate(180deg)'" onmouseout="this.style.transform='rotate(0deg)'">🔄</button>
-                <button class="btn-custom btn-theme-dark" style="background-color: #6B4A85;" onclick="openReportModal()">📥 下載品管月報</button>
-                <button class="btn-custom btn-theme-info" onclick="openHospSysSettingsModal()">⚙️ 系統設定 (含通訊錄)</button>
+                <button class="btn-custom btn-theme-dark" style="background-color: #6B4A85;" onclick="openReportModal()">📥 月報</button>
+                <button class="btn-custom btn-theme-info" onclick="openHospSysSettingsModal()">⚙️ 設定/通訊錄</button>
                 <button class="btn-custom btn-theme-secondary" onclick="logoutHospital()">登出</button>
             </div>
         </div>
@@ -439,7 +439,7 @@
             
             <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
                 <button style="background: none; border: none; cursor: pointer; font-size: 1.5em; padding: 4px 8px; transition: 0.2s; display: flex; align-items: center; justify-content: center;" onclick="fetchDataFromGAS()" title="重新同步最新看板與排班資料" onmouseover="this.style.transform='rotate(180deg)'" onmouseout="this.style.transform='rotate(0deg)'">🔄</button>
-                <button class="btn-custom btn-theme-primary" style="padding: 10px 14px;" onclick="downloadRosterTemplate()">📥 下載範本</button>
+                <button class="btn-custom btn-theme-primary" style="padding: 10px 14px;" onclick="downloadRosterTemplate()">📥 範本</button>
                 <button class="btn-custom btn-theme-success" style="padding: 10px 14px;" onclick="openUploadRosterModal()">📤 上傳班表</button>
             </div>
         </div>
@@ -969,7 +969,7 @@
                 }
                 
                 const rosterContainer = document.getElementById('roster_query_hospitals_container');
-                rosterContainer.innerHTML = `<label class="roster-radio-label"><input type="radio" name="roster_query_hosp_radio" value="區域聯防" onchange="queryTodayRoster()"> <span class="fw-bold">區域聯防排班</span></label>`;
+                rosterContainer.innerHTML = `<label class="roster-radio-label"><input type="radio" name="roster_query_hosp_radio" value="區域聯防" onchange="queryTodayRoster()"> <span class="fw-bold">區域聯防</span></label>`;
 
                 const statusOrder = { "green": 1, "orange": 2, "red": 3 };
                 let sortedHospitals = [...hospitals].sort((a, b) => statusOrder[a.status] - statusOrder[b.status]);
@@ -1641,8 +1641,8 @@
             `;
 
             // 🌟 將按鈕改為純圖示呈現，並加上 title 屬性讓滑鼠移上去時顯示功能說明
-            let historyBtn = `<button class="btn btn-secondary btn-sm fw-bold px-3 py-2" onclick="openViewCaseModal('${currentTrackCaseId}')" title="檢視完整病史">📜</button>`;
             let guideBtn = `<button class="btn-custom btn-theme-warning px-3 py-2" onclick="openPrepGuide('${currentTrackCaseId}')" title="注意事項">🚨</button>`;
+            let historyBtn = `<button class="btn btn-secondary btn-sm fw-bold px-3 py-2" onclick="openViewCaseModal('${currentTrackCaseId}')" title="檢視完整病史">📜</button>`;
             let chatBtn = `<button id="chat_btn_${currentTrackCaseId}" class="btn-custom btn-theme-info px-3 py-2" onclick="openMessenger('${currentTrackCaseId}', 1, 'requester', '${c.reqHospOut}')" title="即時文字溝通">💬</button>`;
 
             // 🌟 修復錯誤點：移除重複的 let 宣告，只保留這一段 mapBtn 的邏輯
@@ -2003,10 +2003,10 @@
 
                     let mapBtn = `<span style="font-size:0.85em; color:#888;">(尚未回報GPS)</span>`;
                     if (c.location && c.location.lat) {
-                        mapBtn = `<button class="btn-custom btn-theme-success fw-bold" onclick="openRadarModal('${caseId}')">📡 救護車即時追蹤</button>`;
+                        mapBtn = `<button class="btn-custom btn-theme-success fw-bold" onclick="openRadarModal('${caseId}')">📡</button>`;
                     }
                     // 請確認這裡有帶入 id="chat_btn_${caseId}"
-let chatBtn = `<button id="chat_btn_${caseId}" class="btn-custom btn-theme-info" onclick="openMessenger('${caseId}', 1, 'evt', '${loggedInHosp}')">💬 即時溝通</button>`;
+let chatBtn = `<button id="chat_btn_${caseId}" class="btn-custom btn-theme-info" onclick="openMessenger('${caseId}', 1, 'evt', '${loggedInHosp}')">💬</button>`;
                     if (c.confirmArriveTime) {
                         let feedbackBtn = `<button class="btn-custom btn-theme-warning" onclick="openFeedbackModal('${caseId}')">📝 個案回饋與結案</button>`;
                         let undoConfirmBtn = `<button class="btn btn-secondary btn-sm fw-bold" onclick="undoTime('${caseId}', 'confirmArrive')">撤銷檢傷 ↺</button>`;
@@ -2028,7 +2028,7 @@ let chatBtn = `<button id="chat_btn_${caseId}" class="btn-custom btn-theme-info"
                 let timesInfo = getCaseTimeStr(c); let replyTimeStr = c.hospReplyTime[loggedInHosp] ? ` <span class="small text-muted">(${c.hospReplyTime[loggedInHosp]})</span>` : "";
 
                 // 🌟 把 trClass 變數套用到 <tr> 上
-                tbody.innerHTML += `<tr class="${trClass}"><td class="border-bottom p-3" style="width: 140px;"><b>${caseId}</b><br><span class="small text-muted">${timesInfo}</span></td><td class="border-bottom p-3"><div class="d-flex gap-2 flex-wrap mb-2"><button class="btn btn-secondary btn-sm fw-bold" onclick="openViewCaseModal('${caseId}')">📜 檢視完整病史</button>${actionBtns}</div><div class="small">狀態: <span class="text-primary">${c.hospStatus[loggedInHosp]}</span>${replyTimeStr} | 轉出端: ${intentText}</div></td></tr>`;
+                tbody.innerHTML += `<tr class="${trClass}"><td class="border-bottom p-3" style="width: 140px;"><b>${caseId}</b><br><span class="small text-muted">${timesInfo}</span></td><td class="border-bottom p-3"><div class="d-flex gap-2 flex-wrap mb-2"><button class="btn btn-secondary btn-sm fw-bold" onclick="openViewCaseModal('${caseId}')">📜 </button>${actionBtns}</div><div class="small">狀態: <span class="text-primary">${c.hospStatus[loggedInHosp]}</span>${replyTimeStr} | 轉出端: ${intentText}</div></td></tr>`;
             }
         }
     }
