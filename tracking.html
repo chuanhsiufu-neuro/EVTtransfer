@@ -234,22 +234,60 @@
 
     function updateProgressBar(distKm) {
         if (initialDistance === null) initialDistance = distKm; 
-        let progressPercent = 0;
+        
+        let actualPercent = 0;
+        let displayPercent = 0;
+
+        // 計算實際已行駛距離的百分比
         if (initialDistance > 0.2) {
-            progressPercent = ((initialDistance - distKm) / initialDistance) * 100;
-            if (progressPercent < 0) progressPercent = 0; if (progressPercent > 100) progressPercent = 100;
+            actualPercent = ((initialDistance - distKm) / initialDistance) * 100;
         }
-        document.getElementById('progress_fill').style.width = progressPercent + '%';
-        document.getElementById('ambulance_icon').style.left = progressPercent + '%';
-        if (distKm > 1) document.getElementById('distance_text').innerText = `距離約 ${distKm.toFixed(1)} km`;
-        else document.getElementById('distance_text').innerText = `即將抵達 (${(distKm*1000).toFixed(0)}m)`;
+
+        // 階梯式進度條邏輯：根據實際百分比，決定畫面上救護車該停在哪個節點
+        if (distKm <= 0.2) {
+            displayPercent = 99; // 最後 200 公尺 (0.2km) 卡在 99%
+        } else if (actualPercent >= 80) {
+            displayPercent = 80;
+        } else if (actualPercent >= 60) {
+            displayPercent = 60;
+        } else if (actualPercent >= 40) {
+            displayPercent = 40;
+        } else if (actualPercent >= 20) {
+            displayPercent = 20;
+        } else {
+            displayPercent = 5;  // 剛出發時給個 5%，讓救護車離開原點，避免家屬覺得沒動靜
+        }
+
+        // 更新 UI 寬度與位置
+        document.getElementById('progress_fill').style.width = displayPercent + '%';
+        document.getElementById('ambulance_icon').style.left = displayPercent + '%';
+        
+        // 更新頂端文字
+        if (distKm > 1) {
+            document.getElementById('distance_text').innerText = `距離約 ${distKm.toFixed(1)} km`;
+        } else {
+            document.getElementById('distance_text').innerText = `即將抵達 (${(distKm*1000).toFixed(0)}m)`;
+        }
     }
 
     function triggerAutoArrival() {
-        hasArrived = true; navigator.geolocation.clearWatch(watchId); 
+        hasArrived = true; 
+        if (watchId) navigator.geolocation.clearWatch(watchId); 
+        
+        // 1. 顯示滿版抵達覆蓋層與頂部狀態列
         document.getElementById('arrival_overlay').classList.add('active');
         document.querySelector('.status-bar').style.backgroundColor = 'var(--success)';
         document.querySelector('.status-bar').innerHTML = '<div style="width:100%; text-align:center;">🎉 已安全抵達目的地</div>';
+        
+        // 🌟 2. 更新進度條 UI：救護車開到滿、標題改為已抵達
+        document.getElementById('progress_fill').style.width = '100%';
+        document.getElementById('ambulance_icon').style.left = '100%';
+        
+        // 替換進度條上方的文字
+        const progressTitle = document.querySelector('.progress-title');
+        if (progressTitle) {
+            progressTitle.innerHTML = `✅ 已抵達 <span style="color: var(--success); font-weight: 900;">${destHosp}</span>`;
+        }
     }
 
 // 🌟 請將這段程式碼新增貼在這裡 🌟
