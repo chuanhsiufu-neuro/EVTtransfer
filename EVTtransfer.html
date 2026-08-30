@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>中風區域聯防轉診平台 v43 </title>
+    <title>中風區域聯防轉診平台 v44</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -56,7 +56,7 @@
 
         body { font-family: var(--sans); margin: 0; padding: 20px; background-color: var(--paper); color: var(--ink); line-height: 1.65; }
         .app-container { max-width: 1100px; margin: 0 auto; background: transparent; }
-        .section-header { font-family: var(--serif); font-size: 1.25em; font-weight: 700; color: #0B3A3F; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #BFE0DC; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;}
+        .section-header { font-family: var(--serif); font-size: 1.25em; font-weight: 700; color: #0B3A3F; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #BFE0DC; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; user-select: none;}
         .sub-header { font-family: var(--serif); background-color: #E4F1EF; padding: 8px 14px; margin: 18px 0 12px 0; border-radius: 8px; font-weight: 700; color: #0B3A3F; border-left: 4px solid #0F5C61; font-size: 1.05em; }
         
         .status-board { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
@@ -78,7 +78,6 @@
 
         .quick-update-board { display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px; }
         
-        /* 🌟 即時個案卡片樣式更新 */
         .quick-case-card { 
             background: var(--card); border: 1px solid #17878A; border-left: 5px solid #17878A; 
             border-radius: 10px; width: 100%; box-shadow: 0 2px 8px rgba(11,58,63,0.06); 
@@ -233,17 +232,16 @@
         <div class="pulse-line"></div>
     </div>
 
-   <!-- 🏥 量能狀態即時看板 (點擊可展開/摺疊) -->
+    <!-- 🏥 量能狀態即時看板 (點擊可展開/摺疊) -->
     <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleSection('hospital_status_board', 'icon_hosp')">
         <div style="display: flex; align-items: center; gap: 10px;">
             <span id="icon_hosp" style="font-size: 0.8em; color: var(--teal-500);">▶</span>
             <span>🏥 可取栓醫院量能狀態即時看板</span>
-            <!-- 🌟 加入 event.stopPropagation() 防止點擊更新時觸發摺疊 -->
             <button style="background: none; border: none; cursor: pointer; font-size: 1.1em; padding: 2px 6px; transition: 0.2s;" onclick="event.stopPropagation(); fetchDataFromGAS(); fetchRecentCasesFromGAS();" title="重新同步醫院量能與即時個案" onmouseover="this.style.transform='rotate(180deg)'" onmouseout="this.style.transform='rotate(0deg)'">🔄</button>
         </div>
     </div>
     
-    <!-- 🌟 預設加上 style="display: none;" 隱藏 -->
+    <!-- 預設隱藏 -->
     <div class="status-board" id="hospital_status_board" style="display: none;">
         <div class="loading-caption">正在從雲端載入各醫院即時量能<span class="loading-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span></div>
         <div class="skeleton-card"><div class="skeleton-bar w-60"></div><div class="skeleton-pill"></div></div>
@@ -259,128 +257,135 @@
         </div>
     </div>
     
-    <!-- 🌟 預設加上 style="display: none;" 隱藏 -->
+    <!-- 預設隱藏 -->
     <div class="quick-update-board" id="quick_update_board" style="display: none;"></div>
 
-<!-- 分頁 1 -->
-<div id="tab1" class="tab-content active">
-    
-    <div class="sub-header">A. 臨床資訊與影像 (獨立表單)</div>
-    <div class="status-card" id="form_status_card">
-        <div>
-            <strong id="form_status_title" style="color: var(--teal-700);">尚未讀取臨床資訊</strong>
-            <div id="form_status_desc" style="font-size: 0.85em; color: #5B6B65; margin-top: 5px;">請點擊按鈕開啟獨立表單填寫臨床與聯絡資料，填妥後點擊「讀取暫存資料」。</div>
-        </div>
-        <div style="display: flex; gap: 5px; flex-wrap: wrap;">
-            <button class="btn-custom btn-theme-info" onclick="openNewClinicalForm()">📝 開啟臨床表單</button>
-            <button class="btn-custom btn-theme-warning" onclick="loadClinicalFromLocal()">🔄 讀取暫存資料</button>
-        </div>
+    <!-- 🌟 切換分頁群組 -->
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this, 'tab1')">1. 提出取栓需求</button>
+        <button class="tab-btn" onclick="switchTab(this, 'tab2')">2. 取栓個案追蹤</button>
+        <button class="tab-btn" onclick="switchTab(this, 'tab3')">3. 取栓醫院介面</button>
+        <button class="tab-btn" onclick="switchTab(this, 'tab4')">4. 班表與系統設定</button>
     </div>
 
-    <div class="sub-header">B. 欲發送通知之取栓醫院 (可複選)</div>
-    <div class="req-group" style="margin-bottom: 15px;">
-        <div style="display: flex; gap: 15px; flex-wrap: wrap; padding: 10px; background: var(--amber-100); border: 1px solid var(--amber); border-radius: 8px;" id="target_hospitals_container">
-            <span style="color:#5B6B65;">載入中<span class="loading-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span></span>
-        </div>
-    </div>
-    
-    <button class="btn-custom btn-theme-primary w-100 py-3 fs-5 mt-2" onclick="submitCase()">🚀 建立個案並發送通知</button>
-    <div id="submit_result_area" style="display: none; background: var(--success-100); padding: 25px; border-radius: 10px; margin-top: 20px; line-height: 1.5; border: 2px solid var(--success);"></div>
-</div>
-
-<!-- 分頁 2 -->
-<div id="tab2" class="tab-content">
-    <div class="req-row">
-        <div class="req-group"><label>個案代碼</label><input type="text" id="track_case_id"></div>
-        <div class="req-group"><label>密碼(電話)</label><input type="password" id="track_phone" placeholder="請輸入追蹤密碼(電話)"></div>
-        <div class="req-group" style="justify-content: flex-end;"><button class="btn-custom btn-theme-primary" onclick="loginTracker()">🔍 登入</button></div>
-    </div>
-    <div id="track_dashboard" style="display: none; margin-top: 20px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-            <h3 style="background-color: var(--teal-700); color: #ffffff; padding: 8px 14px; border-radius: 8px; margin: 0; display: inline-flex; align-items: center; gap: 8px; font-family: var(--sans); font-size: 1.25em; font-weight: normal;">
-                <span>個案：<span id="disp_track_id"></span></span>
-                <span id="disp_track_time" style="color: #ffffff; font-weight: normal; font-family: var(--sans);"></span>
-            </h3>
-            <div style="display:flex; gap:10px;">
-                <button class="btn-custom btn-theme-info" onclick="editExistingClinical()">📝 開啟表單修改</button>
-                <button class="btn-custom btn-theme-warning" onclick="updateClinicalToExistCase()">🔄 同步修改至本案</button>
+    <!-- 分頁 1 -->
+    <div id="tab1" class="tab-content active">
+        <div class="sub-header">A. 臨床資訊與影像 (獨立表單)</div>
+        <div class="status-card" id="form_status_card">
+            <div>
+                <strong id="form_status_title" style="color: var(--teal-700);">尚未讀取臨床資訊</strong>
+                <div id="form_status_desc" style="font-size: 0.85em; color: #5B6B65; margin-top: 5px;">請點擊按鈕開啟獨立表單填寫臨床與聯絡資料，填妥後點擊「讀取暫存資料」。</div>
+            </div>
+            <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                <button class="btn-custom btn-theme-info" onclick="openNewClinicalForm()">📝 開啟臨床表單</button>
+                <button class="btn-custom btn-theme-warning" onclick="loadClinicalFromLocal()">🔄 讀取暫存資料</button>
             </div>
         </div>
-        <div id="track_chat_area" style="display: none;"></div>
-        <div id="track_list_container" class="track-list"></div>
-    </div>
-</div>
 
-<!-- 分頁 3 -->
-<div id="tab3" class="tab-content">
-    <div id="hosp_login_area" class="req-row">
-        <div class="req-group"><label>醫院</label><select id="login_hosp_name"><option>載入中...</option></select></div>
-        <div class="req-group"><label>密碼</label><input type="password" id="login_hosp_pwd" placeholder="請輸入醫院密碼"></div>
-        <div class="req-group" style="justify-content: flex-end;"><button class="btn-custom btn-theme-primary" onclick="loginHospital()">🔍 登入</button></div>
-    </div>
-    <div id="hosp_dashboard" style="display: none;">
-    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-        <h3 style="color: var(--teal-700); margin:0;"><span id="disp_login_hosp"></span> - 收到的需求</h3>
-        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-            <button style="background: none; border: none; cursor: pointer; font-size: 1.2em; padding: 4px 8px; transition: 0.2s;" onclick="fetchRecentCasesFromGAS()" title="立即更新" onmouseover="this.style.transform='rotate(180deg)'" onmouseout="this.style.transform='rotate(0deg)'">🔄</button>
-            <button class="btn-custom btn-theme-dark" style="background-color: #6B4A85;" onclick="openReportModal()">📥 下載品管月報</button>
-            <button class="btn-custom btn-theme-info" onclick="openHospSysSettingsModal()">⚙️ 系統設定 (含通訊錄)</button>
-            <button class="btn-custom btn-theme-secondary" onclick="logoutHospital()">登出</button>
-        </div>
-    </div>
-    <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
-        <tbody id="hosp_cases_tbody"></tbody>
-    </table>
-</div>
-</div>
-
-<!-- 分頁 4 -->
-<div id="tab4" class="tab-content">
-    <div style="background: var(--teal-100); border-left: 5px solid var(--teal-500); padding: 20px; border-radius: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; box-shadow: 0 2px 8px rgba(11,58,63,0.05);">
-        <div>
-            <div style="font-size: 1.15em; font-weight: bold; color: var(--teal-700); margin-bottom: 8px; font-family: var(--sans);">
-                現在時間：<span id="system_live_clock" style="font-family: var(--mono); color: var(--ink);">載入中<span class="loading-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span></span>
-            </div>
-            <div style="font-size: 1.1em; font-weight: bold; color: var(--amber);">
-                📍 區域聯防排班 - 第一線優先聯絡醫院：<span id="priority_hosp_display">載入中<span class="loading-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span></span>
-            </div>
-        </div>
-        
-        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-            <button style="background: none; border: none; cursor: pointer; font-size: 1.5em; padding: 4px 8px; transition: 0.2s; display: flex; align-items: center; justify-content: center;" onclick="fetchDataFromGAS()" title="重新同步最新看板與排班資料" onmouseover="this.style.transform='rotate(180deg)'" onmouseout="this.style.transform='rotate(0deg)'">🔄</button>
-            <button class="btn-custom btn-theme-primary" style="padding: 10px 14px;" onclick="downloadRosterTemplate()">📥 下載範本</button>
-            <button class="btn-custom btn-theme-success" style="padding: 10px 14px;" onclick="openUploadRosterModal()">📤 上傳班表</button>
-        </div>
-    </div>
-
-    <div style="background: var(--paper); border: 1px solid var(--line); padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-        <h4 style="color: var(--teal-700); font-weight: bold; margin-top: 0; margin-bottom: 15px; font-family: var(--serif); font-size: 1.2em; border-bottom: 2px solid var(--teal-100); padding-bottom: 10px;">🔍 點選醫院查詢今日班表</h4>
-        
-        <div style="margin-bottom: 15px;">
-            <div id="roster_query_hospitals_container" style="display: flex; gap: 10px; flex-wrap: wrap; padding: 15px; background: var(--teal-100); border: 1px dashed var(--teal-500); border-radius: 8px;">
+        <div class="sub-header">B. 欲發送通知之取栓醫院 (可複選)</div>
+        <div class="req-group" style="margin-bottom: 15px;">
+            <div style="display: flex; gap: 15px; flex-wrap: wrap; padding: 10px; background: var(--amber-100); border: 1px solid var(--amber); border-radius: 8px;" id="target_hospitals_container">
                 <span style="color:#5B6B65;">載入中<span class="loading-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span></span>
             </div>
         </div>
+        
+        <button class="btn-custom btn-theme-primary w-100 py-3 fs-5 mt-2" onclick="submitCase()">🚀 建立個案並發送通知</button>
+        <div id="submit_result_area" style="display: none; background: var(--success-100); padding: 25px; border-radius: 10px; margin-top: 20px; line-height: 1.5; border: 2px solid var(--success);"></div>
+    </div>
 
-        <div id="query_roster_result" style="display:none; overflow-x: auto; margin-top: 15px; margin-bottom: 10px;">
-            <table class="neuro-duty-table" style="margin-top: 0; min-width: 100%;">
-                <thead><tr><th>醫院</th><th>08:00~12:00</th><th>12:00~17:00</th><th>夜間</th></tr></thead>
-                <tbody id="query_roster_tbody"></tbody>
-            </table>
+    <!-- 分頁 2 -->
+    <div id="tab2" class="tab-content">
+        <div class="req-row">
+            <div class="req-group"><label>個案代碼</label><input type="text" id="track_case_id"></div>
+            <div class="req-group"><label>密碼(電話)</label><input type="password" id="track_phone" placeholder="請輸入追蹤密碼(電話)"></div>
+            <div class="req-group" style="justify-content: flex-end;"><button class="btn-custom btn-theme-primary" onclick="loginTracker()">🔍 登入</button></div>
+        </div>
+        <div id="track_dashboard" style="display: none; margin-top: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <h3 style="background-color: var(--teal-700); color: #ffffff; padding: 8px 14px; border-radius: 8px; margin: 0; display: inline-flex; align-items: center; gap: 8px; font-family: var(--sans); font-size: 1.25em; font-weight: normal;">
+                    <span>個案：<span id="disp_track_id"></span></span>
+                    <span id="disp_track_time" style="color: #ffffff; font-weight: normal; font-family: var(--sans);"></span>
+                </h3>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn-custom btn-theme-info" onclick="editExistingClinical()">📝 開啟表單修改</button>
+                    <button class="btn-custom btn-theme-warning" onclick="updateClinicalToExistCase()">🔄 同步修改至本案</button>
+                </div>
+            </div>
+            <div id="track_chat_area" style="display: none;"></div>
+            <div id="track_list_container" class="track-list"></div>
         </div>
     </div>
 
-    <div style="background: var(--paper); border: 1px dashed var(--teal-500); border-radius: 10px; padding: 20px; text-align: center;">
-        <p style="color: var(--ink); font-size: 0.95em; margin-bottom: 0;">
-            💡 提示：若需修改「醫院專屬通訊錄」或「LINE 群組設定」，請至 <strong>取栓醫院介面</strong> 登入您的醫院後，點擊「⚙️ 系統設定」。
-        </p>
+    <!-- 分頁 3 -->
+    <div id="tab3" class="tab-content">
+        <div id="hosp_login_area" class="req-row">
+            <div class="req-group"><label>醫院</label><select id="login_hosp_name"><option>載入中...</option></select></div>
+            <div class="req-group"><label>密碼</label><input type="password" id="login_hosp_pwd" placeholder="請輸入醫院密碼"></div>
+            <div class="req-group" style="justify-content: flex-end;"><button class="btn-custom btn-theme-primary" onclick="loginHospital()">🔍 登入</button></div>
+        </div>
+        <div id="hosp_dashboard" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <h3 style="color: var(--teal-700); margin:0;"><span id="disp_login_hosp"></span> - 收到的需求</h3>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                <button style="background: none; border: none; cursor: pointer; font-size: 1.2em; padding: 4px 8px; transition: 0.2s;" onclick="fetchRecentCasesFromGAS()" title="立即更新" onmouseover="this.style.transform='rotate(180deg)'" onmouseout="this.style.transform='rotate(0deg)'">🔄</button>
+                <button class="btn-custom btn-theme-dark" style="background-color: #6B4A85;" onclick="openReportModal()">📥 下載品管月報</button>
+                <button class="btn-custom btn-theme-info" onclick="openHospSysSettingsModal()">⚙️ 系統設定 (含通訊錄)</button>
+                <button class="btn-custom btn-theme-secondary" onclick="logoutHospital()">登出</button>
+            </div>
+        </div>
+        <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+            <tbody id="hosp_cases_tbody"></tbody>
+        </table>
     </div>
-</div>
+    </div>
 
-<div class="disclaimer">
-    此平台為新竹台大分院傅傳修醫師為協助桃竹苗地區轉診生成的網頁，<br>為了協助資訊傳遞，請注意避免輸入含病人個資之資訊 (如: 姓名/病歷號/電話等)，謝謝合作！
-    <div id="footer_version_display" style="margin-top: 8px; font-size: 0.85em; color: #5B6B65; font-weight: normal;"></div>
-</div>
+    <!-- 分頁 4 -->
+    <div id="tab4" class="tab-content">
+        <div style="background: var(--teal-100); border-left: 5px solid var(--teal-500); padding: 20px; border-radius: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; box-shadow: 0 2px 8px rgba(11,58,63,0.05);">
+            <div>
+                <div style="font-size: 1.15em; font-weight: bold; color: var(--teal-700); margin-bottom: 8px; font-family: var(--sans);">
+                    現在時間：<span id="system_live_clock" style="font-family: var(--mono); color: var(--ink);">載入中<span class="loading-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span></span>
+                </div>
+                <div style="font-size: 1.1em; font-weight: bold; color: var(--amber);">
+                    📍 區域聯防排班 - 第一線優先聯絡醫院：<span id="priority_hosp_display">載入中<span class="loading-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span></span>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                <button style="background: none; border: none; cursor: pointer; font-size: 1.5em; padding: 4px 8px; transition: 0.2s; display: flex; align-items: center; justify-content: center;" onclick="fetchDataFromGAS()" title="重新同步最新看板與排班資料" onmouseover="this.style.transform='rotate(180deg)'" onmouseout="this.style.transform='rotate(0deg)'">🔄</button>
+                <button class="btn-custom btn-theme-primary" style="padding: 10px 14px;" onclick="downloadRosterTemplate()">📥 下載範本</button>
+                <button class="btn-custom btn-theme-success" style="padding: 10px 14px;" onclick="openUploadRosterModal()">📤 上傳班表</button>
+            </div>
+        </div>
+
+        <div style="background: var(--paper); border: 1px solid var(--line); padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+            <h4 style="color: var(--teal-700); font-weight: bold; margin-top: 0; margin-bottom: 15px; font-family: var(--serif); font-size: 1.2em; border-bottom: 2px solid var(--teal-100); padding-bottom: 10px;">🔍 點選醫院查詢今日班表</h4>
+            
+            <div style="margin-bottom: 15px;">
+                <div id="roster_query_hospitals_container" style="display: flex; gap: 10px; flex-wrap: wrap; padding: 15px; background: var(--teal-100); border: 1px dashed var(--teal-500); border-radius: 8px;">
+                    <span style="color:#5B6B65;">載入中<span class="loading-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span></span>
+                </div>
+            </div>
+
+            <div id="query_roster_result" style="display:none; overflow-x: auto; margin-top: 15px; margin-bottom: 10px;">
+                <table class="neuro-duty-table" style="margin-top: 0; min-width: 100%;">
+                    <thead><tr><th>醫院</th><th>08:00~12:00</th><th>12:00~17:00</th><th>夜間</th></tr></thead>
+                    <tbody id="query_roster_tbody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div style="background: var(--paper); border: 1px dashed var(--teal-500); border-radius: 10px; padding: 20px; text-align: center;">
+            <p style="color: var(--ink); font-size: 0.95em; margin-bottom: 0;">
+                💡 提示：若需修改「醫院專屬通訊錄」或「LINE 群組設定」，請至 <strong>取栓醫院介面</strong> 登入您的醫院後，點擊「⚙️ 系統設定」。
+            </p>
+        </div>
+    </div>
+
+    <div class="disclaimer">
+        此平台為新竹台大分院傅傳修醫師為協助桃竹苗地區轉診生成的網頁，<br>為了協助資訊傳遞，請注意避免輸入含病人個資之資訊 (如: 姓名/病歷號/電話等)，謝謝合作！
+        <div id="footer_version_display" style="margin-top: 8px; font-size: 0.85em; color: #5B6B65; font-weight: normal;"></div>
+    </div>
 </div>
 <!-- ========================================== -->
 <!-- 彈出視窗群 (Modals)                        -->
@@ -623,19 +628,6 @@
 </div>
     
 <script>
-// 🌟 新增：看板折疊與展開功能
-    function toggleSection(sectionId, iconId) {
-        const el = document.getElementById(sectionId);
-        const icon = document.getElementById(iconId);
-        if (el.style.display === 'none') {
-            el.style.display = 'flex'; // 因為我們原本的 CSS 排版是 display: flex
-            icon.innerText = '▼';
-        } else {
-            el.style.display = 'none';
-            icon.innerText = '▶';
-        }
-    }
-    
     const GAS_URL = "https://script.google.com/macros/s/AKfycbwwXqSR0hYjUTwik_N6-fZpAoPhQ6KqYc6Pu0zp7RmtkAA3boycqzYnf-jsO1GQelaF9A/exec"; 
 
     let hospitalsConfigData = {}; let currentRosterData = {}; let hospitals = []; 
@@ -643,6 +635,27 @@
     let currentReplyCaseId = null; let pendingClinicalData = {}; let editingHospStatus = "green";
 
     let feedbackImages = [];
+
+    // 🌟 新增：看板折疊與展開功能
+    function toggleSection(sectionId, iconId) {
+        const el = document.getElementById(sectionId);
+        const icon = document.getElementById(iconId);
+        if (el.style.display === 'none' || el.style.display === '') {
+            el.style.display = 'flex'; 
+            icon.innerText = '▼';
+        } else {
+            el.style.display = 'none';
+            icon.innerText = '▶';
+        }
+    }
+
+    // 🌟 修正切換分頁功能 (傳入 btn 本身確保能正確加上 active 樣式)
+    function switchTab(btn, tabId) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active'); 
+        btn.classList.add('active');
+    }
 
     function formatClinicalTime(timeStr) {
         if (!timeStr) return "";
@@ -782,10 +795,15 @@
 
                 for (let hName in hospitalsConfigData) {
                     let config = hospitalsConfigData[hName]; let rData = currentRosterData[hName] || {};
+                    
+                    // 🌟 處理加上「醫師」兩個字的邏輯
+                    let rawDocName = (rData.activeName && rData.activeName !== "無排班" && rData.activeName !== "-" && rData.activeName !== "無資料") ? rData.activeName : "無";
+                    let finalDocName = rawDocName !== "無" ? rawDocName + " 醫師" : "無";
+
                     let hObj = {
                         name: hName, status: config.status || "green", statusText: config.statusText || "可取栓",
                         lightUpdateTime: config.lightUpdateTime || "", erPhone: config.erPhone || "-",
-                        docName: (rData.activeName && rData.activeName !== "無排班" && rData.activeName !== "-") ? rData.activeName : "無",
+                        docName: finalDocName,
                         docPhone: (rData.phone && rData.phone !== "未提供" && rData.phone !== "-") ? rData.phone : "無",
                         docEmail: (rData.email && rData.email !== "-") ? rData.email : "無",
                         lineGroup: config.lineGroup || "#", folderId: config.folderId || "", loginPwd: config.loginPwd || "admin", addressBook: {}
@@ -808,12 +826,23 @@
                     rosterContainer.innerHTML += `<label class="roster-radio-label"><input type="radio" name="roster_query_hosp_radio" value="${h.name}" onchange="queryTodayRoster()"> <span class="fw-bold">${h.name}</span></label>`;
                 });
 
-                if (currentRosterData['區域聯防']) document.getElementById('priority_hosp_display').innerText = currentRosterData['區域聯防'].activeName;
+                if (currentRosterData['區域聯防']) {
+                    let pName = currentRosterData['區域聯防'].activeName;
+                    if (pName !== "-" && pName !== "無排班" && pName !== "無資料") {
+                        pName += " 醫師";
+                    }
+                    document.getElementById('priority_hosp_display').innerText = pName;
+                }
+
                 renderHospitalBoard(); renderQuickUpdateBoard();
                 
                 const urlParams = new URLSearchParams(window.location.search);
                 if (urlParams.get('tab') === 'tab3') {
-                    switchTab('tab3'); const urlHosp = urlParams.get('hosp');
+                    // switchTab 現在需要傳入對應的按鈕，我們先用 select 替代
+                    const tabBtn = document.querySelectorAll('.tab-btn')[2];
+                    if(tabBtn) switchTab(tabBtn, 'tab3'); 
+                    
+                    const urlHosp = urlParams.get('hosp');
                     if (urlHosp) {
                         let opts = Array.from(document.getElementById('login_hosp_name').options);
                         if (opts.some(opt => opt.value === urlHosp)) {
@@ -829,12 +858,6 @@
             console.error(err); 
             document.getElementById('hospital_status_board').innerHTML = '<div class="board-error">❌ 雲端連線失敗，請檢查網路連線或 GAS 服務是否正常。</div>'; 
         });
-    }
-
-    function switchTab(tabId) {
-        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-        document.getElementById(tabId).classList.add('active'); event.target.classList.add('active');
     }
 
     function startLiveClock() {
@@ -854,7 +877,6 @@
                 `window.open('${hosp.lineGroup}', '_blank')` : 
                 `alert('目前無 LINE 群組連結')`;
 
-            /* 🌟 精簡後的單行醫院資訊卡片 */
             board.innerHTML += `
             <div class="hosp-card" style="border-top-color: ${topColor};">
                 <div style="display: flex; align-items: center; gap: 10px;">
@@ -875,7 +897,6 @@
         document.getElementById('call_hosp_name').innerText = hospName;
         const btnEr = document.getElementById('btn_call_er'); const btnDr = document.getElementById('btn_call_dr');
         
-        // 1. 處理急診電話
         if (hosp.erPhone && hosp.erPhone !== "-" && hosp.erPhone !== "無" && hosp.erPhone.trim() !== "") { 
             btnEr.href = `tel:${hosp.erPhone.replace(/[^0-9+]/g, '')}`; 
             btnEr.innerHTML = `🏥 打給急診 (${hosp.erPhone})`; 
@@ -886,7 +907,7 @@
             btnEr.className = "btn-call disabled"; 
         }
         
-        // 🌟 2. 處理醫師電話 (重點修改：始終優先顯示醫師姓名)
+        // 確保即使沒電話，也會顯示醫師姓名 (hosp.docName 已在上面處理過含「醫師」兩字)
         let drNameStr = (hosp.docName && hosp.docName !== "-" && hosp.docName !== "無" && hosp.docName !== "無資料") ? hosp.docName : "值班醫師"; 
         
         if (hosp.docPhone && hosp.docPhone !== "-" && hosp.docPhone !== "無" && hosp.docPhone.trim() !== "") { 
@@ -895,7 +916,6 @@
             btnDr.className = "btn-call dr"; 
         } else { 
             btnDr.href = "javascript:void(0);"; 
-            // 就算沒抓到電話，也要把名字秀出來，讓您知道系統有確實去抓排班表！
             btnDr.innerHTML = `👨‍⚕️ ${drNameStr} (未提供電話)`; 
             btnDr.className = "btn-call disabled"; 
         }
@@ -907,7 +927,15 @@
     function loadClinicalFromLocal() {
         const savedStr = localStorage.getItem('stroke_transfer_clinical_data');
         if(savedStr) {
-            try { pendingClinicalData = JSON.parse(savedStr); const card = document.getElementById('form_status_card'); const title = document.getElementById('form_status_title'); card.classList.add('filled'); title.innerText = `✅ 已讀取病史資料`; title.style.color = "#28a745"; alert("✅ 成功讀取暫存資料！"); } catch (e) { alert("❌ 資料讀取失敗"); }
+            try { 
+                pendingClinicalData = JSON.parse(savedStr); 
+                const card = document.getElementById('form_status_card'); 
+                const title = document.getElementById('form_status_title'); 
+                card.classList.add('filled'); 
+                title.innerText = `✅ 已讀取病史資料`; 
+                title.style.color = "#28a745"; 
+                alert("✅ 成功讀取暫存資料！"); 
+            } catch (e) { alert("❌ 資料讀取失敗"); }
         } else { alert("⚠️ 目前沒有暫存的臨床資料，請先開啟表單填寫。"); }
     }
     
@@ -1078,13 +1106,19 @@
         if (!hospName) { resDiv.style.display = 'none'; return; }
         resDiv.style.display = 'block';
 
+        // 🌟 幫查詢班表的表格也補上「醫師」兩個字
+        const appendTitle = (name) => {
+            if (!name || name === "-" || name === "無排班" || name === "無資料") return name;
+            return name + " 醫師";
+        };
+
         if (currentRosterData[hospName]) {
             const r = currentRosterData[hospName]; 
             tbody.innerHTML = `<tr>
                 <td style="color: #F1C40F; font-weight: bold;">${hospName}</td>
-                <td style="color: #F1C40F; font-weight: bold;">${r.m || "-"}</td>
-                <td style="color: #F1C40F; font-weight: bold;">${r.a || "-"}</td>
-                <td style="color: #F1C40F; font-weight: bold;">${r.n || "-"}</td>
+                <td style="color: #F1C40F; font-weight: bold;">${appendTitle(r.m) || "-"}</td>
+                <td style="color: #F1C40F; font-weight: bold;">${appendTitle(r.a) || "-"}</td>
+                <td style="color: #F1C40F; font-weight: bold;">${appendTitle(r.n) || "-"}</td>
             </tr>`;
         } else { 
             tbody.innerHTML = `<tr><td colspan="4" class="text-center" style="color: #F1C40F; font-weight: bold; letter-spacing: 2px;">無排班資料</td></tr>`; 
@@ -1143,12 +1177,14 @@
     function submitCase() {
         if (Object.keys(pendingClinicalData).length === 0) return alert("請先開啟臨床表單填寫並點擊「讀取暫存資料」！");
 
-        // 🌟 改為從讀取的暫存物件 pendingClinicalData 中提取聯絡資訊
         const hospOut = pendingClinicalData.reqHospOut || "";
         const phone = pendingClinicalData.reqDocPhone || "";
         const email = pendingClinicalData.reqDocEmail || "";
 
-        if (!hospOut || !phone) return alert("臨床表單中的「提出需求醫院」與「醫師電話」未填寫，請重新開啟表單補齊！");
+        if (!hospOut || !phone) {
+            alert("⚠️ 臨床表單中的「提出需求醫院」與「醫師電話」為必填項目！\n請您再次點擊【📝 開啟臨床表單】，確實填寫最上方的聯絡資訊，並點擊表單最下方的【💾 儲存】以更新暫存！");
+            return;
+        }
 
         let targets = []; document.querySelectorAll('.target-hosp-cb:checked').forEach(cb => targets.push(cb.value));
         if (targets.length === 0) return alert("請勾選欲發送通知的取栓醫院！"); 
@@ -1227,7 +1263,6 @@
         renderQuickUpdateBoard(); 
     }
 
-    /* 🌟 重製後的即時看板排版 */
     function renderQuickUpdateBoard() {
         const board = document.getElementById('quick_update_board'); board.innerHTML = ""; let hasActiveCases = false; const now = Date.now();
         for (let caseId in cases) {
@@ -1235,7 +1270,6 @@
             if (now - c.timestamp <= 14400000) { 
                 hasActiveCases = true;
                 
-                // 狀態文字邏輯 (包含鎖定、出發、抵達時間)
                 let lockTimeStr = c.lockTime ? ` <span style="font-weight:normal; font-size: 0.85em; color:#666;">(${c.lockTime.length > 10 ? c.lockTime.substring(5) : c.lockTime})</span>` : "";
                 let destStatus = c.finalDest ? `<span class="text-success fw-bold">已鎖定：${c.finalDest}${lockTimeStr}</span>` : `<span class="text-warning fw-bold">媒合中...</span>`;
                 
@@ -1250,16 +1284,14 @@
                 
                 board.innerHTML += `
                 <div class="quick-case-card" style="position: relative; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 6px; padding: 12px 15px;">
-                    <!-- 🌟 右上角大按鈕：GPS 更新 -->
+                    <!-- 🌟 移除原本的出發/抵達按鈕，只保留右上角 GPS 更新 -->
                     <button style="position: absolute; top: 12px; right: 12px; background: #4a805f; border: none; border-radius: 6px; cursor: pointer; font-size: 1.2em; padding: 6px 10px; color: white; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.15);" onclick="quickUpdateLocation('${caseId}')" title="傳送 GPS 位置" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">📍</button>
                     
-                    <!-- 第一列：編號 + 提出時間 -->
                     <div style="display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; padding-right: 45px;">
                         <span class="cid" style="font-size: 1.05em; color: var(--ink); margin: 0;">📄 ${caseId}</span>
                         <span style="font-size: 0.85em; color: #666; font-family: var(--mono);">${getCaseTimeStr(c)}</span>
                     </div>
                     
-                    <!-- 第二列：狀態 -->
                     <div class="info" style="font-size: 0.95em; margin: 0; padding-right: 45px;">狀態：${destStatus}</div>
                 </div>`;
             }
@@ -1309,10 +1341,8 @@
     }
 
     function loginTracker() {
-        // 🌟 加入 .trim() 去除使用者不小心輸入的前後空白
         const id = document.getElementById('track_case_id').value.trim(); 
         const pwd = document.getElementById('track_phone').value.trim();
-        
         if (cases[id] && cases[id].phone === pwd) { 
             currentTrackCaseId = id; 
             document.getElementById('track_dashboard').style.display = 'block'; 
@@ -1346,7 +1376,8 @@
             </div>
             <div style="display:flex; gap:10px; flex-wrap: wrap; width: 100%;">
                 ${btnDepart}
-                ${btnArrive}                
+                ${btnArrive}
+                <!-- 🌟 移除多餘的 GPS 更新按鈕 -->
                 <button class="btn-custom btn-theme-success" onclick="window.open('${folderLink}', '_blank')">📂 開啟影像</button>
                 <button class="btn-custom btn-theme-info" onclick="openMessenger('${currentTrackCaseId}', 1, 'requester', '${c.reqHospOut}')">💬 即時溝通</button>
                 <button class="btn-custom btn-theme-warning" onclick="openPrepGuide('${currentTrackCaseId}')" title="出發前準備與注意事項">🚨 注意事項</button>
