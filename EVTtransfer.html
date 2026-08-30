@@ -869,7 +869,13 @@
 
    function renderHospitalBoard() {
         const board = document.getElementById('hospital_status_board'); board.innerHTML = "";
-        hospitals.forEach(hosp => {
+        
+        // 🌟 加入狀態排序邏輯：綠燈優先 (1) -> 橘燈滿床 (2) -> 紅燈無人力 (3)
+        const statusOrder = { "green": 1, "orange": 2, "red": 3 };
+        let sortedHospitals = [...hospitals].sort((a, b) => statusOrder[a.status] - statusOrder[b.status]);
+
+        // 改用 sortedHospitals 來生成卡片
+        sortedHospitals.forEach(hosp => {
             const topColor = hosp.status === 'green' ? 'var(--success)' : (hosp.status === 'orange' ? 'var(--amber)' : 'var(--alert)');
             let statusBadge = hosp.status === 'green' ? 'status-green' : (hosp.status === 'orange' ? 'status-orange' : 'status-red');
             
@@ -877,6 +883,7 @@
                 `window.open('${hosp.lineGroup}', '_blank')` : 
                 `alert('目前無 LINE 群組連結')`;
 
+            /* 🌟 精簡後的單行醫院資訊卡片 */
             board.innerHTML += `
             <div class="hosp-card" style="border-top-color: ${topColor};">
                 <div style="display: flex; align-items: center; gap: 10px;">
@@ -891,7 +898,6 @@
             </div>`;
         });
     }
-
     function openCallModal(hospName) {
         const hosp = hospitals.find(h => h.name === hospName); if (!hosp) return;
         document.getElementById('call_hosp_name').innerText = hospName;
