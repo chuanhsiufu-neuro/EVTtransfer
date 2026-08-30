@@ -1616,7 +1616,7 @@
 
         let folderLink = c.clinicalData && c.clinicalData.folderUrl ? c.clinicalData.folderUrl : "#";
         
-        // 🌟 1. 頂部右側功能區：開啟影像 + 開啟表單修改 + 同步修改
+        // 🌟 1. 頂部右側功能區：已將「🚨 注意事項」移至「📂 影像」前面
         if (topBtnContainer) {
             topBtnContainer.innerHTML = `
                 <button class="btn-custom btn-theme-warning" onclick="openPrepGuide('${currentTrackCaseId}')" title="注意事項">🚨 注意事項</button>
@@ -1641,11 +1641,10 @@
                 </div>
             `;
 
-            // 🌟 將按鈕改為純圖示呈現，並加上 title 屬性讓滑鼠移上去時顯示功能說明
+            // 🌟 移除下方的注意事項變數，僅保留完整病史與即時溝通等圖示
             let historyBtn = `<button class="btn btn-secondary btn-sm fw-bold px-3 py-2" onclick="openViewCaseModal('${currentTrackCaseId}')" title="檢視完整病史">📜</button>`;
             let chatBtn = `<button id="chat_btn_${currentTrackCaseId}" class="btn-custom btn-theme-info px-3 py-2" onclick="openMessenger('${currentTrackCaseId}', 1, 'requester', '${c.reqHospOut}')" title="即時文字溝通">💬</button>`;
 
-            // 🌟 修復錯誤點：移除重複的 let 宣告，只保留這一段 mapBtn 的邏輯
             let mapBtn = `<span class="small text-muted">(尚未回報GPS)</span>`;
             if (c.location && c.location.lat) {
                 mapBtn = `<button class="btn-custom btn-theme-success fw-bold px-3 py-2" onclick="openRadarModal('${currentTrackCaseId}')" title="救護車即時追蹤雷達">📡</button>`;
@@ -1658,13 +1657,12 @@
             
             let confirmBadge = c.confirmArriveTime ? `<span class="badge bg-success fs-6 px-3 py-2 shadow-sm ms-2">✅ 已抵達取栓醫院檢傷 (${c.confirmArriveTime})</span>` : ``;
 
-            // 🌟 4. 組合主控制面板
+            // 🌟 4. 組合主控制面板 (已將 guideBtn 從下方陣列中移除)
             lockAreaHtml = `
             <div class="chat-room-banner w-100" style="margin-top: 15px; margin-bottom: 15px; padding: 15px; background: #fff; border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
                 <div class="d-flex gap-2 flex-wrap mb-2 align-items-center justify-content-between">
                     <div class="d-flex gap-2 align-items: center flex-wrap">
                         ${historyBtn}
-                        ${guideBtn}
                         ${mapBtn}
                     </div>
                     <div class="d-flex gap-2 align-items: center flex-wrap">
