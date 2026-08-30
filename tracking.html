@@ -44,11 +44,12 @@
         /* 🌟 地圖區塊固定比例高度 */
         .tracking-section { position: relative; height: 42vh; min-height: 350px; display: flex; flex-direction: column; background: #ddd; border-bottom: 3px solid var(--teal-500); }
         
-        .progress-overlay { position: absolute; top: 10px; left: 5%; right: 5%; background: rgba(255,255,255,0.95); padding: 12px; border-radius: 12px; z-index: 1000; box-shadow: 0 4px 12px rgba(11,58,63,0.15); backdrop-filter: blur(4px); }
-        .progress-title { font-family: var(--serif); font-size: 1.1em; color: var(--teal-900); font-weight: 700; margin-bottom: 8px; text-align: center; }
-        .progress-track { height: 8px; background: var(--teal-100); border-radius: 4px; position: relative; margin-top: 20px; margin-bottom: 5px; }
-        .progress-fill { position: absolute; left: 0; top: 0; height: 100%; background: var(--teal-500); border-radius: 4px; width: 0%; transition: width 1s ease; }
-        .ambulance-icon { position: absolute; top: -14px; left: 0%; font-size: 1.5em; transform: translateX(-50%); transition: left 1s ease; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
+        /* 🌟 調整為獨立區塊，不再覆蓋在地圖上 */
+    .progress-card { background: #FFFFFF; margin: 12px 15px 0 15px; padding: 12px 15px; border-radius: 12px; box-shadow: 0 4px 12px rgba(11,58,63,0.08); border: 1px solid var(--teal-100); }
+    .progress-title { font-family: var(--serif); font-size: 1.1em; color: var(--teal-900); font-weight: 700; margin-bottom: 8px; text-align: center; }
+    .progress-track { height: 8px; background: var(--teal-100); border-radius: 4px; position: relative; margin-top: 20px; margin-bottom: 5px; }
+    .progress-fill { position: absolute; left: 0; top: 0; height: 100%; background: var(--teal-500); border-radius: 4px; width: 0%; transition: width 1s ease; }
+    .ambulance-icon { position: absolute; top: -14px; left: 0%; font-size: 1.5em; transform: translateX(-50%); transition: left 1s ease; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
         
         #map { flex: 1; width: 100%; z-index: 1; }
 
@@ -57,7 +58,7 @@
         .arrival-icon { font-size: 4em; margin-bottom: 10px; }
 
         /* 🌟 獨立的警語區塊 */
-        .warning-banner { background-color: #FBE9E5; color: #B23A2E; padding: 14px; margin: 15px 15px 5px 15px; border-radius: 8px; font-size: 1em; font-weight: bold; text-align: justify; border-left: 5px solid #B23A2E; line-height: 1.5; box-shadow: 0 2px 5px rgba(178, 58, 46, 0.1); }
+        .warning-banner { background-color: #FBE9E5; color: #B23A2E; padding: 14px; margin: 10px 15px 5px 15px; border-radius: 8px; font-size: 1em; font-weight: bold; text-align: justify; border-left: 5px solid #B23A2E; line-height: 1.5; box-shadow: 0 2px 5px rgba(178, 58, 46, 0.1); }
 
         /* 🌟 衛教區塊與卡片自適應高度 */
         .edu-section { padding: 15px; display: flex; flex-direction: column; }
@@ -83,16 +84,8 @@
         <div id="distance_text">計算中...</div>
     </div>
 
-    <!-- 上半部：追蹤地圖 -->
+    <!-- 上半部：純追蹤地圖 -->
     <div class="tracking-section">
-        <div class="progress-overlay">
-            <div class="progress-title">前往 <span id="dest_hosp_name" style="color: var(--teal-500);">目標醫院</span> 中</div>
-            <div class="progress-track">
-                <div class="progress-fill" id="progress_fill"></div>
-                <div class="ambulance-icon" id="ambulance_icon">🚑</div>
-            </div>
-        </div>
-        
         <div id="map"></div>
 
         <div class="arrival-overlay" id="arrival_overlay">
@@ -102,7 +95,16 @@
         </div>
     </div>
 
-    <!-- 🌟 地圖正下方：獨立的防呆警語區塊 -->
+    <!-- 🌟 移至地圖下方、警語上方的進度條卡片 -->
+    <div class="progress-card">
+        <div class="progress-title">前往 <span id="dest_hosp_name" style="color: var(--teal-500);">目標醫院</span> 中</div>
+        <div class="progress-track">
+            <div class="progress-fill" id="progress_fill"></div>
+            <div class="ambulance-icon" id="ambulance_icon">🚑</div>
+        </div>
+    </div>
+
+    <!-- 🌟 地圖下方、進度條下方的防呆警語區塊 -->
     <div class="warning-banner">
         ⚠️ <b>重要：</b>請將手機放一旁保持此畫面開啟，<span style="text-decoration: underline;">千萬勿縮小或關閉</span>，以利醫院精準準備手術室！
     </div>
@@ -164,7 +166,7 @@
     // ==========================================
     // ⚙️ 全域設定與醫院座標庫 (請將 GAS_URL 換成您的)
     // ==========================================
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbyvP0vZQEPc7MrLc9cYVFKSO3q205MrlVhJ6I8r7c0GzMf8UGBfo2W5JHJwcODDHQx7Jg/exec"; 
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbzZTRaxm7YUY5dOxbz66neyYkAilRYP-R_u33i_xWX6oEHxtRojiVMOa_FDmQ8fIrYblg/exec"; 
     
     const hospCoords = {
         "新竹台大": [24.8055, 120.9988],
@@ -248,16 +250,4 @@
         document.getElementById('arrival_overlay').classList.add('active');
         document.querySelector('.status-bar').style.backgroundColor = 'var(--success)';
         document.querySelector('.status-bar').innerHTML = '<div style="width:100%; text-align:center;">🎉 已安全抵達目的地</div>';
-        let timeStr = new Date().toLocaleString('zh-TW', { hour12: false });
-        fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "updateCaseTracking", payload: { caseId: caseId, actionType: "arrive", value1: timeStr } }) });
     }
-
-    let lastGpsSendTime = 0;
-    function sendGpsToCloud(lat, lng) {
-        const now = Date.now(); if (now - lastGpsSendTime < 30000) return; lastGpsSendTime = now;
-        let timeStr = new Date().toLocaleString('zh-TW', { hour12: false }); let locStr = `Lat:${lat}, Lng:${lng}`;
-        fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "updateCaseTracking", payload: { caseId: caseId, actionType: "gps", value1: locStr, value2: timeStr } }) }).catch(e => console.log(e));
-    }
-</script>
-</body>
-</html>
