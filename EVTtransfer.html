@@ -1091,8 +1091,19 @@
     
     function editExistingClinical() {
         if(!currentTrackCaseId || !cases[currentTrackCaseId]) return alert("請先登入個案！");
-        let currentData = cases[currentTrackCaseId].clinicalData || {}; currentData.caseId = currentTrackCaseId; 
-        localStorage.setItem('stroke_transfer_clinical_data', JSON.stringify(currentData)); window.open('clinical.html', '_blank');
+        let c = cases[currentTrackCaseId];
+        let currentData = c.clinicalData || {}; 
+        
+        // 🌟 補齊漏掉的欄位，確保帶入獨立表單中
+        currentData.caseId = currentTrackCaseId;
+        currentData.reqHospOut = c.reqHospOut || "";
+        currentData.reqDocPhone = c.phone || "";
+        
+        // 如果原本的 clinicalData 裡面沒有存到 email 或時間，嘗試從 c 或表單補抓
+        if (!currentData.reqDocEmail && c.email) currentData.reqDocEmail = c.email;
+
+        localStorage.setItem('stroke_transfer_clinical_data', JSON.stringify(currentData)); 
+        window.open('clinical.html', '_blank');
     }
 
     function updateClinicalToExistCase() {
@@ -1364,6 +1375,13 @@
         });
         
         let payloadClinicalData = JSON.parse(JSON.stringify(pendingClinicalData));
+
+        // 🌟 關鍵修復：確保影像檢查勾選清單 (images) 有確實打包帶入 payload
+        if (pendingClinicalData.images) {
+            payloadClinicalData.images = pendingClinicalData.images;
+        } else {
+            payloadClinicalData.images = "";
+        }
 
         document.getElementById('submit_result_area').style.display = 'block'; 
         document.getElementById('submit_result_area').innerHTML = `<div class="text-center py-3"><strong class="text-primary fs-5">正在秒速建檔並發送通知信<span class="loading-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span></strong></div>`;
