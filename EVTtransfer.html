@@ -1495,7 +1495,7 @@
                 
                 if (c.confirmArriveTime && c.finalDest) {
                     let confTimeStr = c.confirmArriveTime.length > 10 ? c.confirmArriveTime.substring(5) : c.confirmArriveTime;
-                    destStatus = `<span class="text-success fw-bold">已確認檢傷：${c.finalDest} <span style="font-weight:normal; font-size: 0.85em; color:#666;">(${confTimeStr})</span></span>`;
+                    destStatus = `<span class="text-success fw-bold">已抵達取栓醫院檢傷：${c.finalDest} <span style="font-weight:normal; font-size: 0.85em; color:#666;">(${confTimeStr})</span></span>`;
                 } else if (c.arriveTime && c.finalDest) {
                     let arrTimeStr = c.arriveTime.length > 10 ? c.arriveTime.substring(5) : c.arriveTime;
                     destStatus = `<span class="text-info fw-bold">抵達待確認：${c.finalDest} <span style="font-weight:normal; font-size: 0.85em; color:#666;">(${arrTimeStr})</span></span>`;
@@ -1661,7 +1661,7 @@
                 cancelBtnHtml = `<button class="btn-custom btn-theme-danger" style="padding: 4px 10px; font-size: 0.9em; margin-left: 10px;" onclick="cancelFinalDest('${currentTrackCaseId}', '${c.reqHospOut}')">❌ 取消轉入</button>`;
             }
             
-            let confirmBadge = c.confirmArriveTime ? `<span class="badge bg-success fs-6 px-3 py-2 shadow-sm ms-3">✅ 接收端已確認檢傷 (${c.confirmArriveTime})</span>` : ``;
+            let confirmBadge = c.confirmArriveTime ? `<span class="badge bg-success fs-6 px-3 py-2 shadow-sm ms-3">✅ 接收端已抵達取栓醫院檢傷 (${c.confirmArriveTime})</span>` : ``;
 
             // 🌟 4. 徹底刪除此處的出發/抵達按鈕，僅保留鎖定狀態列
             lockAreaHtml = `
@@ -1936,7 +1936,7 @@
                 
                 if (c.finalDest === loggedInHosp) {
                     if (c.confirmArriveTime) { 
-                        intentText = `<span class="text-success fw-bold">✅ 已確認檢傷 (${c.confirmArriveTime})</span>`; 
+                        intentText = `<span class="text-success fw-bold">✅ 已抵達取栓醫院檢傷 (${c.confirmArriveTime})</span>`; 
                     } else if (c.arriveTime) { 
                         intentText = `<span class="text-info fw-bold">🏥 救護車抵達待確認 (${c.arriveTime})</span>`; 
                         trClass = "urgent-flash"; // 🚨 抵達但尚未確認檢傷：啟動閃爍警報！
