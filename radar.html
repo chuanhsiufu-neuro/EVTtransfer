@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚑 救護車即時追蹤雷達</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@500;700&display=swap');
+        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Noto Sans TC', sans-serif; background-color: #0B3A3F; color: #fff; overflow: hidden; }
+        .radar-container { display: flex; flex-direction: column; height: 100vh; max-width: 800px; margin: 0 auto; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
+        .radar-header { background-color: #0F5C61; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #17878A; z-index: 10; }
+        #radarMap { flex: 1; width: 100%; z-index: 1; background: #ddd; }
+        .pulse-dot { width: 10px; height: 10px; background-color: #2CE071; border-radius: 50%; display: inline-block; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { transform: scale(0.95); opacity: 0.8; } 70% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(0.95); opacity: 0.8; } }
+    </style>
+</head>
+<body>
+
+<div class="radar-container">
+    <div class="radar-header">
+        <div>
+            <h4 style="margin: 0; font-weight: 900; font-size: 1.2em;">📡 救護車即時追蹤雷達</h4>
+            <span style="font-size: 0.85em; color: #E4F1EF;" id="radar_info">個案代碼：載入中...</span>
+        </div>
+        <div class="badge bg-success d-flex align-items: center gap-2 py-2 px-3">
+            <span class="pulse-dot"></span><span style="font-family: 'JetBrains Mono', monospace;">10秒自動更新</span>
+        </div>
+    </div>
+    <div id="radarMap"></div>
+</div>
+
+<script>
+    // ⚠️ 請務必將此處的 GAS_URL 換成您當前正在使用的 Google Apps Script 部署網址
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyvP0vZQEPc7MrLc9cYVFKSO3q205MrlVhJ6I8r7c0GzMf8UGBfo2W5JHJwcODDHQx7Jg/exec"; 
+
+    const hospCoords = {
+        "新竹台大": [24.8055, 120.9988], "東元醫院": [24.8267, 121.0125], "新竹中國": [24.8288, 121.0189],
+        "大千醫院": [24.5583, 120.8222], "聯新國際": [24.9458, 121.2069], "林口長庚": [25.0600, 121.3683], "為恭醫院": [24.5511, 120.8200]
+    };
+
+    let targetCaseId = "";
+    let radarMap = null;
+    let ambulanceMarker = null;
+    let destMarker = null;
+    let destLatLng = [24.8055, 120.9988]; // 預設
+
+    window.onload = function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        targetCaseId = urlParams.get('caseId');
+        let hospIn = urlParams.get('hospIn') || "新竹台大";
+
+        if (!targetCaseId) {
+            alert("❌ 錯誤：網址缺少個案代碼 (caseId)");
+            return;
+        }
+
+        document.getElementById('radar_info').innerText = `個案代碼：${targetCaseId} | 目的地：${hospIn}`;
+        if (hospCoords[hospIn]) destLatLng = hospCoords[hospIn];
+
+        initRadarMap();
+        fetchGpsAndRefresh();
+        setInterval(fetchGpsAndRefresh, 10000); // 每 10 秒向雲端拉取最新位置
+    };
+
+    function initRadarMap() {
+        radarMap = L.map('radarMap', { zoomControl: true }).setView(destLatLng, 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(radarMap);
+        destMarker = L.marker(destLatLng, { icon: L.divIcon({ html: '🏥', className: 'fs-2', iconSize: [30, 30], iconAnchor: [15, 30] }) }).addTo(radarMap);
+    }
+
+    function fetchGpsAndRefresh() {
+        fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "fetchRecentCases" }) })
+        .then(res => res.json()).then(resData => {
+            if (resData.status === "success" && resData.data.cases) {
+                let c = resData.data.cases[targetCaseId];
+                if (c && c.location && c.location.lat) {
+                    let ambLatLng = [parseFloat(c.location.lat), parseFloat(c.location.lng)];
+                    
+                    if (!ambulanceMarker) {
+                        ambulanceMarker = L.marker(ambLatLng, { icon: L.divIcon({ html: '🚑', className: 'fs-2', iconSize: [30, 30], iconAnchor: [15, 15] }) }).addTo(radarMap);
+                    } else {
+                        ambulanceMarker.setLatLng(ambLatLng);
+                    }
+
+                    let bounds = L.latLngBounds([ambLatLng, destLatLng]);
+                    radarMap.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
+                }
+            }
+        }).catch(e => console.log("雷達背景同步失敗", e));
+    }
+</script>
+</body>
+</html>
