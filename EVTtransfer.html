@@ -718,7 +718,7 @@
 </div>
     
 <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbwS2c3jd6bTfwFDvr5N68gIL0CT9l_AFbkJhLcmxjUPMPS51qd79TO56UZ433TDq1Gxkg/exec"; 
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbx5JmsDz4rD2F-jCulQsUFST1XCSMOPD7ZyTnouPp1D-YWjbrCLkyQk-yot7VA9hyPfaQ/exec"; 
 
     let hospitalsConfigData = {}; let currentRosterData = {}; let hospitals = []; 
     let cases = {}; let currentTrackCaseId = null; let loggedInHosp = null;
@@ -1928,9 +1928,18 @@
         document.getElementById('qr_url_link').innerText = trackingUrl;
         document.getElementById('qr_url_link').href = trackingUrl;
         
-        // 呼叫免費 QuickChart API，0.1秒即可生成專屬條碼圖片
+        // 呼叫免費 QuickChart API，生成專屬條碼圖片
         const qrApiUrl = `https://quickchart.io/qr?text=${encodeURIComponent(trackingUrl)}&size=300&margin=1`;
         document.getElementById('qr_image').src = qrApiUrl;
+        
+        // 🌟 新增：將產生的追蹤網址回傳給 GAS，存入 Excel 的 GPSURL 欄位中
+        fetch(GAS_URL, { 
+            method: 'POST', 
+            body: JSON.stringify({ 
+                action: "updateCaseTracking", 
+                payload: { caseId: caseId, actionType: "saveGpsUrl", value1: trackingUrl } 
+            }) 
+        });
         
         document.getElementById('qrModal').style.display = 'flex';
     }
