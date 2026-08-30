@@ -212,6 +212,13 @@
             background: var(--alert-100); border: 1px solid #E7C6BE; color: var(--alert);
             font-weight: 700; border-radius: 10px; padding: 16px;
         }
+        /* 🖨️ 列印專屬黑科技：只顯示 QR Code 區塊，隱藏其他儀表板 */
+        @media print {
+            body * { visibility: hidden; }
+            #qrModal, #qrModal * { visibility: visible; }
+            #qrModal { position: absolute; left: 0; top: 0; width: 100%; height: 100%; background: white !important; box-shadow: none !important; }
+            .no-print { display: none !important; }
+        }
     </style>
 </head>
 <body>
@@ -390,7 +397,35 @@
 <!-- ========================================== -->
 <!-- 彈出視窗群 (Modals)                        -->
 <!-- ========================================== -->
-
+<!-- ★ QR Code 列印 Modal ★ -->
+<div id="qrModal" class="modal" style="align-items: center; padding-top: 0;">
+    <div class="modal-content" style="max-width: 450px; text-align: center; margin-bottom: 0;">
+        <span class="close-btn no-print" onclick="closeQrModal()">&times;</span>
+        <h2 style="color: var(--teal-700); margin-top: 0; border-bottom: 2px solid var(--line); padding-bottom: 10px;" class="no-print">🖨️ 產生家屬追蹤 QR Code</h2>
+        
+        <!-- 這是實際會被印出來的範圍 -->
+        <div id="print_area" style="padding: 10px 20px;">
+            <h3 style="color: #B23A2E; font-weight: 900; margin-bottom: 5px;">🚑 救護車即時追蹤</h3>
+            <p style="font-size: 1.1em; font-weight: bold; margin-bottom: 5px;">個案代碼：<span id="qr_case_id" style="color: var(--teal-700);"></span></p>
+            <p style="font-size: 1.2em; font-weight: bold; color: var(--ink);">前往：<span id="qr_hosp_in" style="border-bottom: 3px solid #2F8F5B; padding-bottom: 2px;"></span></p>
+            
+            <img id="qr_image" src="" alt="QR Code" style="width: 200px; height: 200px; margin: 15px auto; border: 2px solid #DCE4E0; padding: 10px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+            
+            <div style="background: #E4F1EF; padding: 12px; border-radius: 8px; text-align: left; border-left: 5px solid #17878A;">
+                <p style="font-size: 1.1em; font-weight: bold; color: #17878A; margin-top: 0; margin-bottom: 8px; text-align: center;">【家屬請掃描上方條碼】</p>
+                <p style="font-size: 0.95em; color: var(--ink); margin: 0; line-height: 1.5;">
+                    1. 掃描後請點選<b>「允許定位」</b>。<br>
+                    2. 將手機放置一旁，<b>保持螢幕恆亮</b>。<br>
+                    3. 系統將自動回報進度，無需手動操作。
+                </p>
+            </div>
+        </div>
+        
+        <p class="no-print" style="word-break: break-all; font-size: 0.85em; color: #666; margin: 15px 0;">專屬追蹤網址：<br><a id="qr_url_link" href="#" target="_blank" style="color: var(--teal-500);"></a></p>
+        
+        <button class="btn-custom btn-theme-primary w-100 py-3 fs-6 no-print" onclick="window.print()">🖨️ 列印此單交給家屬</button>
+    </div>
+</div>
 <!-- ★ Messenger 對話框 Modal ★ -->
 <div id="messengerModal" class="modal" style="align-items: center; padding-top: 0; z-index: 2000;">
     <div class="modal-content" style="max-width: 500px; padding: 0; overflow: hidden; display: flex; flex-direction: column; height: 85vh; max-height: 650px; background-color: #BFE0DC;">
@@ -1293,12 +1328,19 @@
                 
                 board.innerHTML += `
                 <div class="quick-case-card" style="position: relative; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 6px; padding: 12px 15px;">
-                    <button style="position: absolute; top: 12px; right: 12px; background: #4a805f; border: none; border-radius: 6px; cursor: pointer; font-size: 1.2em; padding: 6px 10px; color: white; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.15);" onclick="quickUpdateLocation('${caseId}')" title="傳送 GPS 位置" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">📍</button>
-                    <div style="display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; padding-right: 45px;">
+                    
+                    <!-- 🌟 右上角加入 🖨️ 列印與 📍 GPS 雙按鈕 -->
+                    <div style="position: absolute; top: 12px; right: 12px; display: flex; gap: 8px;">
+                        <button style="background: #0F5C61; border: none; border-radius: 6px; cursor: pointer; font-size: 1.2em; padding: 6px 10px; color: white; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.15);" onclick="openQrModal('${caseId}')" title="產生家屬追蹤 QR Code" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">🖨️</button>
+                        <button style="background: #4a805f; border: none; border-radius: 6px; cursor: pointer; font-size: 1.2em; padding: 6px 10px; color: white; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.15);" onclick="quickUpdateLocation('${caseId}')" title="手動傳送 GPS 位置" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">📍</button>
+                    </div>
+                    
+                    <!-- 避免文字蓋到右上角雙按鈕，增加 padding-right 至 100px -->
+                    <div style="display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; padding-right: 100px;">
                         <span class="cid" style="font-size: 1.05em; color: var(--ink); margin: 0;">📄 ${caseId}</span>
                         <span style="font-size: 0.85em; color: #666; font-family: var(--mono);">${getCaseTimeStr(c)}</span>
                     </div>
-                    <div class="info" style="font-size: 0.95em; margin: 0; padding-right: 45px;">狀態：${destStatus}</div>
+                    <div class="info" style="font-size: 0.95em; margin: 0; padding-right: 100px;">狀態：${destStatus}</div>
                 </div>`;
             }
         }
@@ -1706,6 +1748,37 @@
         document.getElementById('viewCaseModal').style.display = 'flex';
     }
     function closeViewCaseModal() { document.getElementById('viewCaseModal').style.display = 'none'; }
+
+    // ==========================================
+    // 🖨️ QR Code 列印與網址生成邏輯
+    // ==========================================
+    function openQrModal(caseId) {
+        const c = cases[caseId];
+        if (!c) return alert("找不到此個案資訊");
+        
+        let dest = c.finalDest ? c.finalDest : "未指定醫院 (請先鎖定目標)";
+        
+        // 取得目前的網站根目錄，動態生成 tracking.html 網址
+        const baseUrl = window.location.href.split('EVTtransfer.html')[0];
+        const trackingUrl = `${baseUrl}tracking.html?caseId=${caseId}&hospIn=${encodeURIComponent(dest)}`;
+        
+        // 更新 UI 文字
+        document.getElementById('qr_case_id').innerText = caseId;
+        document.getElementById('qr_hosp_in').innerText = dest;
+        document.getElementById('qr_url_link').innerText = trackingUrl;
+        document.getElementById('qr_url_link').href = trackingUrl;
+        
+        // 呼叫免費 QuickChart API，0.1秒即可生成專屬條碼圖片
+        const qrApiUrl = `https://quickchart.io/qr?text=${encodeURIComponent(trackingUrl)}&size=300&margin=1`;
+        document.getElementById('qr_image').src = qrApiUrl;
+        
+        document.getElementById('qrModal').style.display = 'flex';
+    }
+
+    function closeQrModal() {
+        document.getElementById('qrModal').style.display = 'none';
+        document.getElementById('qr_image').src = ""; // 清空圖片快取
+    }
 </script>
 </body>
 </html>
