@@ -61,7 +61,6 @@
         
         .status-board { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
         
-        /* 🌟 精簡後的醫院量能卡片樣式 */
         .hosp-card { 
             background: var(--card); border-radius: 12px; padding: 12px 16px; 
             box-shadow: 0 2px 10px rgba(11,58,63,0.08); border-top: 4px solid #D8E0DC; 
@@ -72,7 +71,6 @@
         .status-indicator { margin: 0; padding: 4px 10px; border-radius: 20px; font-weight: bold; font-size: 0.85em; color: white; white-space: nowrap; }
         .status-green { background-color: #2F8F5B; } .status-orange { background-color: #C7791F; } .status-red { background-color: #B23A2E; }
         
-        /* 🌟 精簡後的撥號 Modal 按鈕樣式 */
         .btn-call { display: block; width: 100%; text-align: center; padding: 12px; margin-bottom: 12px; border-radius: 8px; font-size: 1.1em; font-weight: bold; text-decoration: none; transition: 0.2s; box-sizing: border-box; border: none; cursor: pointer; color: white; }
         .btn-call.er { background-color: #9A423A; } 
         .btn-call.dr { background-color: #17878A; }
@@ -80,15 +78,11 @@
 
         .quick-update-board { display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px; }
         
-        /* 🌟 精簡後的即時個案卡片樣式 */
+        /* 🌟 即時個案卡片樣式更新 */
         .quick-case-card { 
             background: var(--card); border: 1px solid #17878A; border-left: 5px solid #17878A; 
-            padding: 12px 15px; border-radius: 10px; width: 100%; 
-            box-shadow: 0 2px 8px rgba(11,58,63,0.06); 
-            display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px;
+            border-radius: 10px; width: 100%; box-shadow: 0 2px 8px rgba(11,58,63,0.06); 
         }
-        .quick-case-card .cid { font-family: var(--mono); font-weight: bold; color: var(--teal-700); font-size: 1.1em; margin: 0; }
-        .quick-case-card .info { font-size: 0.9em; margin: 0; }
         
         .tabs { display: flex; border-bottom: 2px solid #0F5C61; margin-bottom: 20px; gap: 5px; flex-wrap: wrap;}
         .tab-btn { font-family: var(--serif); background-color: #EEF2EF; border: none; padding: 10px 18px; font-size: 0.95em; cursor: pointer; border-radius: 10px 10px 0 0; font-weight: 700; color: #4A5652; transition: 0.2s; }
@@ -172,9 +166,6 @@
         .roster-radio-label input[type="radio"] { display: none; }
         .roster-radio-label.active { background-color: var(--teal-700) !important; color: white !important; border-color: var(--teal-700) !important; }
 
-        /* ========================================== */
-        /* 🌟 萬用動態點點載入動畫 (Loading Dots)       */
-        /* ========================================== */
         .loading-dots { display: inline-flex; align-items: center; gap: 4px; margin-left: 2px; }
         .loading-dots .dot {
             width: 6px; height: 6px; border-radius: 50%;
@@ -195,7 +186,6 @@
             40% { opacity: 1; transform: scale(1.15); }
         }
 
-        /* ---------- 載入中骨架卡片 (Loading Skeleton) ---------- */
         .skeleton-card {
             background: var(--card); border-radius: 12px; padding: 12px 16px; border-top: 4px solid var(--line);
             box-shadow: 0 2px 10px rgba(11,58,63,0.06); display: flex; align-items: center; gap: 10px;
@@ -1219,38 +1209,40 @@
         renderQuickUpdateBoard(); 
     }
 
+    /* 🌟 重製後的即時看板排版 */
     function renderQuickUpdateBoard() {
         const board = document.getElementById('quick_update_board'); board.innerHTML = ""; let hasActiveCases = false; const now = Date.now();
         for (let caseId in cases) {
             const c = cases[caseId];
             if (now - c.timestamp <= 14400000) { 
                 hasActiveCases = true;
-                let destStatus = c.finalDest ? `<span class="text-success fw-bold">已鎖定：${c.finalDest}</span>` : `<span class="text-warning fw-bold">媒合中...</span>`;
-                let btnDepart = c.departTime ? 
-                    `<button class="btn-custom btn-theme-secondary" style="padding: 4px 10px; font-size: 0.85em;" onclick="undoTime('${caseId}', 'depart')">出發 ${c.departTime} ↺</button>` : 
-                    `<button class="btn-custom btn-theme-warning" style="padding: 4px 10px; font-size: 0.85em;" onclick="markTime('${caseId}', 'depart')">🚑 記錄出發</button>`;
-                let btnArrive = c.arriveTime ? 
-                    `<button class="btn-custom btn-theme-secondary" style="padding: 4px 10px; font-size: 0.85em;" onclick="undoTime('${caseId}', 'arrive')">抵達 ${c.arriveTime} ↺</button>` : 
-                    `<button class="btn-custom btn-theme-danger" style="padding: 4px 10px; font-size: 0.85em;" onclick="markTime('${caseId}', 'arrive')">🏥 記錄抵達</button>`;
                 
-                /* 🌟 精簡後的單行個案卡片 */
+                // 狀態文字邏輯 (包含鎖定、出發、抵達時間)
+                let lockTimeStr = c.lockTime ? ` <span style="font-weight:normal; font-size: 0.85em; color:#666;">(${c.lockTime.length > 10 ? c.lockTime.substring(5) : c.lockTime})</span>` : "";
+                let destStatus = c.finalDest ? `<span class="text-success fw-bold">已鎖定：${c.finalDest}${lockTimeStr}</span>` : `<span class="text-warning fw-bold">媒合中...</span>`;
+                
+                if (c.departTime && c.finalDest) {
+                    let depTimeStr = c.departTime.length > 10 ? c.departTime.substring(5) : c.departTime;
+                    destStatus = `<span class="text-danger fw-bold">已出發轉往：${c.finalDest} <span style="font-weight:normal; font-size: 0.85em; color:#666;">(${depTimeStr})</span></span>`;
+                }
+                if (c.arriveTime && c.finalDest) {
+                    let arrTimeStr = c.arriveTime.length > 10 ? c.arriveTime.substring(5) : c.arriveTime;
+                    destStatus = `<span class="text-info fw-bold">已抵達：${c.finalDest} <span style="font-weight:normal; font-size: 0.85em; color:#666;">(${arrTimeStr})</span></span>`;
+                }
+                
                 board.innerHTML += `
-                <div class="quick-case-card" style="position: relative;">
-                    <button style="position: absolute; top: 5px; right: 5px; background: none; border: none; cursor: pointer; font-size: 1.1em; opacity: 0.6; padding: 0; transition: 0.2s;" onclick="fetchRecentCasesFromGAS()" title="立即更新此看板" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">🔄</button>
+                <div class="quick-case-card" style="position: relative; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 6px; padding: 12px 15px;">
+                    <!-- 🌟 右上角大按鈕：GPS 更新 -->
+                    <button style="position: absolute; top: 12px; right: 12px; background: #4a805f; border: none; border-radius: 6px; cursor: pointer; font-size: 1.2em; padding: 6px 10px; color: white; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.15);" onclick="quickUpdateLocation('${caseId}')" title="傳送 GPS 位置" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">📍</button>
                     
-                    <div style="flex: 1 1 auto; min-width: 200px;">
-                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
-                            <span class="cid">📄 ${caseId}</span>
-                            <span class="info">${destStatus}</span>
-                        </div>
-                        <div style="font-size: 0.8em; color: #666;">${getCaseTimeStr(c)}</div>
+                    <!-- 第一列：編號 + 提出時間 -->
+                    <div style="display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; padding-right: 45px;">
+                        <span class="cid" style="font-size: 1.05em; color: var(--ink); margin: 0;">📄 ${caseId}</span>
+                        <span style="font-size: 0.85em; color: #666; font-family: var(--mono);">${getCaseTimeStr(c)}</span>
                     </div>
                     
-                    <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
-                        ${btnDepart}
-                        ${btnArrive}
-                        <button class="btn-custom btn-theme-success" style="padding: 4px 10px; font-size: 0.85em;" onclick="quickUpdateLocation('${caseId}')">📍 GPS</button>
-                    </div>
+                    <!-- 第二列：狀態 -->
+                    <div class="info" style="font-size: 0.95em; margin: 0; padding-right: 45px;">狀態：${destStatus}</div>
                 </div>`;
             }
         }
