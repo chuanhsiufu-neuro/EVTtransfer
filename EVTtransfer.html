@@ -259,12 +259,44 @@
             border-left: 4px solid var(--alert);
         }
         
-        /* 🖨️ 列印專屬黑科技：只顯示 QR Code 區塊，隱藏其他儀表板 */
+        /* 🖨️ 完美列印專屬黑科技：強制單頁不分頁、置中對齊 */
         @media print {
+            /* 隱藏網頁上所有不需要的元素 */
             body * { visibility: hidden; }
+            
+            /* 讓 QR Modal 及其內部所有內容強制顯示 */
             #qrModal, #qrModal * { visibility: visible; }
-            #qrModal { position: absolute; left: 0; top: 0; width: 100%; height: 100%; background: white !important; box-shadow: none !important; }
+            
+            #qrModal { 
+                position: fixed !important; 
+                left: 0 !important; 
+                top: 0 !important; 
+                width: 100% !important; 
+                height: 100% !important; 
+                background: white !important; 
+                box-shadow: none !important; 
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+            }
+            
+            /* 隱藏 Modal 裡面的關閉按鈕與列印按鈕本身 */
             .no-print { display: none !important; }
+            
+            /* 🌟 關鍵：強制把列印範圍鎖定在單一頁面內，絕對不准斷行切頁 */
+            #print_area {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                margin: 0 auto !important;
+                padding: 10px !important;
+                max-width: 100% !important;
+            }
+
+            /* 強制頁面設定為直式，且取消多餘邊距 */
+            @page {
+                size: portrait;
+                margin: 10mm;
+            }
         }
     </style>
 </head>
