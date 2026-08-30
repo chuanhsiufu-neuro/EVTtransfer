@@ -8,6 +8,10 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
+    <!-- Leaflet.js for Free Maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
     <style>
     /* 🌟 呼吸燈閃爍動畫 */
     @keyframes pulse-dot {
@@ -232,6 +236,18 @@
             background: var(--alert-100); border: 1px solid #E7C6BE; color: var(--alert);
             font-weight: 700; border-radius: 10px; padding: 16px;
         }
+        
+        /* 🚨 警報閃爍動畫 (針對即將抵達/已抵達待確認的個案) */
+        @keyframes alert-flash {
+            0% { background-color: rgba(178, 58, 46, 0); }
+            50% { background-color: rgba(178, 58, 46, 0.15); }
+            100% { background-color: rgba(178, 58, 46, 0); }
+        }
+        .urgent-flash > td {
+            animation: alert-flash 1.5s infinite ease-in-out;
+            border-left: 4px solid var(--alert);
+        }
+        
         /* 🖨️ 列印專屬黑科技：只顯示 QR Code 區塊，隱藏其他儀表板 */
         @media print {
             body * { visibility: hidden; }
@@ -446,6 +462,25 @@
         <button class="btn-custom btn-theme-primary w-100 py-3 fs-6 no-print" onclick="window.print()">🖨️ 列印此單交給家屬</button>
     </div>
 </div>
+
+<!-- ★ 即時雷達追蹤 Modal ★ -->
+<div id="radarModal" class="modal" style="align-items: center; padding-top: 0; z-index: 1050;">
+    <div class="modal-content" style="max-width: 600px; padding: 0; overflow: hidden; display: flex; flex-direction: column; height: 75vh; max-height: 600px;">
+        <div style="background-color: #0F5C61; color: white; padding: 15px; position: relative; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 10;">
+            <h3 style="margin: 0; font-size: 1.2em; text-align: center; font-family: var(--serif);">📡 救護車即時雷達</h3>
+            <span class="close-btn" style="color: white; top: 8px; right: 15px; font-size: 32px;" onclick="closeRadarModal()">&times;</span>
+        </div>
+        <div style="padding: 10px 15px; background: #E4F1EF; border-bottom: 2px solid #17878A; display: flex; justify-content: space-between; align-items: center;">
+            <strong style="color: #0B3A3F; font-size: 1.05em;" id="radar_case_id">個案：讀取中...</strong>
+            <span class="badge bg-success" style="font-size: 0.9em; padding: 6px 10px; display: flex; align-items: center;">
+                <span class="pulse-dot" style="background-color: white; width: 8px; height: 8px; margin-right: 5px;"></span>10秒即時更新
+            </span>
+        </div>
+        <div id="radarMap" style="flex: 1; width: 100%; z-index: 1; background: #ddd;"></div>
+    </div>
+</div>
+
+    
 <!-- ★ Messenger 對話框 Modal ★ -->
 <div id="messengerModal" class="modal" style="align-items: center; padding-top: 0; z-index: 2000;">
     <div class="modal-content" style="max-width: 500px; padding: 0; overflow: hidden; display: flex; flex-direction: column; height: 85vh; max-height: 650px; background-color: #BFE0DC;">
@@ -767,7 +802,9 @@
     }
 
     window.onload = function() {
-        startLiveClock(); fetchDataFromGAS(); fetchRecentCasesFromGAS(); setInterval(fetchRecentCasesFromGAS, 300000); 
+        startLiveClock(); 
+        fetchDataFromGAS(); 
+        fetchRecentCasesFromGAS(); // 🌟 啟動第一次抓取，之後由它自己負責動態輪詢
         
         document.querySelectorAll('.toggle-btn').forEach(btn => {
             btn.addEventListener('click', function() {
@@ -819,6 +856,8 @@
 
     function removeFbImg(idx) { feedbackImages.splice(idx, 1); renderFbPreviews(); }
 
+    let autoSyncTimer = null; // 🌟 宣告在全域，用來控制輪詢
+    
     function fetchRecentCasesFromGAS() {
         if (!GAS_URL) return;
         fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "fetchRecentCases" }) })
@@ -828,7 +867,23 @@
                 for (let cid in cases) { if (!newCases[cid] && (now - cases[cid].timestamp < 20000)) newCases[cid] = cases[cid]; }
                 cases = newCases; renderQuickUpdateBoard(); if (currentTrackCaseId) renderTrackerDashboard(); if (loggedInHosp) renderHospitalCases();
             }
-        }).catch(e => console.log("即時同步失敗", e));
+            
+            // 🌟 智慧動態輪詢 (Adaptive Polling) 邏輯
+            let nextInterval = 300000; // 沒登入時：預設 5 分鐘拉一次
+            if (loggedInHosp) {
+                // 檢查是否有「鎖定本院」且「尚未確認檢傷」的緊急個案
+                let isUrgent = Object.values(cases).some(c => c.finalDest === loggedInHosp && !c.confirmArriveTime);
+                nextInterval = isUrgent ? 10000 : 60000; // 🚨 緊急期：每 10 秒更新！ 平時：每 60 秒更新
+            }
+            
+            if (autoSyncTimer) clearTimeout(autoSyncTimer);
+            autoSyncTimer = setTimeout(fetchRecentCasesFromGAS, nextInterval);
+            
+        }).catch(e => {
+            console.log("即時同步失敗", e);
+            if (autoSyncTimer) clearTimeout(autoSyncTimer);
+            autoSyncTimer = setTimeout(fetchRecentCasesFromGAS, 60000); // 失敗的話 1 分鐘後重試
+        });
     }
 
     function fetchDataFromGAS() {
@@ -1731,27 +1786,26 @@
                 
                 let intentText = "評估中"; 
                 let actionBtns = `<button class="btn-custom btn-theme-orange" onclick="openReplyModal('${caseId}')">🏥 回覆量能</button>`;
+                let trClass = ""; // 🌟 用來控制閃爍特效的 class
                 
                 if (c.finalDest === loggedInHosp) {
-                    // 🌟 更新狀態文字邏輯
-                    if (c.confirmArriveTime) { intentText = `<span class="text-success fw-bold">✅ 已確認檢傷 (${c.confirmArriveTime})</span>`; } 
-                    else if (c.arriveTime) { intentText = `<span class="text-info fw-bold">🏥 救護車抵達待確認 (${c.arriveTime})</span>`; } 
-                    else if (c.departTime) { intentText = `<span class="text-warning fw-bold">🚑 救護車已出發 (${c.departTime})</span>`; } 
-                    else { intentText = `<span class="text-primary fw-bold">✅ 已轉入本院 (${c.lockTime})</span>`; }
-
-                    let mapUrl = "";
-                    if (c.location) {
-                        if (typeof c.location === 'object' && c.location.lat) {
-                            mapUrl = `https://www.google.com/maps/search/?api=1&query=${c.location.lat},${c.location.lng}`;
-                        } else {
-                            let match = String(c.location).match(/Lat:([^,]+),\s*Lng:([^,]+)/);
-                            if (match) mapUrl = `https://www.google.com/maps/search/?api=1&query=${match[1].trim()},${match[2].trim()}`;
-                        }
+                    if (c.confirmArriveTime) { 
+                        intentText = `<span class="text-success fw-bold">✅ 已確認檢傷 (${c.confirmArriveTime})</span>`; 
+                    } else if (c.arriveTime) { 
+                        intentText = `<span class="text-info fw-bold">🏥 救護車抵達待確認 (${c.arriveTime})</span>`; 
+                        trClass = "urgent-flash"; // 🚨 抵達但尚未確認檢傷：啟動閃爍警報！
+                    } else if (c.departTime) { 
+                        intentText = `<span class="text-warning fw-bold">🚑 救護車已出發 (${c.departTime})</span>`; 
+                    } else { 
+                        intentText = `<span class="text-primary fw-bold">✅ 已轉入本院 (${c.lockTime})</span>`; 
                     }
-                    let mapBtn = mapUrl ? `<button class="btn-custom btn-theme-success" onclick="window.open('${mapUrl}', '_blank')">🗺️ GPS地圖</button>` : `<span style="font-size:0.85em; color:#888;">(尚未回報GPS)</span>`;
+
+                    let mapBtn = `<span style="font-size:0.85em; color:#888;">(尚未回報GPS)</span>`;
+                    if (c.location && c.location.lat) {
+                        mapBtn = `<button class="btn-custom btn-theme-success fw-bold" onclick="openRadarModal('${caseId}')">📡 即時雷達</button>`;
+                    }
                     let chatBtn = `<button class="btn-custom btn-theme-info" onclick="openMessenger('${caseId}', 1, 'evt', '${loggedInHosp}')">💬 即時文字溝通</button>`;
                     
-                    // 🌟 加入「確認抵達檢傷」二次確認邏輯
                     if (c.confirmArriveTime) {
                         let feedbackBtn = `<button class="btn-custom btn-theme-warning" onclick="openFeedbackModal('${caseId}')">📝 個案回饋與結案</button>`;
                         let undoConfirmBtn = `<button class="btn btn-secondary btn-sm fw-bold" onclick="undoTime('${caseId}', 'confirmArrive')">撤銷檢傷 ↺</button>`;
@@ -1772,7 +1826,8 @@
 
                 let timesInfo = getCaseTimeStr(c); let replyTimeStr = c.hospReplyTime[loggedInHosp] ? ` <span class="small text-muted">(${c.hospReplyTime[loggedInHosp]})</span>` : "";
 
-                tbody.innerHTML += `<tr><td class="border-bottom p-3" style="width: 140px;"><b>${caseId}</b><br><span class="small text-muted">${timesInfo}</span></td><td class="border-bottom p-3"><div class="d-flex gap-2 flex-wrap mb-2"><button class="btn btn-secondary btn-sm fw-bold" onclick="openViewCaseModal('${caseId}')">📜 檢視完整病史</button>${actionBtns}</div><div class="small">狀態: <span class="text-primary">${c.hospStatus[loggedInHosp]}</span>${replyTimeStr} | 轉出端: ${intentText}</div></td></tr>`;
+                // 🌟 把 trClass 變數套用到 <tr> 上
+                tbody.innerHTML += `<tr class="${trClass}"><td class="border-bottom p-3" style="width: 140px;"><b>${caseId}</b><br><span class="small text-muted">${timesInfo}</span></td><td class="border-bottom p-3"><div class="d-flex gap-2 flex-wrap mb-2"><button class="btn btn-secondary btn-sm fw-bold" onclick="openViewCaseModal('${caseId}')">📜 檢視完整病史</button>${actionBtns}</div><div class="small">狀態: <span class="text-primary">${c.hospStatus[loggedInHosp]}</span>${replyTimeStr} | 轉出端: ${intentText}</div></td></tr>`;
             }
         }
     }
@@ -1839,6 +1894,77 @@
         document.getElementById('qrModal').style.display = 'none';
         document.getElementById('qr_image').src = ""; // 清空圖片快取
     }
+
+// ==========================================
+    // 📡 救護車即時雷達追蹤 (Modal 內嵌地圖)
+    // ==========================================
+    const hospCoordsRadar = {
+        "新竹台大": [24.8055, 120.9988], "東元醫院": [24.8267, 121.0125], "新竹中國": [24.8288, 121.0189],
+        "大千醫院": [24.5583, 120.8222], "聯新國際": [24.9458, 121.2069], "林口長庚": [25.0600, 121.3683], "為恭醫院": [24.5511, 120.8200]
+    };
+
+    let radarMapInstance = null;
+    let radarAmbulanceMarker = null;
+    let radarDestMarker = null;
+    let radarPollingInterval = null;
+
+    function openRadarModal(caseId) {
+        const c = cases[caseId];
+        if (!c || !c.location || !c.location.lat) return alert("尚未取得 GPS 座標");
+
+        document.getElementById('radar_case_id').innerText = `個案：${caseId} (前往 ${c.finalDest || loggedInHosp})`;
+        document.getElementById('radarModal').style.display = 'flex';
+
+        let destLatLng = hospCoordsRadar[c.finalDest || loggedInHosp] || [24.8055, 120.9988];
+        let ambLatLng = [parseFloat(c.location.lat), parseFloat(c.location.lng)];
+
+        // 延遲一點初始化地圖，確保 Modal 展開後有正確的寬高
+        setTimeout(() => {
+            if (!radarMapInstance) {
+                radarMapInstance = L.map('radarMap', { zoomControl: false }).setView(ambLatLng, 13);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(radarMapInstance);
+                
+                radarDestMarker = L.marker(destLatLng, { icon: L.divIcon({ html: '🏥', className: 'fs-2', iconSize: [30, 30], iconAnchor: [15, 30] }) }).addTo(radarMapInstance);
+                radarAmbulanceMarker = L.marker(ambLatLng, { icon: L.divIcon({ html: '🚑', className: 'fs-2', iconSize: [30, 30], iconAnchor: [15, 15] }) }).addTo(radarMapInstance);
+            } else {
+                radarDestMarker.setLatLng(destLatLng);
+                radarAmbulanceMarker.setLatLng(ambLatLng);
+            }
+            
+            // 自動縮放讓救護車跟醫院同時出現在畫面中
+            let bounds = L.latLngBounds([ambLatLng, destLatLng]);
+            radarMapInstance.fitBounds(bounds, { padding: [40, 40], maxZoom: 16 });
+            radarMapInstance.invalidateSize(); 
+        }, 150);
+
+        // 啟動高頻輪詢：開啟雷達期間，每 10 秒去雲端拉一次該個案的最新 GPS
+        if (radarPollingInterval) clearInterval(radarPollingInterval);
+        radarPollingInterval = setInterval(() => {
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "fetchRecentCases" }) })
+            .then(res => res.json()).then(resData => {
+                if (resData.status === "success" && resData.data.cases) {
+                    let latestCase = resData.data.cases[caseId];
+                    if (latestCase && latestCase.location && radarAmbulanceMarker) {
+                        let newLatLng = [parseFloat(latestCase.location.lat), parseFloat(latestCase.location.lng)];
+                        
+                        // 移動救護車圖示，並重新對焦
+                        radarAmbulanceMarker.setLatLng(newLatLng);
+                        let bounds = L.latLngBounds([newLatLng, destLatLng]);
+                        radarMapInstance.fitBounds(bounds, { padding: [40, 40], maxZoom: 16 });
+                    }
+                }
+            }).catch(e => console.log("雷達更新失敗", e));
+        }, 10000);
+    }
+
+    function closeRadarModal() {
+        document.getElementById('radarModal').style.display = 'none';
+        if (radarPollingInterval) {
+            clearInterval(radarPollingInterval);
+            radarPollingInterval = null;
+        }
+    }
+    
 </script>
 </body>
 </html>
