@@ -629,7 +629,7 @@
 </div>
     
 <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbyBVaiZ0Xmihsb2BSNTeH1CgNR22oIogYq8lC_Uxitd5OZFqMW-mMq8EHfsKoZP2KBnsA/exec"; 
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxe252nSd2IlaWELf0OH1T4OK82W8LzTYz2r7QukQTCSR_7LQGR6yqXeQls0AKEKL364Q/exec"; 
 
     let hospitalsConfigData = {}; let currentRosterData = {}; let hospitals = []; 
     let cases = {}; let currentTrackCaseId = null; let loggedInHosp = null;
@@ -1291,8 +1291,17 @@
     }
 
     function loginTracker() {
-        const id = document.getElementById('track_case_id').value; const pwd = document.getElementById('track_phone').value;
-        if (cases[id] && cases[id].phone === pwd) { currentTrackCaseId = id; document.getElementById('track_dashboard').style.display = 'block'; renderTrackerDashboard(); } else { alert("代碼或密碼錯誤！"); }
+        // 🌟 加入 .trim() 去除使用者不小心輸入的前後空白
+        const id = document.getElementById('track_case_id').value.trim(); 
+        const pwd = document.getElementById('track_phone').value.trim();
+        
+        if (cases[id] && cases[id].phone === pwd) { 
+            currentTrackCaseId = id; 
+            document.getElementById('track_dashboard').style.display = 'block'; 
+            renderTrackerDashboard(); 
+        } else { 
+            alert("❌ 代碼或密碼錯誤！\n請確認個案代碼與醫師聯絡電話是否正確。"); 
+        }
     }
 
    function renderTrackerDashboard() {
