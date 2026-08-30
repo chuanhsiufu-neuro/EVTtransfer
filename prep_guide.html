@@ -484,12 +484,22 @@
   // 優先採用系統傳過來的電話，若無則從備用表抓，再沒有就顯示預設字串
   let finalPhone = customPhone || (hospital && hospitalPhones[hospital]) || "03-4941234 #3100";
 
+  // 🌟 關鍵修正：使用 querySelectorAll 把畫面上「所有」標記這個 ID 的地方都換掉
   if (hospital) {
-    document.getElementById('hospNameDisplay').innerText = hospital;
+    document.querySelectorAll('#hospNameDisplay').forEach(el => el.innerText = hospital);
   }
   
-  document.getElementById('hospPhoneDisplay').innerText = finalPhone;
-  document.getElementById('checklistPhone').innerText = "☎ TEL " + finalPhone;
+  const hospPhoneDisplay = document.getElementById('hospPhoneDisplay');
+  if (hospPhoneDisplay) {
+    hospPhoneDisplay.innerText = finalPhone;
+  }
+  
+  // 🌟 結合一鍵撥打電話功能
+  const checklistPhone = document.getElementById('checklistPhone');
+  if (checklistPhone) {
+    const cleanPhone = finalPhone.replace(/[^0-9+]/g, '');
+    checklistPhone.innerHTML = `<a href="tel:${cleanPhone}" style="color: inherit; text-decoration: none;">☎ TEL ${finalPhone}</a>`;
+  }
 </script>
 
 </body>
