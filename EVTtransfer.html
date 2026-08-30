@@ -1429,7 +1429,6 @@
                 let lockTimeStr = c.lockTime ? ` <span style="font-weight:normal; font-size: 0.85em; color:#666;">(${c.lockTime.length > 10 ? c.lockTime.substring(5) : c.lockTime})</span>` : "";
                 let destStatus = c.finalDest ? `<span class="text-success fw-bold">已鎖定：${c.finalDest}${lockTimeStr}</span>` : `<span class="text-warning fw-bold">媒合中...</span>`;
                 
-                // 🌟 更新看板的抵達狀態文字
                 if (c.confirmArriveTime && c.finalDest) {
                     let confTimeStr = c.confirmArriveTime.length > 10 ? c.confirmArriveTime.substring(5) : c.confirmArriveTime;
                     destStatus = `<span class="text-success fw-bold">已確認檢傷：${c.finalDest} <span style="font-weight:normal; font-size: 0.85em; color:#666;">(${confTimeStr})</span></span>`;
@@ -1440,22 +1439,42 @@
                     let depTimeStr = c.departTime.length > 10 ? c.departTime.substring(5) : c.departTime;
                     destStatus = `<span class="text-danger fw-bold">已出發轉往：${c.finalDest} <span style="font-weight:normal; font-size: 0.85em; color:#666;">(${depTimeStr})</span></span>`;
                 }
+
+                // 🌟 1. 擷取時間後段 (HH:mm) 以節省空間
+                let depTimeShort = c.departTime ? c.departTime.split(' ').pop() : "";
+                let arrTimeShort = c.arriveTime ? c.arriveTime.split(' ').pop() : "";
+
+                // 🌟 2. 組裝精簡圖示按鈕
+                let btnDepart = c.departTime 
+                    ? `<button style="background: #5B6B65; border: none; border-radius: 6px; cursor: pointer; font-size: 0.95em; padding: 4px 8px; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.15);" onclick="undoTime('${caseId}', 'depart')" title="取消出發">🚑 ${depTimeShort} ↺</button>` 
+                    : `<button style="background: #C7791F; border: none; border-radius: 6px; cursor: pointer; font-size: 1.15em; padding: 4px 10px; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.15);" onclick="markTime('${caseId}', 'depart')" title="手動出發">🚑</button>`;
+                
+                let btnArrive = c.arriveTime 
+                    ? `<button style="background: #5B6B65; border: none; border-radius: 6px; cursor: pointer; font-size: 0.95em; padding: 4px 8px; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.15);" onclick="undoTime('${caseId}', 'arrive')" title="取消抵達">🏥 ${arrTimeShort} ↺</button>` 
+                    : `<button style="background: #B23A2E; border: none; border-radius: 6px; cursor: pointer; font-size: 1.15em; padding: 4px 10px; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.15);" onclick="markTime('${caseId}', 'arrive')" title="手動抵達">🏥</button>`;
                 
                 board.innerHTML += `
-                <div class="quick-case-card" style="position: relative; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 6px; padding: 12px 15px;">
-                    
-                    <!-- 🌟 右上角加入 🖨️ 列印與 📍 GPS 雙按鈕 -->
-                    <div style="position: absolute; top: 12px; right: 12px; display: flex; gap: 8px;">
-                        <button style="background: #0F5C61; border: none; border-radius: 6px; cursor: pointer; font-size: 1.2em; padding: 6px 10px; color: white; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.15);" onclick="openQrModal('${caseId}')" title="產生家屬追蹤 QR Code" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">🖨️</button>
-                        <button style="background: #4a805f; border: none; border-radius: 6px; cursor: pointer; font-size: 1.2em; padding: 6px 10px; color: white; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.15);" onclick="quickUpdateLocation('${caseId}')" title="手動傳送 GPS 位置" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">📍</button>
+                <div class="quick-case-card" style="padding: 12px 15px;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap;">
+                        
+                        <!-- 左側：個案資訊 -->
+                        <div style="display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 200px;">
+                            <div style="display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px;">
+                                <span class="cid" style="font-size: 1.05em; color: var(--ink); margin: 0; font-weight: bold;">📄 ${caseId}</span>
+                                <span style="font-size: 0.85em; color: #666; font-family: var(--mono);">${getCaseTimeStr(c)}</span>
+                            </div>
+                            <div class="info" style="font-size: 0.95em; margin: 0;">狀態：${destStatus}</div>
+                        </div>
+                        
+                        <!-- 🌟 右側：統合操作按鈕群 (出發、抵達、列印、GPS) -->
+                        <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
+                            ${c.finalDest ? btnDepart : ''}
+                            ${c.finalDest ? btnArrive : ''}
+                            <button style="background: #0F5C61; border: none; border-radius: 6px; cursor: pointer; font-size: 1.15em; padding: 4px 10px; color: white; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.15);" onclick="openQrModal('${caseId}')" title="產生家屬追蹤 QR Code" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">🖨️</button>
+                            <button style="background: #4a805f; border: none; border-radius: 6px; cursor: pointer; font-size: 1.15em; padding: 4px 10px; color: white; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.15);" onclick="quickUpdateLocation('${caseId}')" title="手動傳送 GPS 位置" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">📍</button>
+                        </div>
+                        
                     </div>
-                    
-                    <!-- 避免文字蓋到右上角雙按鈕，增加 padding-right 至 100px -->
-                    <div style="display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; padding-right: 100px;">
-                        <span class="cid" style="font-size: 1.05em; color: var(--ink); margin: 0;">📄 ${caseId}</span>
-                        <span style="font-size: 0.85em; color: #666; font-family: var(--mono);">${getCaseTimeStr(c)}</span>
-                    </div>
-                    <div class="info" style="font-size: 0.95em; margin: 0; padding-right: 100px;">狀態：${destStatus}</div>
                 </div>`;
             }
         }
