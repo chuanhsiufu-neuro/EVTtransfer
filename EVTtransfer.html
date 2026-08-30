@@ -1397,8 +1397,7 @@
         }
 
         document.getElementById('submit_result_area').style.display = 'block'; 
-        document.getElementById('submit_result_area').innerHTML = `<div class="text-center py-3"><strong class="text-primary fs-5">正在秒速建檔並發送通知信<span class="loading-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span></strong></div>`;
-        
+        document.getElementById('submit_result_area').innerHTML = `<div class="text-center py-3"><strong class="fs-5" style="color: var(--teal-700); font-family: var(--sans);">正在秒速建檔並發送通知信<span class="loading-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span></strong></div>`;
         fetch(GAS_URL, { 
             method: 'POST', 
             body: JSON.stringify({ 
@@ -1416,11 +1415,13 @@
                 cases[caseId].clinicalData.folderUrl = data.data.folderUrl; 
                 document.getElementById('submit_result_area').innerHTML = `
     <div class="text-center">
-        <h3 class="mb-2 fw-bold" style="color: var(--teal-700);">✅ 資訊與通知已秒速發送！</h3>
-        <p class="fs-5 fw-bold mb-3" style="color: var(--teal-700);">個案代碼：${caseId}</p>
-        <p class="text-danger fw-bold fs-5 mb-2">⚠️ 最後一步：請點擊下方按鈕上傳臨床影像 ⚠️</p>
+        <h3 class="mb-2 fw-bold" style="color: var(--teal-900); font-family: var(--serif);">✅ 資訊與通知已秒速發送！</h3>
+        <p class="fs-5 fw-bold mb-3" style="color: var(--teal-700); font-family: var(--mono);">個案代碼：${caseId}</p>
+        <div style="background-color: var(--alert-100); border: 1px solid #E7C6BE; color: var(--alert); padding: 10px 15px; border-radius: 8px; margin-bottom: 15px; font-weight: bold; font-size: 1.05em;">
+            ⚠️ 最後一步：請點擊下方按鈕上傳臨床影像 ⚠️
+        </div>
         <a href="${data.data.folderUrl}" target="_blank" class="btn-custom btn-theme-primary py-3 px-4 fs-5 shadow" style="display: inline-flex; margin-top: 5px;">📂 點此開啟專屬資料夾，並將影像拖曳進入</a>
-        <p class="text-muted small mt-2">(上傳完成後，接收端醫院即可在信件中查看)</p>
+        <p style="color: #5B6B65; font-size: 0.9em; margin-top: 10px;">(上傳完成後，接收端醫院即可在信件中查看)</p>
     </div>`;
                 setTimeout(fetchRecentCasesFromGAS, 3000);
             } else { 
