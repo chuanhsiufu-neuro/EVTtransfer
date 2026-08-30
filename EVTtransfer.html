@@ -392,9 +392,9 @@
                     <span>個案：<span id="disp_track_id"></span></span>
                     <span id="disp_track_time" style="color: #ffffff; font-weight: normal; font-family: var(--sans);"></span>
                 </h3>
-                <div style="display:flex; gap:10px;">
-                    <button class="btn-custom btn-theme-info" onclick="editExistingClinical()">📝 開啟表單修改</button>
-                    <button class="btn-custom btn-theme-warning" onclick="updateClinicalToExistCase()">🔄 同步修改至本案</button>
+                <!-- 🌟 這裡必須有這個 id，JavaScript 才能把「開啟影像、修改表單、同步」塞進來 -->
+                <div id="top_action_btns" style="display:flex; gap:8px; align-items: center; flex-wrap: wrap;">
+                    <!-- 動態由 renderTrackerDashboard 渲染 -->
                 </div>
             </div>
             <div id="track_chat_area" style="display: none;"></div>
@@ -1605,6 +1605,7 @@
         
         const container = document.getElementById('track_list_container'); 
         const chatArea = document.getElementById('track_chat_area');
+        const topBtnContainer = document.getElementById('top_action_btns');
         
         container.innerHTML = ""; 
         chatArea.innerHTML = ""; 
@@ -1612,15 +1613,14 @@
 
         let folderLink = c.clinicalData && c.clinicalData.folderUrl ? c.clinicalData.folderUrl : "#";
         
-        // 🌟 1. 頂部功能區：包含影像、表單修改、同步
-        let topActions = `
-            <div style="display:flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; background: #E4F1EF; padding: 12px 15px; border-radius: 10px; border: 1px solid #BFE0DC;">
-                <div style="display:flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                    <button class="btn-custom btn-theme-success" onclick="window.open('${folderLink}', '_blank')">📂 開啟影像</button>
-                    <button class="btn-custom btn-theme-info" onclick="editExistingClinical()">📝 開啟表單修改</button>
-                    <button class="btn-custom btn-theme-warning" onclick="updateClinicalToExistCase()">🔄 同步修改</button>
-                </div>
-            </div>`;
+        // 🌟 1. 頂部右側功能區：開啟影像 + 開啟表單修改 + 同步修改
+        if (topBtnContainer) {
+            topBtnContainer.innerHTML = `
+                <button class="btn-custom btn-theme-success" onclick="window.open('${folderLink}', '_blank')" title="開啟影像">📂 影像</button>
+                <button class="btn-custom btn-theme-info" onclick="editExistingClinical()" title="開啟表單修改">📝 修改表單</button>
+                <button class="btn-custom btn-theme-warning" onclick="updateClinicalToExistCase()" title="同步修改至本案">🔄 同步</button>
+            `;
+        }
 
         let lockAreaHtml = "";
 
@@ -1630,21 +1630,22 @@
                 mapBtn = `<button class="btn-custom btn-theme-success fw-bold" onclick="openRadarModal('${currentTrackCaseId}')">📡 救護車即時追蹤</button>`;
             }
 
-            // 🌟 2. 建立出發與抵達的手動切換按鈕
+            // 🌟 2. 綠底區塊：出發與抵達的手動切換按鈕
             let btnDepart = c.departTime ? `<button class="btn btn-secondary btn-sm fw-bold" onclick="undoTime('${currentTrackCaseId}', 'depart')">已出發 ${c.departTime} ↺</button>` : `<button class="btn btn-warning btn-sm fw-bold text-dark" onclick="markTime('${currentTrackCaseId}', 'depart')">🚑 記錄出發</button>`;
-            let btnArrive = c.arriveTime ? `<button class="btn btn-secondary btn-sm fw-bold" onclick="undoTime('${currentTrackCaseId}', 'arrive')">已抵達 ${c.arriveTime} ↺</button>` : `<button class="btn btn-danger btn-sm fw-bold" onclick="markTime('${currentTrackCaseId}', 'arrive')">🏥 記錄抵達</button>`;
+            let btnArrive = c.arriveTime ? `<button class="btn btn-secondary btn-sm fw-bold" onclick="undoTime('${currentTrackCaseId}', 'arrive')">已已抵達 ${c.arriveTime} ↺</button>` : `<button class="btn btn-danger btn-sm fw-bold" onclick="markTime('${currentTrackCaseId}', 'arrive')">🏥 記錄抵達</button>`;
 
-            // 🌟 3. 嚴格依照您的需求排列：注意事項 ➔ 出發/抵達按鈕 ➔ 即時通訊與雷達
             let middleControlArea = `
-                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 12px 0; padding: 10px; background: #f8f9fa; border-radius: 8px; border: 1px dashed #ccc;">
-                    <span class="small fw-bold text-muted">手動進度控制：</span>
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 12px 0; padding: 12px 15px; background-color: var(--success-100); border-radius: 8px; border: 1px solid var(--success);">
+                    <span class="small fw-bold" style="color: var(--teal-900);">🚑 救護車進度控制：</span>
                     ${btnDepart}
                     ${btnArrive}
                 </div>
             `;
 
-            let chatBtn = `<button id="chat_btn_${currentTrackCaseId}" class="btn-custom btn-theme-info" onclick="openMessenger('${currentTrackCaseId}', 1, 'requester', '${c.reqHospOut}')">💬 即時文字溝通</button>`;
-            let guideBtn = `<button class="btn-custom btn-theme-warning" onclick="openPrepGuide('${currentTrackCaseId}')">🚨 注意事項</button>`;
+            // 🌟 3. 將注意事項與即時通訊改為圖示按鈕呈現
+            let chatBtn = `<button id="chat_btn_${currentTrackCaseId}" class="btn-custom btn-theme-info" onclick="openMessenger('${currentTrackCaseId}', 1, 'requester', '${c.reqHospOut}')" title="即時文字溝通">💬</button>`;
+            let guideBtn = `<button class="btn-custom btn-theme-warning" onclick="openPrepGuide('${currentTrackCaseId}')" title="注意事項">🚨</button>`;
+            let historyBtn = `<button class="btn btn-secondary btn-sm fw-bold" onclick="openViewCaseModal('${currentTrackCaseId}')">📜 完整病史</button>`;
 
             let cancelBtnHtml = "";
             if (!c.confirmArriveTime) {
@@ -1653,21 +1654,23 @@
             
             let confirmBadge = c.confirmArriveTime ? `<span class="badge bg-success fs-6 px-3 py-2 shadow-sm ms-2">✅ 已抵達取栓醫院檢傷 (${c.confirmArriveTime})</span>` : ``;
 
+            // 🌟 4. 組合主控制面板 (刪除多餘框線、排版乾淨俐落)
             lockAreaHtml = `
-            <div class="chat-room-banner w-100" style="margin-top: 0; margin-bottom: 15px; padding: 15px; background: #fff; border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
-                <div class="d-flex gap-2 flex-wrap mb-2 align-items-center">
-                    <button class="btn btn-secondary btn-sm fw-bold" onclick="openViewCaseModal('${currentTrackCaseId}')">📜 檢視完整病史</button>
-                    ${guideBtn}
-                    ${mapBtn}
-                    ${cancelBtnHtml}
+            <div class="chat-room-banner w-100" style="margin-top: 15px; margin-bottom: 15px; padding: 15px; background: #fff; border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                <div class="d-flex gap-2 flex-wrap mb-2 align-items-center justify-content-between">
+                    <div class="d-flex gap-2 align-items: center flex-wrap">
+                        ${historyBtn}
+                        ${guideBtn}
+                        ${mapBtn}
+                    </div>
+                    <div class="d-flex gap-2 align-items: center flex-wrap">
+                        ${chatBtn}
+                        ${cancelBtnHtml}
+                    </div>
                 </div>
                 
-                <!-- 夾在注意事項與即時通訊中間的手動按鈕區 -->
+                <!-- 統一放在綠底區塊的出發與抵達 -->
                 ${middleControlArea}
-
-                <div class="d-flex gap-2 flex-wrap align-items: center mb-2">
-                    ${chatBtn}
-                </div>
 
                 <div class="small text-muted d-flex align-items-center flex-wrap gap-2 mt-2">
                     <span>狀態: <span class="text-success fw-bold">已鎖定轉入：${c.finalDest} (${c.lockTime})</span></span>
@@ -1675,10 +1678,10 @@
                 </div>
             </div>`;
         } else {
-            lockAreaHtml = `<div class="alert alert-warning fw-bold mb-3 w-100" style="border-left: 5px solid #ffc107;">⚠️ 尚未鎖定目標醫院，請從下方清單點擊「✅ 選擇此院」：</div>`;
+            lockAreaHtml = `<div class="alert alert-warning fw-bold mb-3 w-100" style="margin-top: 15px; border-left: 5px solid #ffc107;">⚠️ 尚未鎖定目標醫院，請從下方清單點擊「✅ 選擇此院」：</div>`;
         }
 
-        chatArea.innerHTML = topActions + lockAreaHtml;
+        chatArea.innerHTML = lockAreaHtml;
         
         c.targets.forEach(hospName => {
             const status = c.hospStatus[hospName] || "尚未讀取個案"; 
