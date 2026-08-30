@@ -251,3 +251,31 @@
         document.querySelector('.status-bar').style.backgroundColor = 'var(--success)';
         document.querySelector('.status-bar').innerHTML = '<div style="width:100%; text-align:center;">🎉 已安全抵達目的地</div>';
     }
+
+// 🌟 請將這段程式碼新增貼在這裡 🌟
+    // ==========================================
+    // 🔄 每 10 秒向雲端確認一次醫院端是否已手動結案/標記抵達
+    // ==========================================
+    function checkServerArrivalStatus() {
+        if (hasArrived) return; // 如果已經抵達，就不需要再問了
+        
+        fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "fetchRecentCases" }) })
+        .then(res => res.json())
+        .then(resData => {
+            if (resData.status === "success" && resData.data.cases) {
+                let c = resData.data.cases[caseId];
+                // 如果雲端資料顯示該個案已經有 arriveTime 或 confirmArriveTime
+                if (c && (c.arriveTime || c.confirmArriveTime)) {
+                    // 強制觸發家屬端的手機進入「已抵達」狀態，停止 GPS 追蹤
+                    triggerAutoArrival(); 
+                }
+            }
+        }).catch(e => console.log("狀態確認失敗", e));
+    }
+
+    // 在網頁載入時啟動這個定時檢查器 (每 10 秒檢查一次)
+    setInterval(checkServerArrivalStatus, 10000);
+
+</script>
+</body>
+</html>
