@@ -233,33 +233,34 @@
         <div class="pulse-line"></div>
     </div>
 
-    <!-- 🏥 量能狀態即時看板 -->
-    <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
-    <div style="display: flex; align-items: center; gap: 10px;">
-        <span>🏥 可取栓醫院量能狀態即時看板</span>
-        <button style="background: none; border: none; cursor: pointer; font-size: 1.1em; padding: 2px 6px; transition: 0.2s;" onclick="fetchDataFromGAS()" title="雲端更新" onmouseover="this.style.transform='rotate(180deg)'" onmouseout="this.style.transform='rotate(0deg)'">🔄</button>
+   <!-- 🏥 量能狀態即時看板 (點擊可展開/摺疊) -->
+    <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleSection('hospital_status_board', 'icon_hosp')">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span id="icon_hosp" style="font-size: 0.8em; color: var(--teal-500);">▶</span>
+            <span>🏥 可取栓醫院量能狀態即時看板</span>
+            <!-- 🌟 加入 event.stopPropagation() 防止點擊更新時觸發摺疊 -->
+            <button style="background: none; border: none; cursor: pointer; font-size: 1.1em; padding: 2px 6px; transition: 0.2s;" onclick="event.stopPropagation(); fetchDataFromGAS(); fetchRecentCasesFromGAS();" title="重新同步醫院量能與即時個案" onmouseover="this.style.transform='rotate(180deg)'" onmouseout="this.style.transform='rotate(0deg)'">🔄</button>
+        </div>
     </div>
-</div>
     
-    <!-- 🌟 初始載入骨架與動態點點 -->
-    <div class="status-board" id="hospital_status_board">
+    <!-- 🌟 預設加上 style="display: none;" 隱藏 -->
+    <div class="status-board" id="hospital_status_board" style="display: none;">
         <div class="loading-caption">正在從雲端載入各醫院即時量能<span class="loading-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span></div>
         <div class="skeleton-card"><div class="skeleton-bar w-60"></div><div class="skeleton-pill"></div></div>
         <div class="skeleton-card"><div class="skeleton-bar w-60"></div><div class="skeleton-pill"></div></div>
         <div class="skeleton-card"><div class="skeleton-bar w-60"></div><div class="skeleton-pill"></div></div>
     </div>
 
-    <div class="section-header" style="border-bottom-color: var(--teal-500); color: var(--teal-500);">
-    🚑 轉運即時紀錄 (顯示近4小時個案)
-</div>
-<div class="quick-update-board" id="quick_update_board"></div>
-
-<div class="tabs">
-    <button class="tab-btn active" onclick="switchTab('tab1')">1. 提出取栓需求</button>
-    <button class="tab-btn" onclick="switchTab('tab2')">2. 取栓個案追蹤</button>
-    <button class="tab-btn" onclick="switchTab('tab3')">3. 取栓醫院介面</button>
-    <button class="tab-btn" onclick="switchTab('tab4')">4. 班表與系統設定</button>
-</div>
+    <!-- 🚑 轉運即時紀錄看板 (點擊可展開/摺疊) -->
+    <div class="section-header" style="cursor: pointer; border-bottom-color: var(--teal-500); color: var(--teal-500);" onclick="toggleSection('quick_update_board', 'icon_quick')">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span id="icon_quick" style="font-size: 0.8em;">▶</span>
+            <span>🚑 轉運即時紀錄 (顯示近4小時個案)</span>
+        </div>
+    </div>
+    
+    <!-- 🌟 預設加上 style="display: none;" 隱藏 -->
+    <div class="quick-update-board" id="quick_update_board" style="display: none;"></div>
 
 <!-- 分頁 1 -->
 <div id="tab1" class="tab-content active">
@@ -622,7 +623,20 @@
 </div>
     
 <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbxe252nSd2IlaWELf0OH1T4OK82W8LzTYz2r7QukQTCSR_7LQGR6yqXeQls0AKEKL364Q/exec"; 
+// 🌟 新增：看板折疊與展開功能
+    function toggleSection(sectionId, iconId) {
+        const el = document.getElementById(sectionId);
+        const icon = document.getElementById(iconId);
+        if (el.style.display === 'none') {
+            el.style.display = 'flex'; // 因為我們原本的 CSS 排版是 display: flex
+            icon.innerText = '▼';
+        } else {
+            el.style.display = 'none';
+            icon.innerText = '▶';
+        }
+    }
+    
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbwwXqSR0hYjUTwik_N6-fZpAoPhQ6KqYc6Pu0zp7RmtkAA3boycqzYnf-jsO1GQelaF9A/exec"; 
 
     let hospitalsConfigData = {}; let currentRosterData = {}; let hospitals = []; 
     let cases = {}; let currentTrackCaseId = null; let loggedInHosp = null;
@@ -861,7 +875,7 @@
         document.getElementById('call_hosp_name').innerText = hospName;
         const btnEr = document.getElementById('btn_call_er'); const btnDr = document.getElementById('btn_call_dr');
         
-        /* 🌟 格式更新：打給急診 (電話號碼) / 值班醫師 (電話號碼) */
+        // 1. 處理急診電話
         if (hosp.erPhone && hosp.erPhone !== "-" && hosp.erPhone !== "無" && hosp.erPhone.trim() !== "") { 
             btnEr.href = `tel:${hosp.erPhone.replace(/[^0-9+]/g, '')}`; 
             btnEr.innerHTML = `🏥 打給急診 (${hosp.erPhone})`; 
@@ -872,14 +886,17 @@
             btnEr.className = "btn-call disabled"; 
         }
         
+        // 🌟 2. 處理醫師電話 (重點修改：始終優先顯示醫師姓名)
+        let drNameStr = (hosp.docName && hosp.docName !== "-" && hosp.docName !== "無" && hosp.docName !== "無資料") ? hosp.docName : "值班醫師"; 
+        
         if (hosp.docPhone && hosp.docPhone !== "-" && hosp.docPhone !== "無" && hosp.docPhone.trim() !== "") { 
             btnDr.href = `tel:${hosp.docPhone.replace(/[^0-9+]/g, '')}`; 
-            let drNameStr = (hosp.docName !== "-" && hosp.docName !== "無") ? hosp.docName : "值班醫師"; 
             btnDr.innerHTML = `👨‍⚕️ ${drNameStr} (${hosp.docPhone})`; 
             btnDr.className = "btn-call dr"; 
         } else { 
             btnDr.href = "javascript:void(0);"; 
-            btnDr.innerHTML = `👨‍⚕️ 值班醫師手機 (無資訊)`; 
+            // 就算沒抓到電話，也要把名字秀出來，讓您知道系統有確實去抓排班表！
+            btnDr.innerHTML = `👨‍⚕️ ${drNameStr} (未提供電話)`; 
             btnDr.className = "btn-call disabled"; 
         }
         
@@ -1329,8 +1346,7 @@
             </div>
             <div style="display:flex; gap:10px; flex-wrap: wrap; width: 100%;">
                 ${btnDepart}
-                ${btnArrive}
-                <button class="btn-custom btn-theme-success" onclick="quickUpdateLocation('${currentTrackCaseId}')">📍 更新 GPS</button>
+                ${btnArrive}                
                 <button class="btn-custom btn-theme-success" onclick="window.open('${folderLink}', '_blank')">📂 開啟影像</button>
                 <button class="btn-custom btn-theme-info" onclick="openMessenger('${currentTrackCaseId}', 1, 'requester', '${c.reqHospOut}')">💬 即時溝通</button>
                 <button class="btn-custom btn-theme-warning" onclick="openPrepGuide('${currentTrackCaseId}')" title="出發前準備與注意事項">🚨 注意事項</button>
