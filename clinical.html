@@ -191,7 +191,13 @@
     </div>
 
     <div class="form-container" style="box-shadow: none; padding: 0; background: transparent;">
-
+        <!-- 🌟 新增：0. 基本聯絡資訊 -->
+        <div class="sub-header" style="background-color: var(--amber-100); color: #8A5A13; border-left-color: var(--amber);">0. 基本聯絡資訊</div>
+        <div class="req-row">
+            <div class="req-group"><label>提出需求醫院 <span style="color:var(--alert);">*</span></label><input type="text" id="req_hosp_out" placeholder="例如：東元醫院"></div>
+            <div class="req-group"><label>醫師電話 (作為追蹤密碼) <span style="color:var(--alert);">*</span></label><input type="tel" id="req_doc_phone" placeholder="請輸入聯絡電話"></div>
+            <div class="req-group"><label>e-mail (取栓回饋用)</label><input type="email" id="req_doc_email" placeholder="example@email.com"></div>
+        </div>
         <div class="sub-header">1. 基本與時間資訊</div>
         <div class="req-row">
             <div class="req-group" style="flex: 0.5;"><label>年齡</label><input type="number" id="age" placeholder="歲"></div>
@@ -538,15 +544,26 @@
     }
 
     function saveToLocal() {
+        // 🌟 新增防呆：確保聯絡資訊有填寫
+        const reqHospOut = document.getElementById('req_hosp_out').value.trim();
+        const reqDocPhone = document.getElementById('req_doc_phone').value.trim();
+        if (!reqHospOut || !reqDocPhone) {
+            alert("⚠️ 「提出需求醫院」與「醫師電話」為必填項目，請確實填寫後再儲存！");
+            return;
+        }
+
         let pmhArr = [];
         document.querySelectorAll('.pmh-cb:checked').forEach(cb => pmhArr.push(cb.value));
-        
         let imgArr = [];
         document.querySelectorAll('.img-cb:checked').forEach(cb => imgArr.push(cb.value));
-
         const tpaStatus = document.querySelector('input[name="tpa_status"]:checked')?.value || "";
 
         const data = {
+            // 🌟 寫入新的聯絡資訊
+            reqHospOut: reqHospOut,
+            reqDocPhone: reqDocPhone,
+            reqDocEmail: document.getElementById('req_doc_email').value.trim(),
+            
             caseId: currentEditingCaseId, 
             age: document.getElementById('age').value,
             gender: document.getElementById('gender').value,
@@ -575,11 +592,7 @@
         };
 
         localStorage.setItem('stroke_transfer_clinical_data', JSON.stringify(data));
-        
-        // 🌟 改變這裡：儲存後不關閉視窗，而是直接跳轉到轉診平台主畫面
         alert("✅ 表單已暫存成功！點擊確定後將為您導向轉診主畫面...");
-        
-        // 跳轉到您指定的轉診平台主畫面網址
         window.location.href = 'https://chuanhsiufu-neuro.github.io/EVTtransfer/EVTtransfer.html'; 
     }
 
@@ -588,12 +601,16 @@
         if(savedStr) {
             try {
                 const d = JSON.parse(savedStr);
-                
                 if (d.caseId) {
                     currentEditingCaseId = d.caseId;
                     document.getElementById('display_case_id').innerText = ` (正在編輯個案: ${d.caseId})`;
                     document.getElementById('display_case_id').style.color = "#A8E6CF";
                 }
+                
+                // 🌟 讀取新的聯絡資訊
+                document.getElementById('req_hosp_out').value = d.reqHospOut || "";
+                document.getElementById('req_doc_phone').value = d.reqDocPhone || "";
+                document.getElementById('req_doc_email').value = d.reqDocEmail || "";
 
                 document.getElementById('age').value = d.age || "";
                 document.getElementById('gender').value = d.gender || "男";
@@ -624,14 +641,12 @@
                         cb.checked = d.pmhList.includes(cb.value);
                     });
                 }
-                
                 if(d.images) {
                     let savedImgs = d.images.split(', ');
                     document.querySelectorAll('.img-cb').forEach(cb => {
                         cb.checked = savedImgs.includes(cb.value);
                     });
                 }
-
                 calcNIHSS();
                 let rtpaStatus = document.querySelector('input[name="tpa_status"]:checked')?.value;
                 if(rtpaStatus) toggleRtpa();
