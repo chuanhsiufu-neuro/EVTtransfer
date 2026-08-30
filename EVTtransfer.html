@@ -59,31 +59,37 @@
         .section-header { font-family: var(--serif); font-size: 1.25em; font-weight: 700; color: #0B3A3F; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #BFE0DC; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;}
         .sub-header { font-family: var(--serif); background-color: #E4F1EF; padding: 8px 14px; margin: 18px 0 12px 0; border-radius: 8px; font-weight: 700; color: #0B3A3F; border-left: 4px solid #0F5C61; font-size: 1.05em; }
         
-        .status-board { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 20px; }
-        .hosp-card { background: var(--card); border-radius: 12px; padding: 16px; box-shadow: 0 2px 10px rgba(11,58,63,0.08); border-top: 4px solid #D8E0DC; position: relative; display: flex; flex-direction: column; gap: 8px;}
-        .hosp-card h3 { font-family: var(--serif); margin: 0; font-size: 1.08em; font-weight: 700; color: #0F2A2E; display: flex; align-items: center; }
+        .status-board { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
         
-        .hosp-card-icons { position: absolute; top: 12px; right: 12px; display: flex; gap: 8px; }
-        .edit-icon { cursor: pointer; font-size: 1.2em; opacity: 0.6; transition: 0.2s; }
-        .edit-icon:hover { opacity: 1; transform: scale(1.1); }
+        /* 🌟 精簡後的醫院量能卡片樣式 */
+        .hosp-card { 
+            background: var(--card); border-radius: 12px; padding: 12px 16px; 
+            box-shadow: 0 2px 10px rgba(11,58,63,0.08); border-top: 4px solid #D8E0DC; 
+            display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 10px;
+        }
+        .hosp-card h3 { font-family: var(--serif); margin: 0; font-size: 1.2em; font-weight: 700; color: #0F2A2E; white-space: nowrap; }
         
-        .status-indicator { align-self: flex-start; padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 0.9em; color: white; }
+        .status-indicator { margin: 0; padding: 4px 10px; border-radius: 20px; font-weight: bold; font-size: 0.85em; color: white; white-space: nowrap; }
         .status-green { background-color: #2F8F5B; } .status-orange { background-color: #C7791F; } .status-red { background-color: #B23A2E; }
-        .hosp-info { font-size: 0.85em; color: #4A5652; line-height: 1.5; }
-        .hosp-info strong { color: #0F2A2E; }
-        .line-btn { display: inline-block; background-color: #00c300; color: white; text-decoration: none; padding: 4px 8px; border-radius: 4px; font-size: 0.85em; font-weight: bold; text-align: center; margin-top: 5px;}
         
-        .btn-call { display: block; width: 100%; text-align: center; padding: 15px; margin-bottom: 10px; border-radius: 6px; font-size: 1.1em; font-weight: bold; text-decoration: none; transition: 0.2s; box-sizing: border-box; border: none; cursor: pointer; }
-        .btn-call.er { background-color: #B23A2E; color: white; }
-        .btn-call.dr { background-color: #17878A; color: white; }
-        .btn-call.disabled { background-color: #EEF2EF; color: #94A29D; pointer-events: none; border: 1px solid #D8E0DC; cursor: not-allowed; }
+        /* 🌟 精簡後的撥號 Modal 按鈕樣式 */
+        .btn-call { display: block; width: 100%; text-align: center; padding: 12px; margin-bottom: 12px; border-radius: 8px; font-size: 1.1em; font-weight: bold; text-decoration: none; transition: 0.2s; box-sizing: border-box; border: none; cursor: pointer; color: white; }
+        .btn-call.er { background-color: #9A423A; } 
+        .btn-call.dr { background-color: #17878A; }
+        .btn-call.disabled { background-color: #EEF2EF; color: #94A29D; cursor: not-allowed; }
 
-        .quick-update-board { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 30px; }
-        .quick-case-card { background: var(--card); border: 1px solid #17878A; border-left: 5px solid #17878A; padding: 15px; border-radius: 10px; width: 100%; max-width: 300px; box-shadow: 0 2px 8px rgba(11,58,63,0.06); }
-        .quick-case-card .cid { font-family: var(--mono); font-weight: bold; color: var(--teal-700); font-size: 1.25em; margin-bottom: 16px; }
-        .quick-case-card .info { font-size: 0.9em; color: #4A5652; margin-bottom: 12px; line-height: 1.5; }
-        .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
-
+        .quick-update-board { display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px; }
+        
+        /* 🌟 精簡後的即時個案卡片樣式 */
+        .quick-case-card { 
+            background: var(--card); border: 1px solid #17878A; border-left: 5px solid #17878A; 
+            padding: 12px 15px; border-radius: 10px; width: 100%; 
+            box-shadow: 0 2px 8px rgba(11,58,63,0.06); 
+            display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px;
+        }
+        .quick-case-card .cid { font-family: var(--mono); font-weight: bold; color: var(--teal-700); font-size: 1.1em; margin: 0; }
+        .quick-case-card .info { font-size: 0.9em; margin: 0; }
+        
         .tabs { display: flex; border-bottom: 2px solid #0F5C61; margin-bottom: 20px; gap: 5px; flex-wrap: wrap;}
         .tab-btn { font-family: var(--serif); background-color: #EEF2EF; border: none; padding: 10px 18px; font-size: 0.95em; cursor: pointer; border-radius: 10px 10px 0 0; font-weight: 700; color: #4A5652; transition: 0.2s; }
         .tab-btn:hover { background-color: #DCE4E0; } .tab-btn.active { background-color: #0F5C61; color: white; }
@@ -96,16 +102,6 @@
         input[type="text"], input[type="email"], input[type="tel"], input[type="password"], input[type="number"], input[type="datetime-local"], select, textarea { padding: 9px 10px; border: 1px solid #D8E0DC; border-radius: 8px; font-size: 15px; width: 100%; box-sizing: border-box; font-family: var(--sans); }
         input:focus, select:focus, textarea:focus { outline: none; border-color: #17878A; box-shadow: 0 0 0 3px rgba(23,135,138,0.15); }
         
-        .btn-main { background-color: #0F5C61; color: white; border: none; padding: 9px 14px; border-radius: 8px; cursor: pointer; font-weight: 700; transition: 0.2s; }
-        .btn-main:hover { background-color: #0B3A3F; }
-        .btn-success { background-color: #2F8F5B; color: white; border: none; padding: 9px 14px; border-radius: 8px; cursor: pointer; font-weight: 700; transition: 0.2s; }
-        .btn-success:hover { background-color: #257A4B; }
-        .btn-warning { background-color: #C7791F; color: white; border: none; padding: 9px 14px; border-radius: 8px; cursor: pointer; font-weight: 700; transition: 0.2s; }
-        .btn-warning:hover { background-color: #A8650F; }
-        .btn-danger { background-color: #B23A2E; color: white; border: none; padding: 9px 14px; border-radius: 8px; cursor: pointer; font-weight: 700; transition: 0.2s; }
-        .btn-danger:hover { background-color: #942F25; }
-        .btn-recorded { background-color: #5B6B65; color: white; border: none; padding: 9px 14px; border-radius: 8px; cursor: pointer; font-weight: 700; transition: 0.2s;}
-
         .btn-custom { padding: 6px 14px; border-radius: 8px; font-weight: 700; font-size: 0.9em; border: none; cursor: pointer; transition: 0.2s; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
         .btn-custom:hover { opacity: 0.88; transform: translateY(-1px); }
         .btn-theme-primary   { background-color: #0F5C61; color: white; }
@@ -153,16 +149,14 @@
 
         .disclaimer { margin-top: 20px; padding: 16px; background-color: #FBEEDA; border: 1px solid #E3B579; color: #8A5A13; border-radius: 10px; font-size: 0.9em; line-height: 1.5; text-align: center; font-weight: bold; }
         
-    .live-clock-banner { 
-        background: var(--teal-100); 
-        border-left: 4px solid var(--teal-500); 
-        padding: 15px; 
-        border-radius: 8px; 
-        margin-bottom: 15px; 
-    }
-    #system_live_clock { 
-        font-family: var(--mono) !important; 
-    }
+        .live-clock-banner { 
+            background: var(--teal-100); 
+            border-left: 4px solid var(--teal-500); 
+            padding: 15px; 
+            border-radius: 8px; 
+            margin-bottom: 15px; 
+        }
+        #system_live_clock { font-family: var(--mono) !important; }
 
         #chatHistoryBox::-webkit-scrollbar { width: 6px; }
         #chatHistoryBox::-webkit-scrollbar-thumb { background: rgba(11,58,63,0.25); border-radius: 10px; }
@@ -173,32 +167,10 @@
         h1, h2, h3 { font-family: var(--serif); }
         code, .cid, #system_live_clock { font-family: var(--mono); }
 
-        /* 🌟 分頁 4 班表查詢的點擊區塊樣式 (無圓圈按鈕版) */
-        .roster-radio-label {
-            border: 2px solid var(--teal-500);
-            background-color: var(--card);
-            color: var(--teal-700);
-            cursor: pointer;
-            transition: 0.2s;
-            display: inline-block;
-            padding: 8px 18px;
-            border-radius: 8px;
-            margin: 0;
-        }
-        .roster-radio-label:hover {
-            background-color: var(--teal-100);
-            transform: translateY(-1px);
-        }
-        /* 隱藏預設的單選圓圈 */
-        .roster-radio-label input[type="radio"] {
-            display: none;
-        }
-        /* 點選啟動時反轉為深底白字 */
-        .roster-radio-label.active {
-            background-color: var(--teal-700) !important;
-            color: white !important;
-            border-color: var(--teal-700) !important;
-        }
+        .roster-radio-label { border: 2px solid var(--teal-500); background-color: var(--card); color: var(--teal-700); cursor: pointer; transition: 0.2s; display: inline-block; padding: 8px 18px; border-radius: 8px; margin: 0; }
+        .roster-radio-label:hover { background-color: var(--teal-100); transform: translateY(-1px); }
+        .roster-radio-label input[type="radio"] { display: none; }
+        .roster-radio-label.active { background-color: var(--teal-700) !important; color: white !important; border-color: var(--teal-700) !important; }
 
         /* ========================================== */
         /* 🌟 萬用動態點點載入動畫 (Loading Dots)       */
@@ -206,20 +178,16 @@
         .loading-dots { display: inline-flex; align-items: center; gap: 4px; margin-left: 2px; }
         .loading-dots .dot {
             width: 6px; height: 6px; border-radius: 50%;
-            background: currentColor; /* 神奇屬性：自動繼承旁邊文字的顏色 */
+            background: currentColor;
             animation: loading-pulse 1.1s ease-in-out infinite;
         }
         .loading-dots .dot:nth-child(2) { animation-delay: .15s; }
         .loading-dots .dot:nth-child(3) { animation-delay: .3s; }
         
         .loading-caption {
-            grid-column: 1 / -1;
             display: flex; align-items: center; justify-content: center;
-            font-family: var(--mono);
-            font-size: 16px;
-            letter-spacing: .04em;
-            color: var(--teal-500);
-            padding: 4px 0 2px;
+            font-family: var(--mono); font-size: 16px; letter-spacing: .04em;
+            color: var(--teal-500); padding: 4px 0 2px;
         }
         
         @keyframes loading-pulse {
@@ -229,26 +197,18 @@
 
         /* ---------- 載入中骨架卡片 (Loading Skeleton) ---------- */
         .skeleton-card {
-            background: var(--card);
-            border-radius: 12px;
-            padding: 16px;
-            border-top: 4px solid var(--line);
-            box-shadow: 0 2px 10px rgba(11,58,63,0.06);
-            display: flex; flex-direction: column; gap: 10px;
+            background: var(--card); border-radius: 12px; padding: 12px 16px; border-top: 4px solid var(--line);
+            box-shadow: 0 2px 10px rgba(11,58,63,0.06); display: flex; align-items: center; gap: 10px;
         }
         .skeleton-bar {
-            height: 12px;
-            border-radius: 6px;
+            height: 12px; border-radius: 6px;
             background: linear-gradient(90deg, #E4F1EF 25%, #F4F6F4 37%, #E4F1EF 63%);
             background-size: 400% 100%;
             animation: skeleton-shimmer 1.6s ease-in-out infinite;
         }
-        .skeleton-bar.w-60 { width: 60%; height: 15px; }
-        .skeleton-bar.w-40 { width: 40%; }
-        .skeleton-bar.w-80 { width: 80%; }
-        .skeleton-bar.w-100 { width: 100%; }
+        .skeleton-bar.w-60 { width: 60px; height: 18px; }
         .skeleton-pill {
-            width: 72px; height: 22px; border-radius: 20px;
+            width: 72px; height: 26px; border-radius: 20px;
             background: linear-gradient(90deg, #E4F1EF 25%, #F4F6F4 37%, #E4F1EF 63%);
             background-size: 400% 100%;
             animation: skeleton-shimmer 1.6s ease-in-out infinite;
@@ -259,14 +219,9 @@
         }
 
         .board-error {
-            grid-column: 1 / -1;
             display: flex; align-items: center; justify-content: center; gap: 10px;
-            background: var(--alert-100);
-            border: 1px solid #E7C6BE;
-            color: var(--alert);
-            font-weight: 700;
-            border-radius: 10px;
-            padding: 16px;
+            background: var(--alert-100); border: 1px solid #E7C6BE; color: var(--alert);
+            font-weight: 700; border-radius: 10px; padding: 16px;
         }
     </style>
 </head>
@@ -299,9 +254,9 @@
     <!-- 🌟 初始載入骨架與動態點點 -->
     <div class="status-board" id="hospital_status_board">
         <div class="loading-caption">正在從雲端載入各醫院即時量能<span class="loading-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span></div>
-        <div class="skeleton-card"><div class="skeleton-bar w-60"></div><div class="skeleton-pill"></div><div class="skeleton-bar w-100"></div><div class="skeleton-bar w-80"></div><div class="skeleton-bar w-40"></div></div>
-        <div class="skeleton-card"><div class="skeleton-bar w-60"></div><div class="skeleton-pill"></div><div class="skeleton-bar w-100"></div><div class="skeleton-bar w-80"></div><div class="skeleton-bar w-40"></div></div>
-        <div class="skeleton-card"><div class="skeleton-bar w-60"></div><div class="skeleton-pill"></div><div class="skeleton-bar w-100"></div><div class="skeleton-bar w-80"></div><div class="skeleton-bar w-40"></div></div>
+        <div class="skeleton-card"><div class="skeleton-bar w-60"></div><div class="skeleton-pill"></div></div>
+        <div class="skeleton-card"><div class="skeleton-bar w-60"></div><div class="skeleton-pill"></div></div>
+        <div class="skeleton-card"><div class="skeleton-bar w-60"></div><div class="skeleton-pill"></div></div>
     </div>
 
     <div class="section-header" style="border-bottom-color: var(--teal-500); color: var(--teal-500);">
@@ -341,7 +296,6 @@
     <div class="req-group" style="margin-bottom: 15px;">
         <label>4. 欲發送通知之取栓醫院 (可複選)</label>
         <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 5px; padding: 10px; background: var(--amber-100); border: 1px solid var(--amber); border-radius: 8px;" id="target_hospitals_container">
-            <!-- 🌟 換上動態點點 -->
             <span style="color:#5B6B65;">載入中<span class="loading-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span></span>
         </div>
     </div>
@@ -376,7 +330,6 @@
 <!-- 分頁 3 -->
 <div id="tab3" class="tab-content">
     <div id="hosp_login_area" class="req-row">
-        <!-- 🌟 Option 預設格式瀏覽器不支援 span，所以維持文字 -->
         <div class="req-group"><label>醫院</label><select id="login_hosp_name"><option>載入中...</option></select></div>
         <div class="req-group"><label>密碼</label><input type="password" id="login_hosp_pwd" placeholder="請輸入醫院密碼"></div>
         <div class="req-group" style="justify-content: flex-end;"><button class="btn-custom btn-theme-primary" onclick="loginHospital()">🔍 登入</button></div>
@@ -402,11 +355,9 @@
     <div style="background: var(--teal-100); border-left: 5px solid var(--teal-500); padding: 20px; border-radius: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; box-shadow: 0 2px 8px rgba(11,58,63,0.05);">
         <div>
             <div style="font-size: 1.15em; font-weight: bold; color: var(--teal-700); margin-bottom: 8px; font-family: var(--sans);">
-                <!-- 🌟 換上動態點點 -->
                 現在時間：<span id="system_live_clock" style="font-family: var(--mono); color: var(--ink);">載入中<span class="loading-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span></span>
             </div>
             <div style="font-size: 1.1em; font-weight: bold; color: var(--amber);">
-                <!-- 🌟 換上動態點點 -->
                 📍 區域聯防排班 - 第一線優先聯絡醫院：<span id="priority_hosp_display">載入中<span class="loading-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span></span>
             </div>
         </div>
@@ -419,12 +370,10 @@
     </div>
 
     <div style="background: var(--paper); border: 1px solid var(--line); padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-        <!-- 🌟 合併精簡後的標題 -->
         <h4 style="color: var(--teal-700); font-weight: bold; margin-top: 0; margin-bottom: 15px; font-family: var(--serif); font-size: 1.2em; border-bottom: 2px solid var(--teal-100); padding-bottom: 10px;">🔍 點選醫院查詢今日班表</h4>
         
         <div style="margin-bottom: 15px;">
             <div id="roster_query_hospitals_container" style="display: flex; gap: 10px; flex-wrap: wrap; padding: 15px; background: var(--teal-100); border: 1px dashed var(--teal-500); border-radius: 8px;">
-                <!-- 🌟 換上動態點點 -->
                 <span style="color:#5B6B65;">載入中<span class="loading-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span></span>
             </div>
         </div>
@@ -461,7 +410,6 @@
             <span class="close-btn" style="color: white; top: 8px; right: 15px; font-size: 32px;" onclick="closeMessenger()">&times;</span>
         </div>
         <div id="chatHistoryBox" style="flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column;">
-            <!-- 🌟 換上動態點點 -->
             <div style="text-align:center; color:#fff; margin-top: 50px;">載入對話紀錄中<span class="loading-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span></div>
         </div>
         <div style="padding: 10px; background-color: #F4F6F4; border-top: 1px solid #DCE4E0; display: flex; gap: 8px;">
@@ -510,7 +458,6 @@
             <div class="req-group"><label>Desposition</label><input type="text" id="fb_desposition" placeholder="例如: 出院 / 轉院 / 死亡..."></div>
         </div>
         
-        <!-- 拖曳上傳圖檔區塊 -->
         <div class="req-row" style="margin-top: 15px;">
             <div class="req-group" style="flex: 1;">
                 <label style="color: var(--teal-700);">📎 附加回饋圖檔 (可拖曳多張圖片上傳)</label>
@@ -526,7 +473,6 @@
     </div>
 </div>
 
-
 <!-- ★ 品管月報表 Modal ★ -->
 <div id="reportModal" class="modal" style="align-items: center; padding-top: 0;">
     <div class="modal-content" style="max-width: 400px; text-align: left; margin-bottom: 0;">
@@ -534,7 +480,6 @@
         <h2 style="color: var(--teal-700); margin-top: 0; border-bottom: 2px solid var(--line); padding-bottom: 10px;">📊 下載品管月報表</h2>
         <div class="req-group" style="margin-bottom: 15px;">
             <label>請選擇報表月份：</label>
-            <!-- 🌟 Option 不支援 html span，保留文字版 -->
             <select id="report_month_select" style="width: 100%; padding: 8px;"></select>
         </div>
         <div style="font-size: 0.85em; color: var(--ink); margin-bottom: 15px;">💡 系統將自動彙整 <b><span id="report_hosp_display"></span></b> 在該月份成功轉入且結案的資訊，合併三個分頁為一份完整的 Excel(CSV) 檔案。</div>
@@ -549,8 +494,8 @@
         <span class="close-btn" onclick="closeCallModal()">&times;</span>
         <h2 style="color: var(--teal-700); margin-top: 0; border-bottom: 2px solid var(--line); padding-bottom: 10px;">📞 聯絡 <span id="call_hosp_name"></span></h2>
         <p style="color: var(--ink); margin-bottom: 20px;">請選擇您要撥打的對象：</p>
-        <a id="btn_call_er" href="#" class="btn-call er">🏥 急診專線</a>
-        <a id="btn_call_dr" href="#" class="btn-call dr">👨‍⚕️ 值班醫師手機</a>
+        <a id="btn_call_er" href="#" class="btn-call er">🏥 打給急診 (載入中...)</a>
+        <a id="btn_call_dr" href="#" class="btn-call dr">👨‍⚕️ 值班醫師 (載入中...)</a>
     </div>
 </div>
 
@@ -719,15 +664,12 @@
     function calculateTimeDiffStr(startTimeStr, endTimeStr) {
         if (!startTimeStr || !endTimeStr) return "";
         function parseStr(str) {
-            // 🌟 自動相容 datetime-local 的 'T' 格式與傳統字串
             let d = new Date(str.replace('T', ' '));
             if (!isNaN(d.getTime())) return d.getTime();
             
-            // 備用解析：處理沒有年份的 MM/DD HH:mm
             let match = str.match(/(\d{2})\/(\d{2}) (\d{2}):(\d{2})/);
             if (match) return new Date(new Date().getFullYear(), parseInt(match[1])-1, parseInt(match[2]), parseInt(match[3]), parseInt(match[4])).getTime();
             
-            // 備用解析：處理純時間 HH:mm
             let matchTime = str.match(/^(\d{2}):(\d{2})$/);
             if (matchTime) { let d2 = new Date(); d2.setHours(parseInt(matchTime[1]), parseInt(matchTime[2]), 0, 0); return d2.getTime(); }
             return null;
@@ -756,7 +698,7 @@
             let canClean = c.cancelTime.length > 10 ? c.cancelTime.substring(5) : c.cancelTime;
             parts.push(`取消${byHosp}: ${canClean}`);
         }
-        return `<span style="font-size: 0.85em; font-family: var(--mono); color: currentColor;">(${parts.join(', ')})</span>`;
+        return `(${parts.join(', ')})`;
     }
 
     window.onload = function() {
@@ -827,12 +769,11 @@
     function fetchDataFromGAS() {
         if (!GAS_URL) return alert("尚未設定 GAS URL！");
         
-        // 🌟 這裡同步改為三個 skeleton-card
         document.getElementById('hospital_status_board').innerHTML = `
             <div class="loading-caption">正在從雲端載入各醫院即時量能<span class="loading-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span></div>
-            <div class="skeleton-card"><div class="skeleton-bar w-60"></div><div class="skeleton-pill"></div><div class="skeleton-bar w-100"></div><div class="skeleton-bar w-80"></div><div class="skeleton-bar w-40"></div></div>
-            <div class="skeleton-card"><div class="skeleton-bar w-60"></div><div class="skeleton-pill"></div><div class="skeleton-bar w-100"></div><div class="skeleton-bar w-80"></div><div class="skeleton-bar w-40"></div></div>
-            <div class="skeleton-card"><div class="skeleton-bar w-60"></div><div class="skeleton-pill"></div><div class="skeleton-bar w-100"></div><div class="skeleton-bar w-80"></div><div class="skeleton-bar w-40"></div></div>
+            <div class="skeleton-card"><div class="skeleton-bar w-60"></div><div class="skeleton-pill"></div></div>
+            <div class="skeleton-card"><div class="skeleton-bar w-60"></div><div class="skeleton-pill"></div></div>
+            <div class="skeleton-card"><div class="skeleton-bar w-60"></div><div class="skeleton-pill"></div></div>
          `;
 
         fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "fetchActiveData" }) })
@@ -912,26 +853,21 @@
             const topColor = hosp.status === 'green' ? 'var(--success)' : (hosp.status === 'orange' ? 'var(--amber)' : 'var(--alert)');
             let statusBadge = hosp.status === 'green' ? 'status-green' : (hosp.status === 'orange' ? 'status-orange' : 'status-red');
             
-            // 💬 LINE 按鈕處理
             let lineAction = (hosp.lineGroup && hosp.lineGroup !== "#") ? 
                 `window.open('${hosp.lineGroup}', '_blank')` : 
                 `alert('目前無 LINE 群組連結')`;
 
+            /* 🌟 精簡後的單行醫院資訊卡片 */
             board.innerHTML += `
-            <div class="hosp-card" style="border-top-color: ${topColor}; position: relative;">
-                <!-- 🌟 右上角精緻圖示群組 (📞 點擊開啟撥打 Modal、💬 LINE、⚙️ 設定) -->
-                <div style="position: absolute; top: 12px; right: 12px; display: flex; gap: 8px; align-items: center;">
-                    <span style="cursor: pointer; font-size: 1.1em; opacity: 0.7; transition: 0.2s;" onclick="openCallModal('${hosp.name}')" title="撥打電話 (急診/值班醫師)" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'">📞</span>
-                    <span style="cursor: pointer; font-size: 1.1em; opacity: 0.7; transition: 0.2s;" onclick="${lineAction}" title="開啟 LINE 群組" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'">💬</span>
-                    <span class="edit-icon" onclick="openHospSettingsModal('${hosp.name}')" title="更新醫院狀態">⚙️</span>
+            <div class="hosp-card" style="border-top-color: ${topColor};">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <h3>${hosp.name}</h3>
+                    <span class="status-indicator ${statusBadge}">${hosp.statusText}</span>
                 </div>
-
-                <h3>${hosp.name}</h3>
-                <span class="status-indicator ${statusBadge}">${hosp.statusText}</span>
-                <div class="hosp-info" style="margin-top: 6px;">
-                    <div><strong>👨‍⚕️ 值班醫師：</strong>${hosp.docName}</div>
-                    <div><strong>📞 醫師手機：</strong>${hosp.docPhone}</div>
-                    <div><strong>☎️ 急診專線：</strong>${hosp.erPhone}</div>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <span style="cursor: pointer; font-size: 1.4em; opacity: 0.8; transition: 0.2s;" onclick="openCallModal('${hosp.name}')" title="撥打電話">📞</span>
+                    <span style="cursor: pointer; font-size: 1.4em; opacity: 0.8; transition: 0.2s;" onclick="${lineAction}" title="開啟 LINE 群組">💬</span>
+                    <span style="cursor: pointer; font-size: 1.4em; opacity: 0.8; transition: 0.2s;" onclick="openHospSettingsModal('${hosp.name}')" title="更新量能狀態">⚙️</span>
                 </div>
             </div>`;
         });
@@ -941,8 +877,29 @@
         const hosp = hospitals.find(h => h.name === hospName); if (!hosp) return;
         document.getElementById('call_hosp_name').innerText = hospName;
         const btnEr = document.getElementById('btn_call_er'); const btnDr = document.getElementById('btn_call_dr');
-        if (hosp.erPhone && hosp.erPhone !== "-" && hosp.erPhone !== "無" && hosp.erPhone.trim() !== "") { btnEr.href = `tel:${hosp.erPhone.replace(/[^0-9+]/g, '')}`; btnEr.innerHTML = `🏥 打給急診 (${hosp.erPhone})`; btnEr.className = "btn-call er"; } else { btnEr.href = "javascript:void(0);"; btnEr.innerHTML = `🏥 急診專線 (無資訊)`; btnEr.className = "btn-call disabled"; }
-        if (hosp.docPhone && hosp.docPhone !== "-" && hosp.docPhone !== "無" && hosp.docPhone.trim() !== "") { btnDr.href = `tel:${hosp.docPhone.replace(/[^0-9+]/g, '')}`; let drNameStr = (hosp.docName !== "-" && hosp.docName !== "無") ? hosp.docName : "值班醫師"; btnDr.innerHTML = `👨‍⚕️ 打給 ${drNameStr} (${hosp.docPhone})`; btnDr.className = "btn-call dr"; } else { btnDr.href = "javascript:void(0);"; btnDr.innerHTML = `👨‍⚕️ 值班醫師手機 (無資訊)`; btnDr.className = "btn-call disabled"; }
+        
+        /* 🌟 格式更新：打給急診 (電話號碼) / 值班醫師 (電話號碼) */
+        if (hosp.erPhone && hosp.erPhone !== "-" && hosp.erPhone !== "無" && hosp.erPhone.trim() !== "") { 
+            btnEr.href = `tel:${hosp.erPhone.replace(/[^0-9+]/g, '')}`; 
+            btnEr.innerHTML = `🏥 打給急診 (${hosp.erPhone})`; 
+            btnEr.className = "btn-call er"; 
+        } else { 
+            btnEr.href = "javascript:void(0);"; 
+            btnEr.innerHTML = `🏥 打給急診 (無資訊)`; 
+            btnEr.className = "btn-call disabled"; 
+        }
+        
+        if (hosp.docPhone && hosp.docPhone !== "-" && hosp.docPhone !== "無" && hosp.docPhone.trim() !== "") { 
+            btnDr.href = `tel:${hosp.docPhone.replace(/[^0-9+]/g, '')}`; 
+            let drNameStr = (hosp.docName !== "-" && hosp.docName !== "無") ? hosp.docName : "值班醫師"; 
+            btnDr.innerHTML = `👨‍⚕️ ${drNameStr} (${hosp.docPhone})`; 
+            btnDr.className = "btn-call dr"; 
+        } else { 
+            btnDr.href = "javascript:void(0);"; 
+            btnDr.innerHTML = `👨‍⚕️ 值班醫師手機 (無資訊)`; 
+            btnDr.className = "btn-call disabled"; 
+        }
+        
         document.getElementById('callModal').style.display = 'flex';
     }
     function closeCallModal() { document.getElementById('callModal').style.display = 'none'; }
@@ -1026,7 +983,6 @@
         hosp.lineGroup = document.getElementById('sys_set_line').value; 
         hosp.folderId = document.getElementById('sys_set_folder').value; 
         
-        // 🌟 確實抓取輸入框內的強制覆寫醫師姓名
         let forceDr = document.getElementById('sys_set_today_dr').value.trim(); 
         const newPwd = document.getElementById('sys_set_pwd').value; 
         
@@ -1034,7 +990,6 @@
             alert("密碼將於雲端更新！"); 
         }
 
-        // 🌟 將 overrideDr 透過 payload 確實傳給後端 GAS
         fetch(GAS_URL, { 
             method: 'POST', 
             body: JSON.stringify({ 
@@ -1045,14 +1000,14 @@
                     lineGroup: hosp.lineGroup, 
                     folderId: hosp.folderId, 
                     pwd: newPwd, 
-                    overrideDr: forceDr // 這裡就是關鍵的覆寫參數！
+                    overrideDr: forceDr 
                 } 
             }) 
         })
         .then(res => res.json())
         .then(data => {
             if (data.status === "success" || data.message) {
-                fetchDataFromGAS(); // 重新同步最新資料
+                fetchDataFromGAS(); 
             }
         })
         .catch(e => console.log("GAS 錯誤", e));
@@ -1112,14 +1067,9 @@
     }
 
    function queryTodayRoster() {
-        // 清除所有按鈕的反深色狀態
         document.querySelectorAll('.roster-radio-label').forEach(lbl => lbl.classList.remove('active'));
-        
-        // 找到被選中的 radio，加上 active 狀態
         const selectedOpt = document.querySelector('input[name="roster_query_hosp_radio"]:checked');
-        if (selectedOpt) {
-            selectedOpt.closest('.roster-radio-label').classList.add('active');
-        }
+        if (selectedOpt) { selectedOpt.closest('.roster-radio-label').classList.add('active'); }
         
         const hospName = selectedOpt ? selectedOpt.value : "";
         const resDiv = document.getElementById('query_roster_result'); 
@@ -1128,7 +1078,6 @@
         if (!hospName) { resDiv.style.display = 'none'; return; }
         resDiv.style.display = 'block';
 
-        // 直接使用 hospName，因為後端已經改好了
         if (currentRosterData[hospName]) {
             const r = currentRosterData[hospName]; 
             tbody.innerHTML = `<tr>
@@ -1138,7 +1087,6 @@
                 <td style="color: #F1C40F; font-weight: bold;">${r.n || "-"}</td>
             </tr>`;
         } else { 
-            // 無排班資料時顯示為亮黃色粗體
             tbody.innerHTML = `<tr><td colspan="4" class="text-center" style="color: #F1C40F; font-weight: bold; letter-spacing: 2px;">無排班資料</td></tr>`; 
         }
     }
@@ -1147,7 +1095,6 @@
         if (!loggedInHosp) return alert("請先登入醫院！");
         document.getElementById('report_hosp_display').innerText = loggedInHosp;
         const sel = document.getElementById('report_month_select'); const btn = document.getElementById('btn_download_report');
-        // Option 只能放純文字，保留漏斗圖示
         sel.innerHTML = "<option>⏳ 正在掃描資料庫月份...</option>"; sel.disabled = true; btn.disabled = true;
         document.getElementById('reportModal').style.display = 'flex';
         fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "getAvailableMonths" }) }).then(res => res.json()).then(data => {
@@ -1209,18 +1156,16 @@
 
         let hospStatusObj = {}; 
         let hospReplyObj = {}; 
-        let targetDocsEmail = {}; // 🌟 新增：用來存放該醫院今天值班醫師的 Email
+        let targetDocsEmail = {}; 
         targets.forEach(hName => { 
             hospStatusObj[hName] = "尚未讀取個案"; 
             hospReplyObj[hName] = null; 
-            // 從 currentRosterData 中抓取該院今天值班的 Email (若無則留空)
             targetDocsEmail[hName] = currentRosterData[hName] ? currentRosterData[hName].email : "";
         });
         
         let payloadClinicalData = JSON.parse(JSON.stringify(pendingClinicalData));
 
         document.getElementById('submit_result_area').style.display = 'block'; 
-        // 🌟 換上動態點點
         document.getElementById('submit_result_area').innerHTML = `<div class="text-center py-3"><strong class="text-primary fs-5">正在秒速建檔並發送通知信<span class="loading-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span></strong></div>`;
         
         fetch(GAS_URL, { 
@@ -1231,7 +1176,7 @@
                     caseId: caseId, requestTime: reqTime, reqHospOut: hospOut, 
                     reqPhone: phone, reqEmail: email, targetHospitals: targets, 
                     clinicalData: payloadClinicalData,
-                    targetDocsEmail: targetDocsEmail // 🌟 將今天值班醫師的 Email 名單一併送給後端
+                    targetDocsEmail: targetDocsEmail 
                 }
             }) 
         })
@@ -1280,26 +1225,32 @@
             const c = cases[caseId];
             if (now - c.timestamp <= 14400000) { 
                 hasActiveCases = true;
-                let destStatus = c.finalDest ? `<span class="text-success fw-bold">已鎖定：${c.finalDest} (${c.lockTime})</span>` : `<span class="text-warning fw-bold">媒合中...</span>`;
+                let destStatus = c.finalDest ? `<span class="text-success fw-bold">已鎖定：${c.finalDest}</span>` : `<span class="text-warning fw-bold">媒合中...</span>`;
                 let btnDepart = c.departTime ? 
-                    `<button class="btn-custom btn-theme-secondary" onclick="undoTime('${caseId}', 'depart')">已出發 ${c.departTime} ↺</button>` : 
-                    `<button class="btn-custom btn-theme-warning" onclick="markTime('${caseId}', 'depart')">🚑 記錄出發</button>`;
+                    `<button class="btn-custom btn-theme-secondary" style="padding: 4px 10px; font-size: 0.85em;" onclick="undoTime('${caseId}', 'depart')">出發 ${c.departTime} ↺</button>` : 
+                    `<button class="btn-custom btn-theme-warning" style="padding: 4px 10px; font-size: 0.85em;" onclick="markTime('${caseId}', 'depart')">🚑 記錄出發</button>`;
                 let btnArrive = c.arriveTime ? 
-                    `<button class="btn-custom btn-theme-secondary" onclick="undoTime('${caseId}', 'arrive')">已抵達 ${c.arriveTime} ↺</button>` : 
-                    `<button class="btn-custom btn-theme-danger" onclick="markTime('${caseId}', 'arrive')">🏥 記錄抵達</button>`;
+                    `<button class="btn-custom btn-theme-secondary" style="padding: 4px 10px; font-size: 0.85em;" onclick="undoTime('${caseId}', 'arrive')">抵達 ${c.arriveTime} ↺</button>` : 
+                    `<button class="btn-custom btn-theme-danger" style="padding: 4px 10px; font-size: 0.85em;" onclick="markTime('${caseId}', 'arrive')">🏥 記錄抵達</button>`;
                 
-                // 🌟 補回遺失的即時看板專屬 GPS 更新按鈕
+                /* 🌟 精簡後的單行個案卡片 */
                 board.innerHTML += `
                 <div class="quick-case-card" style="position: relative;">
-                    <button style="position: absolute; top: 12px; right: 12px; background: none; border: none; cursor: pointer; font-size: 1.2em; padding: 0; transition: 0.2s;" onclick="fetchRecentCasesFromGAS()" title="立即更新此看板" onmouseover="this.style.transform='rotate(180deg)'" onmouseout="this.style.transform='rotate(0deg)'">🔄</button>
+                    <button style="position: absolute; top: 5px; right: 5px; background: none; border: none; cursor: pointer; font-size: 1.1em; opacity: 0.6; padding: 0; transition: 0.2s;" onclick="fetchRecentCasesFromGAS()" title="立即更新此看板" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">🔄</button>
                     
-                    <div class="cid">
-                        📄 ${caseId} 
-                        <div style="font-size: 0.65em; font-weight: normal; margin-top: 4px;">${getCaseTimeStr(c)}</div>
+                    <div style="flex: 1 1 auto; min-width: 200px;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+                            <span class="cid">📄 ${caseId}</span>
+                            <span class="info">${destStatus}</span>
+                        </div>
+                        <div style="font-size: 0.8em; color: #666;">${getCaseTimeStr(c)}</div>
                     </div>
-                    <div class="info">狀態: ${destStatus}</div>
-                    <div class="action-grid">${btnDepart}${btnArrive}</div>
-                    <button class="btn-custom btn-theme-success w-100 mt-1 py-2" onclick="quickUpdateLocation('${caseId}')">📍 傳送 GPS 位置</button>
+                    
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
+                        ${btnDepart}
+                        ${btnArrive}
+                        <button class="btn-custom btn-theme-success" style="padding: 4px 10px; font-size: 0.85em;" onclick="quickUpdateLocation('${caseId}')">📍 GPS</button>
+                    </div>
                 </div>`;
             }
         }
@@ -1447,7 +1398,6 @@
       currentChatContext = { caseId, attempt, senderType, senderName };
       document.getElementById('messengerTitle').innerText = senderType === 'requester' ? `與 取栓醫院 即時溝通` : `與 轉出醫院 即時溝通`;
       
-      // 🌟 換上動態點點
       document.getElementById('chatHistoryBox').innerHTML = `<div class='text-center text-white mt-5'>載入對話紀錄中<span class="loading-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span></div>`;
       
       document.getElementById('chatInput').value = ""; document.getElementById('messengerModal').style.display = 'flex';
@@ -1566,7 +1516,6 @@
 
         let btn = document.getElementById('btn_submit_feedback');
         let origHtml = btn.innerHTML;
-        // 🌟 換上動態點點
         btn.innerHTML = feedbackImages.length > 0 ? `正在上傳圖檔並發送報告<span class="loading-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span>` : `正在處理結案<span class="loading-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span>`;
         btn.disabled = true;
 
@@ -1602,7 +1551,6 @@
                 if (c.hospStatus[loggedInHosp] === "尚未讀取個案") c.hospStatus[loggedInHosp] = "評估中";
                 
                 let intentText = "評估中"; 
-                // 3. 取栓醫院介面按鈕 (renderHospitalCases)
     let actionBtns = `<button class="btn-custom btn-theme-orange" onclick="openReplyModal('${caseId}')">🏥 回覆量能</button>`;
     
     if (c.finalDest === loggedInHosp) {
@@ -1610,7 +1558,6 @@
         else if (c.departTime) { intentText = `<span class="text-warning fw-bold">🚑 救護車已出發 (${c.departTime})</span>`; } 
         else { intentText = `<span class="text-success fw-bold">✅ 已轉入本院 (${c.lockTime})</span>`; }
 
-        // 🌟 智慧解析 GPS 格式（相容剛點擊的物件，以及從雲端回來的文字）
         let mapUrl = "";
         if (c.location) {
             if (typeof c.location === 'object' && c.location.lat) {
