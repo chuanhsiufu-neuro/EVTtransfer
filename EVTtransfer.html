@@ -1860,22 +1860,72 @@
         } 
     }
 
+// 🌟 嚴謹的時間差計算與安全解析算式（自動補同年份防呆、防止計算出錯）
+    function parseSafeDate(dateStr) {
+        if (!dateStr) return null;
+        let str = String(dateStr).trim();
+        
+        // 如果是 datetime-local 格式 (含 T)
+        if (str.includes('T')) {
+            let d = new Date(str);
+            return isNaN(d.getTime()) ? null : d;
+        }
+        
+        // 如果是類似 "08/31 13:00" 這種沒有年份的格式
+        if (str.includes('/') && !str.startsWith('20')) {
+            let currentYear = new Date().getFullYear();
+            let fullStr = `${currentYear}/${str}`; // 自動補上當前年份防呆
+            let d = new Date(fullStr);
+            return isNaN(d.getTime()) ? null : d;
+        }
+        
+        let d = new Date(str);
+        return isNaN(d.getTime()) ? null : d;
+    }
+
+    function calculateTimeDiffMins(startStr, endStr) {
+        let startTime = parseSafeDate(startStr);
+        let endTime = parseSafeDate(endStr);
+        if (!startTime || !endTime) return "";
+        let diffMs = endTime - startTime;
+        let diffMins = Math.round(diffMs / 60000);
+        // 嚴格防呆：若算出不合理的負數或大於 48 小時（2880分鐘），視為異常並清空
+        return (diffMins >= 0 && diffMins < 2880) ? diffMins : "";
+    }
+
     function autoCalcDTPDTR() {
         let arrival = document.getElementById('fb_arrival').value;
         let puncture = document.getElementById('fb_puncture').value;
         let recan = document.getElementById('fb_recanalization').value;
-        if (arrival && puncture) document.getElementById('fb_dtp').value = calculateTimeDiffStr(arrival, puncture); else document.getElementById('fb_dtp').value = "";
-        if (arrival && recan) document.getElementById('fb_dtr').value = calculateTimeDiffStr(arrival, recan); else document.getElementById('fb_dtr').value = "";
+        
+        document.getElementById('fb_dtp').value = (arrival && puncture) ? calculateTimeDiffMins(arrival, puncture) : "";
+        document.getElementById('fb_dtr').value = (arrival && recan) ? calculateTimeDiffMins(arrival, recan) : "";
     }
 
     let currentFeedbackCaseId = null;
 
     function openFeedbackModal(caseId) {
-        currentFeedbackCaseId = caseId; const c = cases[caseId]; document.getElementById('fb_case_display').innerText = caseId;
-        let door = (c.clinicalData && c.clinicalData.door) ? formatClinicalTime(c.clinicalData.door) : ""; let doorOut = c.departTime || ""; let arrival = c.arriveTime || "";
-        document.getElementById('fb_door').value = door; document.getElementById('fb_doorout').value = doorOut; document.getElementById('fb_arrival').value = arrival;
-        document.getElementById('fb_dido').value = calculateTimeDiffStr(door, doorOut); 
-        document.getElementById('fb_puncture').value = ""; document.getElementById('fb_recanalization').value = ""; document.getElementById('fb_dtp').value = ""; document.getElementById('fb_dtr').value = ""; document.getElementById('fb_mtici').value = ""; document.getElementById('fb_complication').value = ""; document.getElementById('fb_mrs').value = ""; document.getElementById('fb_desposition').value = "";
+        currentFeedbackCaseId = caseId; 
+        const c = cases[caseId]; 
+        document.getElementById('fb_case_display').innerText = caseId;
+        
+        let door = (c.clinicalData && c.clinicalData.door) ? formatClinicalTime(c.clinicalData.door) : ""; 
+        let doorOut = c.departTime || ""; 
+        let arrival = c.arriveTime || "";
+        
+        document.getElementById('fb_door').value = door; 
+        document.getElementById('fb_doorout').value = doorOut; 
+        document.getElementById('fb_arrival').value = arrival;
+        
+        document.getElementById('fb_dido').value = calculateTimeDiffMins(door, doorOut); 
+        document.getElementById('fb_puncture').value = ""; 
+        document.getElementById('fb_recanalization').value = ""; 
+        document.getElementById('fb_dtp').value = ""; 
+        document.getElementById('fb_dtr').value = ""; 
+        document.getElementById('fb_mtici').value = ""; 
+        document.getElementById('fb_complication').value = ""; 
+        document.getElementById('fb_mrs').value = ""; 
+        document.getElementById('fb_desposition').value = "";
 
         feedbackImages = [];
         document.getElementById('fb_preview_area').innerHTML = "";
