@@ -1555,48 +1555,61 @@
    function renderTrackerDashboard() {
         const c = cases[currentTrackCaseId]; 
         document.getElementById('disp_track_id').innerHTML = `${currentTrackCaseId} <span style="color: #ffffff; font-size: 0.85em; font-weight: normal; font-family: var(--mono);">${getCaseTimeStr(c)}</span>`;
-        const container = document.getElementById('track_list_container'); const chatArea = document.getElementById('track_chat_area');
-        container.innerHTML = ""; chatArea.innerHTML = ""; chatArea.style.display = "none";
+        const container = document.getElementById('track_list_container'); 
+        const chatArea = document.getElementById('track_chat_area');
+        
+        container.innerHTML = ""; 
+        chatArea.innerHTML = ""; 
+        chatArea.style.display = "block"; // 確保顯示
 
-        // 🌟 1. 將按鈕與圖示移至頂部區塊
         let folderLink = c.clinicalData && c.clinicalData.folderUrl ? c.clinicalData.folderUrl : "#";
-        document.getElementById('track_top_actions').innerHTML = `
-            <span style="font-size: 1.6em; cursor: pointer; transition: 0.2s;" onclick="openMessenger('${currentTrackCaseId}', 1, 'requester', '${c.reqHospOut}')" title="💬 即時溝通" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">💬</span>
-            <span style="font-size: 1.6em; cursor: pointer; transition: 0.2s;" onclick="openPrepGuide('${currentTrackCaseId}')" title="🚨 注意事項" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">🚨</span>
-            <button class="btn-custom btn-theme-success" onclick="window.open('${folderLink}', '_blank')">📂 開啟影像</button>
-            <button class="btn-custom btn-theme-info" onclick="editExistingClinical()">📝 開啟表單修改</button>
-            <button class="btn-custom btn-theme-warning" onclick="updateClinicalToExistCase()">🔄 同步修改至本案</button>
-        `;
+        
+        // 🌟 1. 修復：將圖示與開啟影像按鈕，安全地放入通用的區塊內
+        let topActions = `
+            <div style="display:flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; background: #E4F1EF; padding: 12px; border-radius: 8px; border: 1px dashed #17878A;">
+                <div style="display:flex; gap: 15px; align-items: center;">
+                    <span style="font-size: 1.6em; cursor: pointer; transition: 0.2s;" onclick="openMessenger('${currentTrackCaseId}', 1, 'requester', '${c.reqHospOut}')" title="💬 即時溝通" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">💬</span>
+                    <span style="font-size: 1.6em; cursor: pointer; transition: 0.2s;" onclick="openPrepGuide('${currentTrackCaseId}')" title="🚨 注意事項" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">🚨</span>
+                    <button class="btn-custom btn-theme-success" onclick="window.open('${folderLink}', '_blank')">📂 開啟影像</button>
+                </div>
+            </div>`;
 
-       if (c.finalDest) {
-            chatArea.style.display = "block"; // 改為 block 確保內部排版不斷行
-            chatArea.className = "chat-room-banner";
-            
+        let lockAreaHtml = "";
+
+        if (c.finalDest) {
             let btnDepart = c.departTime ? `<button class="btn btn-secondary btn-sm fw-bold" onclick="undoTime('${currentTrackCaseId}', 'depart')">已出發 ${c.departTime} ↺</button>` : `<button class="btn btn-warning btn-sm fw-bold text-dark" onclick="markTime('${currentTrackCaseId}', 'depart')">🚑 記錄出發</button>`;
             let btnArrive = c.arriveTime ? `<button class="btn btn-secondary btn-sm fw-bold" onclick="undoTime('${currentTrackCaseId}', 'arrive')">已抵達 ${c.arriveTime} ↺</button>` : `<button class="btn btn-danger btn-sm fw-bold" onclick="markTime('${currentTrackCaseId}', 'arrive')">🏥 記錄抵達</button>`;
 
             let cancelBtnHtml = "";
-            // 🌟 2. 解除抵達鎖定：只要「接收端尚未確認檢傷」，轉出端都可以取消
             if (!c.confirmArriveTime) {
                 cancelBtnHtml = `<button class="btn-custom btn-theme-danger" onclick="cancelFinalDest('${currentTrackCaseId}', '${c.reqHospOut}')">❌ 取消轉入</button>`;
             }
 
-            chatArea.innerHTML = `
-            <div class="w-100 mb-2 d-flex justify-content-between align-items-center">
-                <strong style="color:#0056b3; font-size: 1.1em;">🔒 已鎖定：${c.finalDest} (${c.lockTime})</strong>
-                <div>
-                    ${c.confirmArriveTime ? `<span class="badge bg-success fs-6 px-3 py-2 shadow-sm">✅ 接收端已確認檢傷 (${c.confirmArriveTime})</span>` : ``}
+            lockAreaHtml = `
+            <div class="chat-room-banner w-100" style="margin-top: 0;">
+                <div class="w-100 mb-2 d-flex justify-content-between align-items-center">
+                    <strong style="color:#0056b3; font-size: 1.1em;">🔒 已鎖定：${c.finalDest} (${c.lockTime})</strong>
+                    <div>
+                        ${c.confirmArriveTime ? `<span class="badge bg-success fs-6 px-3 py-2 shadow-sm">✅ 接收端已確認檢傷 (${c.confirmArriveTime})</span>` : ``}
+                    </div>
                 </div>
-            </div>
-            <div style="display:flex; gap:10px; flex-wrap: wrap; width: 100%;">
-                ${btnDepart}
-                ${btnArrive}
-                ${cancelBtnHtml}
+                <div style="display:flex; gap:10px; flex-wrap: wrap; width: 100%;">
+                    ${btnDepart}
+                    ${btnArrive}
+                    ${cancelBtnHtml}
+                </div>
             </div>`;
+        } else {
+            // 🌟 2. 尚未鎖定時的防呆提示
+            lockAreaHtml = `<div class="alert alert-warning fw-bold mb-0 w-100" style="border-left: 5px solid #ffc107;">⚠️ 尚未鎖定目標醫院，請從下方清單點擊「✅ 選擇此院」：</div>`;
         }
+
+        // 將組裝好的 UI 寫入畫面
+        chatArea.innerHTML = topActions + lockAreaHtml;
         
+        // 🌟 3. 恢復顯示各家醫院的回覆狀態清單
         c.targets.forEach(hospName => {
-            const status = c.hospStatus[hospName]; 
+            const status = c.hospStatus[hospName] || "尚未讀取個案"; 
             let statusClass = "eval";
             if(status.includes("可轉院")) statusClass = "ok";
             else if(status.includes("不建議")) statusClass = "no";
@@ -1605,10 +1618,13 @@
             let replyTimeStr = c.hospReplyTime[hospName] ? ` <span class="text-muted small">(${c.hospReplyTime[hospName]})</span>` : "";
             let itemClass = "track-item"; let actionHtml = "";
             
-            if (c.finalDest) { itemClass += (c.finalDest === hospName) ? " selected" : " disabled"; } 
-            else if (statusClass === "ok") { actionHtml = `<button class="btn btn-success btn-sm fw-bold" onclick="selectFinalDest('${hospName}')">✅ 選擇此院</button>`; }
+            if (c.finalDest) { 
+                itemClass += (c.finalDest === hospName) ? " selected" : " disabled"; 
+            } else if (statusClass === "ok") { 
+                actionHtml = `<button class="btn btn-success btn-sm fw-bold" onclick="selectFinalDest('${hospName}')">✅ 選擇此院</button>`; 
+            }
             
-            let pendingReason = (statusClass === 'pending' && c.hospPendingReason[hospName]) ? ` (${c.hospPendingReason[hospName]})` : "";
+            let pendingReason = (statusClass === 'pending' && c.hospPendingReason && c.hospPendingReason[hospName]) ? ` (${c.hospPendingReason[hospName]})` : "";
             let statusTextHtml = `<span class="track-status ${statusClass}">${status}${pendingReason}</span>`;
             
             container.innerHTML += `
@@ -1619,7 +1635,7 @@
                     ${replyTimeStr}
                 </div>
                 <div>${actionHtml}</div>
-            </div>`
+            </div>`;
         });
     }
 
