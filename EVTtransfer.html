@@ -1631,11 +1631,6 @@
         let lockAreaHtml = "";
 
         if (c.finalDest) {
-            let mapBtn = `<span style="font-size:0.85em; color:#888;">(尚未回報GPS)</span>`;
-            if (c.location && c.location.lat) {
-                mapBtn = `<button class="btn-custom btn-theme-success fw-bold" onclick="openRadarModal('${currentTrackCaseId}')">📡 救護車即時追蹤</button>`;
-            }
-
             // 🌟 2. 綠底區塊：出發與抵達的手動切換按鈕
             let btnDepart = c.departTime ? `<button class="btn btn-secondary btn-sm fw-bold" onclick="undoTime('${currentTrackCaseId}', 'depart')">已出發 ${c.departTime} ↺</button>` : `<button class="btn btn-warning btn-sm fw-bold text-dark" onclick="markTime('${currentTrackCaseId}', 'depart')">🚑 記錄出發</button>`;
             let btnArrive = c.arriveTime ? `<button class="btn btn-secondary btn-sm fw-bold" onclick="undoTime('${currentTrackCaseId}', 'arrive')">已抵達 ${c.arriveTime} ↺</button>` : `<button class="btn btn-danger btn-sm fw-bold" onclick="markTime('${currentTrackCaseId}', 'arrive')">🏥 記錄抵達</button>`;
@@ -1653,6 +1648,7 @@
             let guideBtn = `<button class="btn-custom btn-theme-warning px-3 py-2" onclick="openPrepGuide('${currentTrackCaseId}')" title="注意事項">🚨</button>`;
             let chatBtn = `<button id="chat_btn_${currentTrackCaseId}" class="btn-custom btn-theme-info px-3 py-2" onclick="openMessenger('${currentTrackCaseId}', 1, 'requester', '${c.reqHospOut}')" title="即時文字溝通">💬</button>`;
 
+            // 🌟 修復錯誤點：移除重複的 let 宣告，只保留這一段 mapBtn 的邏輯
             let mapBtn = `<span class="small text-muted">(尚未回報GPS)</span>`;
             if (c.location && c.location.lat) {
                 mapBtn = `<button class="btn-custom btn-theme-success fw-bold px-3 py-2" onclick="openRadarModal('${currentTrackCaseId}')" title="救護車即時追蹤雷達">📡</button>`;
@@ -1665,7 +1661,7 @@
             
             let confirmBadge = c.confirmArriveTime ? `<span class="badge bg-success fs-6 px-3 py-2 shadow-sm ms-2">✅ 已抵達取栓醫院檢傷 (${c.confirmArriveTime})</span>` : ``;
 
-            // 🌟 4. 組合主控制面板 (刪除多餘框線、排版乾淨俐落)
+            // 🌟 4. 組合主控制面板
             lockAreaHtml = `
             <div class="chat-room-banner w-100" style="margin-top: 15px; margin-bottom: 15px; padding: 15px; background: #fff; border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
                 <div class="d-flex gap-2 flex-wrap mb-2 align-items-center justify-content-between">
