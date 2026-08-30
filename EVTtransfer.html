@@ -1638,7 +1638,7 @@
 
             // 🌟 2. 綠底區塊：出發與抵達的手動切換按鈕
             let btnDepart = c.departTime ? `<button class="btn btn-secondary btn-sm fw-bold" onclick="undoTime('${currentTrackCaseId}', 'depart')">已出發 ${c.departTime} ↺</button>` : `<button class="btn btn-warning btn-sm fw-bold text-dark" onclick="markTime('${currentTrackCaseId}', 'depart')">🚑 記錄出發</button>`;
-            let btnArrive = c.arriveTime ? `<button class="btn btn-secondary btn-sm fw-bold" onclick="undoTime('${currentTrackCaseId}', 'arrive')">已已抵達 ${c.arriveTime} ↺</button>` : `<button class="btn btn-danger btn-sm fw-bold" onclick="markTime('${currentTrackCaseId}', 'arrive')">🏥 記錄抵達</button>`;
+            let btnArrive = c.arriveTime ? `<button class="btn btn-secondary btn-sm fw-bold" onclick="undoTime('${currentTrackCaseId}', 'arrive')">已抵達 ${c.arriveTime} ↺</button>` : `<button class="btn btn-danger btn-sm fw-bold" onclick="markTime('${currentTrackCaseId}', 'arrive')">🏥 記錄抵達</button>`;
 
             let middleControlArea = `
                 <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 12px 0; padding: 12px 15px; background-color: var(--success-100); border-radius: 8px; border: 1px solid var(--success);">
@@ -2053,16 +2053,26 @@ let chatBtn = `<button id="chat_btn_${caseId}" class="btn-custom btn-theme-info"
         closeReplyModal(); renderHospitalCases(); if (currentTrackCaseId === currentReplyCaseId) renderTrackerDashboard();
     }
 
-    function openViewCaseModal(caseId) {
+   function openViewCaseModal(caseId) {
         const c = cases[caseId]; if (!c || !c.clinicalData) return alert("查無此個案或臨床資料"); const d = c.clinicalData;
-        document.getElementById('vc_hosp').innerText = c.reqHospOut || document.getElementById('req_hosp_out').value || "未填寫"; document.getElementById('vc_phone').innerText = c.phone || "-"; document.getElementById('vc_patient').innerText = `${d.age||"-"}歲 ${d.gender||"-"}, mRS: ${d.mrs||"-"}`;
+        document.getElementById('vc_hosp').innerText = c.reqHospOut || document.getElementById('req_hosp_out').value || "未填寫"; 
+        
+        // 🌟 如果您的資料結構裡有存 email，可以在這裡補上顯示 (例如 c.email 或 d.reqDocEmail)
+        // document.getElementById('vc_email').innerText = c.email || d.reqDocEmail || "-";
+
+        document.getElementById('vc_phone').innerText = c.phone || "-"; document.getElementById('vc_patient').innerText = `${d.age||"-"}歲 ${d.gender||"-"}, mRS: ${d.mrs||"-"}`;
         document.getElementById('vc_onset').innerText = d.onset ? formatClinicalTime(d.onset) : "-"; document.getElementById('vc_door').innerText = d.door ? formatClinicalTime(d.door) : "-";
         document.getElementById('vc_occlusion').innerText = d.occlusion || "-"; document.getElementById('vc_nihss').innerText = `${d.nihssRaw||"-"} ${d.nihssScore||""}`;
         let pmhStr = (d.pmhList && d.pmhList.length > 0) ? d.pmhList.join(', ') : ""; if(d.pmhOther) pmhStr += (pmhStr ? ", " : "") + d.pmhOther;
         document.getElementById('vc_pmh').innerText = pmhStr || "無"; document.getElementById('vc_symptoms').innerText = d.symptoms || "無"; document.getElementById('vc_lab').innerText = `Cre: ${d.cre||"-"} / 其他: ${d.labOther||"-"}`;
         let tpaStr = d.tpaStatus || "未填寫"; if(d.tpaStatus === '有施打') tpaStr += ` (${d.tpaDose||""}, Bolus: ${d.tpaBolusTime ? formatClinicalTime(d.tpaBolusTime) : "-"}, 備註: ${d.tpaYesNote||"-"})`; else if(d.tpaStatus === '未施打') tpaStr += ` (原因: ${d.tpaNoNote||"-"})`;
         document.getElementById('vc_tpa').innerText = tpaStr; document.getElementById('vc_family').innerText = `${d.famSel||"-"} - ${d.famText||"-"}`;
-        const imgContainer = document.getElementById('vc_images_container'); imgContainer.innerHTML = `<p class="mt-1"><a href="${c.clinicalData.folderUrl}" target="_blank" class="fw-bold text-primary">📂 開啟 Google Drive 影像資料夾</a></p>`;
+        
+        // 🌟 補上顯示已勾選的影像項目清單與 Drive 連結
+        let imagesText = d.images ? `已勾選影像：${d.images}` : "未特別勾選影像項目";
+        const imgContainer = document.getElementById('vc_images_container'); 
+        imgContainer.innerHTML = `<p class="mt-1 text-muted small">${imagesText}</p><p class="mt-1"><a href="${c.clinicalData.folderUrl}" target="_blank" class="fw-bold text-primary">📂 開啟 Google Drive 影像資料夾</a></p>`;
+        
         document.getElementById('viewCaseModal').style.display = 'flex';
     }
     function closeViewCaseModal() { document.getElementById('viewCaseModal').style.display = 'none'; }
