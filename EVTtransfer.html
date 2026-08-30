@@ -1619,6 +1619,7 @@
         // 🌟 1. 頂部右側功能區：開啟影像 + 開啟表單修改 + 同步修改
         if (topBtnContainer) {
             topBtnContainer.innerHTML = `
+                <button class="btn-custom btn-theme-warning" onclick="openPrepGuide('${currentTrackCaseId}')" title="注意事項">🚨 注意事項</button>
                 <button class="btn-custom btn-theme-success" onclick="window.open('${folderLink}', '_blank')" title="開啟影像">📂 影像</button>
                 <button class="btn-custom btn-theme-info" onclick="editExistingClinical()" title="開啟表單修改">📝 修改表單</button>
                 <button class="btn-custom btn-theme-warning" onclick="updateClinicalToExistCase()" title="同步修改至本案">🔄 同步</button>
@@ -1641,7 +1642,6 @@
             `;
 
             // 🌟 將按鈕改為純圖示呈現，並加上 title 屬性讓滑鼠移上去時顯示功能說明
-            let guideBtn = `<button class="btn-custom btn-theme-warning px-3 py-2" onclick="openPrepGuide('${currentTrackCaseId}')" title="注意事項">🚨</button>`;
             let historyBtn = `<button class="btn btn-secondary btn-sm fw-bold px-3 py-2" onclick="openViewCaseModal('${currentTrackCaseId}')" title="檢視完整病史">📜</button>`;
             let chatBtn = `<button id="chat_btn_${currentTrackCaseId}" class="btn-custom btn-theme-info px-3 py-2" onclick="openMessenger('${currentTrackCaseId}', 1, 'requester', '${c.reqHospOut}')" title="即時文字溝通">💬</button>`;
 
