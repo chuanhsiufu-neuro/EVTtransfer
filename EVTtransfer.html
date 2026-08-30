@@ -237,6 +237,17 @@
             font-weight: 700; border-radius: 10px; padding: 16px;
         }
         
+        /* 💬 聊天按鈕新訊息未讀閃爍動畫 */
+        @keyframes chat-pulse {
+            0% { transform: scale(1); opacity: 1; filter: drop-shadow(0 0 0 rgba(23, 135, 138, 0)); }
+            50% { transform: scale(1.18); opacity: 0.85; filter: drop-shadow(0 0 8px rgba(23, 135, 138, 0.8)); }
+            100% { transform: scale(1); opacity: 1; filter: drop-shadow(0 0 0 rgba(23, 135, 138, 0)); }
+        }
+        .chat-unread-flash {
+            animation: chat-pulse 1.2s infinite ease-in-out;
+            color: var(--alert) !important;
+        }
+        
         /* 🚨 警報閃爍動畫 (針對即將抵達/已抵達待確認的個案) */
         @keyframes alert-flash {
             0% { background-color: rgba(178, 58, 46, 0); }
@@ -719,7 +730,9 @@
     
 <script>
     const GAS_URL = "https://script.google.com/macros/s/AKfycbw5n_GXvPDH3n6liENxNBe6sjb_MkSGsDY-FCWI0XDrd32MnIO2eNR3R_Fk1xFuaEqZOw/exec"; 
-
+    
+    let lastKnownChatLength = {}; // 紀錄每個個案已知的對話字串長度
+    let activeChatCaseId = null;  // 紀錄目前正在開啟聊天的個案 ID
     let hospitalsConfigData = {}; let currentRosterData = {}; let hospitals = []; 
     let cases = {}; let currentTrackCaseId = null; let loggedInHosp = null;
     let currentReplyCaseId = null; let pendingClinicalData = {}; let editingHospStatus = "green";
@@ -1580,8 +1593,8 @@
         // 🌟 2. 只有鎖定醫院後，才在「開啟影像」左邊顯示溝通與注意事項圖示
         if (c.finalDest) {
             extraIcons = `
-                <span style="font-size: 1.6em; cursor: pointer; transition: 0.2s;" onclick="openMessenger('${currentTrackCaseId}', 1, 'requester', '${c.reqHospOut}')" title="💬 即時溝通" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">💬</span>
                 <span style="font-size: 1.6em; cursor: pointer; transition: 0.2s;" onclick="openPrepGuide('${currentTrackCaseId}')" title="🚨 注意事項" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">🚨</span>
+                <span id="chat_btn_${currentTrackCaseId}" style="font-size: 1.6em; cursor: pointer; transition: 0.2s;" onclick="openMessenger('${currentTrackCaseId}', 1, 'requester', '${c.reqHospOut}')" ...>💬</span>
             `;
         }
 
@@ -1697,24 +1710,30 @@
 
     let chatPollInterval; let currentChatContext = { caseId: "", attempt: 1, senderType: "", senderName: "" };
 
-    function openMessenger(caseId, attempt, senderType, senderName) {
-      currentChatContext = { caseId, attempt, senderType, senderName };
-      document.getElementById('messengerTitle').innerText = senderType === 'requester' ? `與 取栓醫院 即時溝通` : `與 轉出醫院 即時溝通`;
-      
-      document.getElementById('chatHistoryBox').innerHTML = `<div class='text-center text-white mt-5'>載入對話紀錄中<span class="loading-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span></div>`;
-      
-      document.getElementById('chatInput').value = ""; document.getElementById('messengerModal').style.display = 'flex';
-      refreshChat(); chatPollInterval = setInterval(refreshChat, 3000);
-    }
-
-    function closeMessenger() { document.getElementById('messengerModal').style.display = 'none'; if (chatPollInterval) clearInterval(chatPollInterval); }
-
     function refreshChat() {
+        if (!currentChatContext.caseId) return;
+        
         fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "getChatHistory", payload: { caseId: currentChatContext.caseId, attempt: currentChatContext.attempt } }) })
         .then(res => res.json()).then(data => {
             if(data.status === "success") {
-                let box = document.getElementById('chatHistoryBox'); let isScrolledToBottom = box.scrollHeight - box.clientHeight <= box.scrollTop + 10;
-                let rawText = data.data || ""; let chatHtml = "";
+                let rawText = data.data || ""; 
+                
+                // 🌟 偵測是否有來自對方的「新訊息」
+                let prevLength = lastKnownChatLength[currentChatContext.caseId] || 0;
+                if (rawText.length > prevLength && activeChatCaseId !== currentChatContext.caseId) {
+                    // 有新訊息且目前沒開聊天室 -> 觸發未讀提醒！
+                    lastKnownChatLength[currentChatContext.caseId] = rawText.length;
+                    triggerChatFlash(currentChatContext.caseId, true);
+                } else {
+                    lastKnownChatLength[currentChatContext.caseId] = rawText.length;
+                }
+
+                let box = document.getElementById('chatHistoryBox'); 
+                if (!box) return;
+                
+                let isScrolledToBottom = box.scrollHeight - box.clientHeight <= box.scrollTop + 10;
+                let chatHtml = "";
+                
                 if (!rawText.trim()) {
                     chatHtml = "<div class='text-center text-white bg-dark bg-opacity-25 px-3 py-1 rounded-pill mx-auto my-3 small'>目前尚無對話紀錄，請直接在下方輸入訊息開始對話。</div>";
                 } else {
@@ -1731,6 +1750,37 @@
                 box.innerHTML = chatHtml; if (isScrolledToBottom) box.scrollTop = box.scrollHeight;
             }
         }).catch(e => console.log("讀取對話失敗", e));
+    }
+
+    // 🌟 控制聊天按鈕閃爍的輔助函數
+    function triggerChatFlash(caseId, isUnread) {
+        let btn = document.getElementById(`chat_btn_${caseId}`);
+        if (btn) {
+            if (isUnread) btn.classList.add('chat-unread-flash');
+            else btn.classList.remove('chat-unread-flash');
+        }
+    }
+
+    // 當使用者點擊打開 Messenger 時，清除該個案的閃爍並記錄 active
+    function openMessenger(caseId, attempt, senderType, senderName) {
+        activeChatCaseId = caseId;
+        triggerChatFlash(caseId, false); // 清除閃爍
+        
+        currentChatContext = { caseId, attempt, senderType, senderName };
+        document.getElementById('messengerTitle').innerText = senderType === 'requester' ? `與 取栓醫院 即時溝通` : `與 轉出醫院 即時溝通`;
+        
+        document.getElementById('chatHistoryBox').innerHTML = `<div class='text-center text-white mt-5'>載入對話紀錄中<span class="loading-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span></div>`;
+        document.getElementById('chatInput').value = ""; 
+        document.getElementById('messengerModal').style.display = 'flex';
+        
+        refreshChat(); 
+        chatPollInterval = setInterval(refreshChat, 3000);
+    }
+
+    function closeMessenger() { 
+        activeChatCaseId = null;
+        document.getElementById('messengerModal').style.display = 'none'; 
+        if (chatPollInterval) clearInterval(chatPollInterval); 
     }
 
     function handleChatEnter(event) { if (event.key === "Enter") submitChatMessage(); }
@@ -1867,7 +1917,7 @@
                     if (c.location && c.location.lat) {
                         mapBtn = `<button class="btn-custom btn-theme-success fw-bold" onclick="openRadarModal('${caseId}')">📡 救護車即時追蹤</button>`;
                     }
-                    let chatBtn = `<button class="btn-custom btn-theme-info" onclick="openMessenger('${caseId}', 1, 'evt', '${loggedInHosp}')">💬 即時文字溝通</button>`;
+                    let chatBtn = `<button id="chat_btn_${caseId}" class="btn-custom btn-theme-info" onclick="openMessenger('${caseId}', 1, 'evt', '${loggedInHosp}')">💬 即時溝通</button>`;
                     
                     if (c.confirmArriveTime) {
                         let feedbackBtn = `<button class="btn-custom btn-theme-warning" onclick="openFeedbackModal('${caseId}')">📝 個案回饋與結案</button>`;
