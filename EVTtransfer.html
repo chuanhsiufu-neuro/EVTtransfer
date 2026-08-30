@@ -1648,14 +1648,19 @@
                 </div>
             `;
 
-            // 🌟 3. 將注意事項與即時通訊改為圖示按鈕呈現
-            let chatBtn = `<button id="chat_btn_${currentTrackCaseId}" class="btn-custom btn-theme-info" onclick="openMessenger('${currentTrackCaseId}', 1, 'requester', '${c.reqHospOut}')" title="即時文字溝通">💬</button>`;
-            let guideBtn = `<button class="btn-custom btn-theme-warning" onclick="openPrepGuide('${currentTrackCaseId}')" title="注意事項">🚨</button>`;
-            let historyBtn = `<button class="btn btn-secondary btn-sm fw-bold" onclick="openViewCaseModal('${currentTrackCaseId}')">📜 完整病史</button>`;
+            // 🌟 將按鈕改為純圖示呈現，並加上 title 屬性讓滑鼠移上去時顯示功能說明
+            let historyBtn = `<button class="btn btn-secondary btn-sm fw-bold px-3 py-2" onclick="openViewCaseModal('${currentTrackCaseId}')" title="檢視完整病史">📜</button>`;
+            let guideBtn = `<button class="btn-custom btn-theme-warning px-3 py-2" onclick="openPrepGuide('${currentTrackCaseId}')" title="注意事項">🚨</button>`;
+            let chatBtn = `<button id="chat_btn_${currentTrackCaseId}" class="btn-custom btn-theme-info px-3 py-2" onclick="openMessenger('${currentTrackCaseId}', 1, 'requester', '${c.reqHospOut}')" title="即時文字溝通">💬</button>`;
+
+            let mapBtn = `<span class="small text-muted">(尚未回報GPS)</span>`;
+            if (c.location && c.location.lat) {
+                mapBtn = `<button class="btn-custom btn-theme-success fw-bold px-3 py-2" onclick="openRadarModal('${currentTrackCaseId}')" title="救護車即時追蹤雷達">📡</button>`;
+            }
 
             let cancelBtnHtml = "";
             if (!c.confirmArriveTime) {
-                cancelBtnHtml = `<button class="btn-custom btn-theme-danger" onclick="cancelFinalDest('${currentTrackCaseId}', '${c.reqHospOut}')">❌ 取消轉入</button>`;
+                cancelBtnHtml = `<button class="btn-custom btn-theme-danger px-3 py-2" onclick="cancelFinalDest('${currentTrackCaseId}', '${c.reqHospOut}')">❌ 取消轉入</button>`;
             }
             
             let confirmBadge = c.confirmArriveTime ? `<span class="badge bg-success fs-6 px-3 py-2 shadow-sm ms-2">✅ 已抵達取栓醫院檢傷 (${c.confirmArriveTime})</span>` : ``;
