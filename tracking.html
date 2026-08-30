@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>救護車即時追蹤與衛教</title>
+
+    <!-- Bootstrap 5 for Carousel & Layout -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Leaflet.js for Free Maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;700;900&family=Noto+Sans+TC:wght@400;500;600;700;900&display=swap');
+
+        :root {
+            --ink:      #0F2A2E;
+            --teal-900: #0B3A3F;
+            --teal-700: #0F5C61;
+            --teal-500: #17878A;
+            --teal-100: #E4F1EF;
+            --paper:    #F4F6F4;
+            --card:     #FFFFFF;
+            --success:  #2F8F5B;
+            --sans:  'Noto Sans TC', sans-serif;
+            --serif: 'Noto Serif TC', serif;
+        }
+
+        body, html { margin: 0; padding: 0; height: 100%; font-family: var(--sans); background-color: var(--paper); overflow: hidden; }
+        
+        .app-container { display: flex; flex-direction: column; height: 100vh; max-width: 600px; margin: 0 auto; background: var(--paper); box-shadow: 0 0 20px rgba(0,0,0,0.05); }
+
+        /* 🟢 頂部狀態列 */
+        .status-bar { background-color: var(--teal-900); color: white; padding: 12px 15px; font-size: 0.95em; font-weight: bold; display: flex; align-items: center; justify-content: space-between; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 0.8; box-shadow: 0 0 0 0 rgba(47, 143, 91, 0.7); }
+            70% { transform: scale(1.1); opacity: 1; box-shadow: 0 0 0 6px rgba(47, 143, 91, 0); }
+            100% { transform: scale(0.95); opacity: 0.8; box-shadow: 0 0 0 0 rgba(47, 143, 91, 0); }
+        }
+        .live-dot { width: 12px; height: 12px; background-color: #2CE071; border-radius: 50%; display: inline-block; animation: pulse 2s infinite; margin-right: 8px; }
+
+        /* 📍 上半部：動態追蹤區 (40%) */
+        .tracking-section { position: relative; flex: 0 0 42%; display: flex; flex-direction: column; background: #ddd; border-bottom: 3px solid var(--teal-500); }
+        
+        /* 視覺進度條 */
+        .progress-overlay { position: absolute; top: 10px; left: 5%; right: 5%; background: rgba(255,255,255,0.95); padding: 12px; border-radius: 12px; z-index: 1000; box-shadow: 0 4px 12px rgba(11,58,63,0.15); backdrop-filter: blur(4px); }
+        .progress-title { font-family: var(--serif); font-size: 1.1em; color: var(--teal-900); font-weight: 700; margin-bottom: 8px; text-align: center; }
+        .progress-track { height: 8px; background: var(--teal-100); border-radius: 4px; position: relative; margin-top: 20px; margin-bottom: 5px; }
+        .progress-fill { position: absolute; left: 0; top: 0; height: 100%; background: var(--teal-500); border-radius: 4px; width: 0%; transition: width 1s ease; }
+        .ambulance-icon { position: absolute; top: -14px; left: 0%; font-size: 1.5em; transform: translateX(-50%); transition: left 1s ease; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
+        
+        #map { flex: 1; width: 100%; z-index: 1; }
+
+        /* ✅ 自動抵達覆蓋層 */
+        .arrival-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: var(--success); color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; opacity: 0; pointer-events: none; transition: opacity 0.8s ease; text-align: center; padding: 20px; }
+        .arrival-overlay.active { opacity: 1; pointer-events: auto; }
+        .arrival-icon { font-size: 4em; margin-bottom: 10px; }
+
+        /* 📖 下半部：衛教資訊區 (60%) */
+        .edu-section { flex: 1; padding: 20px 15px; background-color: var(--paper); overflow: hidden; display: flex; flex-direction: column; }
+        .edu-title { font-family: var(--serif); color: var(--teal-700); font-size: 1.2em; font-weight: 700; border-left: 4px solid var(--teal-500); padding-left: 10px; margin-bottom: 15px; }
+        
+        /* Bootstrap Carousel 客製化 */
+        .carousel { flex: 1; border-radius: 12px; box-shadow: 0 4px 15px rgba(11,58,63,0.08); background: var(--card); overflow: hidden; }
+        .carousel-inner { height: 100%; }
+        .carousel-item { height: 100%; padding: 25px 20px; overflow-y: auto; }
+        .carousel-indicators { margin-bottom: 0; bottom: 10px; }
+        .carousel-indicators [data-bs-target] { background-color: var(--teal-500); width: 10px; height: 10px; border-radius: 50%; margin: 0 6px; }
+        
+        .card-title { font-family: var(--serif); color: var(--teal-900); font-size: 1.3em; font-weight: 900; margin-bottom: 15px; text-align: center; }
+        .card-text { color: var(--ink); line-height: 1.7; font-size: 1.05em; text-align: justify; }
+        .highlight-box { background: var(--teal-100); padding: 12px; border-radius: 8px; border-left: 4px solid var(--teal-500); margin: 15px 0; font-weight: bold; color: var(--teal-900); }
+        .img-placeholder { width: 100%; height: 160px; background: #E3E9E5; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #94A29D; font-weight: bold; margin-bottom: 15px; border: 2px dashed #BFE0DC; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <!-- 頂部狀態列 -->
+    <div class="status-bar">
+        <div><span class="live-dot"></span>定位回報中，請保持螢幕亮起</div>
+        <div id="distance_text">計算中...</div>
+    </div>
+
+    <!-- 上半部：追蹤地圖 -->
+    <div class="tracking-section">
+        <div class="progress-overlay">
+            <div class="progress-title">前往 <span id="dest_hosp_name" style="color: var(--teal-500);">目標醫院</span> 中</div>
+            <div class="progress-track">
+                <div class="progress-fill" id="progress_fill"></div>
+                <div class="ambulance-icon" id="ambulance_icon">🚑</div>
+            </div>
+        </div>
+        
+        <div id="map"></div>
+
+        <!-- 抵達覆蓋層 -->
+        <div class="arrival-overlay" id="arrival_overlay">
+            <div class="arrival-icon">🏥</div>
+            <h2 style="font-family: var(--serif); font-weight: 900; margin-bottom: 10px;">您已抵達目的地！</h2>
+            <p style="font-size: 1.1em; line-height: 1.5; opacity: 0.95;">請跟隨救護人員將病患送至急診檢傷區<br>並告知護理人員您是<br><strong>「區域聯防轉診個案」</strong></p>
+        </div>
+    </div>
+
+    <!-- 下半部：衛教輪播卡片 -->
+    <div class="edu-section">
+        <div class="edu-title">📖 乘車須知與取栓衛教資訊</div>
+        
+        <div id="eduCarousel" class="carousel slide" data-bs-ride="false"> <!-- 預設不自動播放，讓家屬慢慢滑 -->
+            <div class="carousel-indicators">
+                <button type="button" data-bs-target="#eduCarousel" data-bs-slide-to="0" class="active"></button>
+                <button type="button" data-bs-target="#eduCarousel" data-bs-slide-to="1"></button>
+                <button type="button" data-bs-target="#eduCarousel" data-bs-slide-to="2"></button>
+            </div>
+            
+            <div class="carousel-inner">
+                <!-- 卡片 1：到院流程 -->
+                <div class="carousel-item active">
+                    <div class="card-title">1. 抵達醫院後的流程</div>
+                    <div class="card-text">
+                        <p>為爭取大腦搶救時間，抵達醫院後醫療團隊將啟動<strong>「綠色通道」</strong>，流程如下：</p>
+                        <ol style="padding-left: 20px;">
+                            <li>直接進入急診重症區進行快速檢傷。</li>
+                            <li>神經科團隊會立即與您核對病患的發病時間與病史。</li>
+                            <li><strong>可能需要再次進行腦部電腦斷層 (CT)</strong>，以確認在車程中出血風險是否增加。</li>
+                            <li>確認適合手術後，將直接送往「心導管室」進行取栓。</li>
+                        </ol>
+                        <div class="highlight-box">💡 提醒：請主要決策家屬務必留在急診室外等候，切勿離開。</div>
+                    </div>
+                </div>
+
+                <!-- 卡片 2：EVT 簡介 -->
+                <div class="carousel-item">
+                    <div class="card-title">2. 什麼是動脈取栓術(EVT)?</div>
+                    <div class="card-text">
+                        <p>急性缺血性腦中風是大血管被血栓堵塞，導致腦細胞缺氧。<strong>動脈取栓術 (EVT)</strong> 是目前最有效打通血管的手術。</p>
+                        <!-- 替換為您的真實圖片: <img src="EVT.jpg" style="width:100%; border-radius:8px; margin-bottom:15px;"> -->
+                        <div class="img-placeholder">附圖：手術原理圖 (EVT.jpg)</div>
+                        <p>醫師會從患者的「鼠蹊部」置入微導管，順著血管延伸至腦部阻塞處，利用支架或抽吸設備將血栓取出，恢復血流。</p>
+                    </div>
+                </div>
+
+                <!-- 卡片 3：行前準備 -->
+                <div class="carousel-item">
+                    <div class="card-title">3. 同意書與證件準備</div>
+                    <div class="card-text">
+                        <p>到達醫院後，需要以最快速度完成行政手續，請您在車上先準備好以下事項：</p>
+                        <ul style="padding-left: 20px;">
+                            <li>準備好病患的<strong>健保卡</strong>與您的<strong>身分證件</strong>。</li>
+                            <li>手術前必須由直系親屬簽署「手術同意書」及「麻醉同意書」。</li>
+                        </ul>
+                        <div class="highlight-box">
+                            💰 關於費用：<br>手術本身有健保給付，但為提升成功率與安全性，醫師可能會建議使用部分<strong>「自費抽吸導管或特殊醫材」</strong>，屆時將與您詳細說明。
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ==========================================
+    // ⚙️ 全域設定與醫院座標庫 (請將 GAS_URL 換成您的)
+    // ==========================================
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyBVaiZ0Xmihsb2BSNTeH1CgNR22oIogYq8lC_Uxitd5OZFqMW-mMq8EHfsKoZP2KBnsA/exec"; 
+    
+    // 預設各家醫院的大約經緯度 (格式: [Lat, Lng])
+    const hospCoords = {
+        "新竹台大": [24.8055, 120.9988],
+        "東元醫院": [24.8267, 121.0125],
+        "新竹中國": [24.8288, 121.0189],
+        "大千醫院": [24.5583, 120.8222],
+        "聯新國際": [24.9458, 121.2069],
+        "林口長庚": [25.0600, 121.3683],
+        "為恭醫院": [24.5511, 120.8200]
+    };
+
+    let caseId = "";
+    let destHosp = "";
+    let destLatLng = null;
+    let initialDistance = null; // 紀錄出發時的總距離
+    
+    let map, markerAmbulance, markerDest;
+    let watchId;
+    let wakeLock = null;
+    let hasArrived = false;
+
+    window.onload = function() {
+        parseUrlParams();
+        initMap();
+        requestWakeLock();
+        startTracking();
+
+        // 監聽網頁可見度變化，若家屬跳出網頁再回來，需重新要一次防休眠
+        document.addEventListener('visibilitychange', async () => {
+            if (wakeLock !== null && document.visibilityState === 'visible') {
+                requestWakeLock();
+            }
+        });
+    };
+
+    function parseUrlParams() {
+        const urlParams = new URLSearchParams(window.location.search);
+        caseId = urlParams.get('caseId') || "測試個案";
+        destHosp = urlParams.get('hospIn') || "新竹台大"; 
+        document.getElementById('dest_hosp_name').innerText = destHosp;
+        
+        if (hospCoords[destHosp]) {
+            destLatLng = hospCoords[destHosp];
+        } else {
+            // 若找不到座標，預設指向新竹台大周邊
+            destLatLng = [24.8055, 120.9988];
+        }
+    }
+
+    // ==========================================
+    // 🗺️ Leaflet 地圖初始化
+    // ==========================================
+    function initMap() {
+        // 設定地圖不可拖曳、不可縮放 (純觀看模式)
+        map = L.map('map', { zoomControl: false, dragging: false, touchZoom: false, doubleClickZoom: false, scrollWheelZoom: false }).setView(destLatLng, 13);
+        
+        // 匯入免費的 OpenStreetMap 圖層
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        // 終點醫院圖示 🏥
+        markerDest = L.marker(destLatLng, {
+            icon: L.divIcon({ html: '🏥', className: 'fs-2', iconSize: [30, 30], iconAnchor: [15, 30] })
+        }).addTo(map);
+
+        // 救護車圖示 🚑 (初始先藏在終點，定位到再移過去)
+        markerAmbulance = L.marker(destLatLng, {
+            icon: L.divIcon({ html: '🚑', className: 'fs-2', iconSize: [30, 30], iconAnchor: [15, 15] })
+        }).addTo(map);
+    }
+
+    // ==========================================
+    // 🔋 螢幕防休眠 (Wake Lock API)
+    // ==========================================
+    async function requestWakeLock() {
+        try {
+            if ('wakeLock' in navigator) {
+                wakeLock = await navigator.wakeLock.request('screen');
+                console.log('Screen Wake Lock 啟動成功');
+            }
+        } catch (err) {
+            console.log(`Wake Lock 失敗: ${err.name}, ${err.message}`);
+        }
+    }
+
+    // ==========================================
+    // 📍 GPS 定位與地理圍欄邏輯
+    // ==========================================
+    function startTracking() {
+        if (!navigator.geolocation) {
+            alert("您的裝置不支援 GPS 定位");
+            return;
+        }
+
+        watchId = navigator.geolocation.watchPosition(
+            (position) => {
+                if(hasArrived) return; // 若已判定抵達，則停止更新
+
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                const currentLatLng = [lat, lng];
+
+                // 1. 更新地圖位置與視角 (將車子與醫院同時縮放至畫面中)
+                markerAmbulance.setLatLng(currentLatLng);
+                const bounds = L.latLngBounds([currentLatLng, destLatLng]);
+                map.fitBounds(bounds, { padding: [30, 30], maxZoom: 15 });
+
+                // 2. 計算地理圍欄與進度條
+                const distKm = getDistanceFromLatLonInKm(lat, lng, destLatLng[0], destLatLng[1]);
+                updateProgressBar(distKm);
+
+                // 3. 地理圍欄：若距離小於 0.2 公里 (200公尺)，觸發自動抵達！
+                if (distKm <= 0.2) {
+                    triggerAutoArrival();
+                }
+
+                // 4. 背景傳送座標給雲端 (限制每分鐘最多發送一次，避免耗電)
+                sendGpsToCloud(lat, lng);
+            },
+            (error) => {
+                console.log("定位失敗: ", error);
+                document.getElementById('distance_text').innerText = "定位中...";
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 5000 }
+        );
+    }
+
+    // 距離計算公式 (Haversine Formula)
+    function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+        const R = 6371; // 地球半徑 (km)
+        const dLat = deg2rad(lat2-lat1);  
+        const dLon = deg2rad(lon2-lon1); 
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon/2) * Math.sin(dLon/2); 
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+        return R * c; 
+    }
+    function deg2rad(deg) { return deg * (Math.PI/180); }
+
+    function updateProgressBar(distKm) {
+        if (initialDistance === null) initialDistance = distKm; // 紀錄一開始的總距離
+        
+        let progressPercent = 0;
+        if (initialDistance > 0.2) {
+            progressPercent = ((initialDistance - distKm) / initialDistance) * 100;
+            if (progressPercent < 0) progressPercent = 0;
+            if (progressPercent > 100) progressPercent = 100;
+        }
+
+        document.getElementById('progress_fill').style.width = progressPercent + '%';
+        document.getElementById('ambulance_icon').style.left = progressPercent + '%';
+        
+        // 更新右上角文字
+        if (distKm > 1) {
+            document.getElementById('distance_text').innerText = `距離約 ${distKm.toFixed(1)} km`;
+        } else {
+            document.getElementById('distance_text').innerText = `即將抵達 (${(distKm*1000).toFixed(0)}m)`;
+        }
+    }
+
+    // ==========================================
+    // ✅ 自動抵達觸發
+    // ==========================================
+    function triggerAutoArrival() {
+        hasArrived = true;
+        navigator.geolocation.clearWatch(watchId); // 停止耗電追蹤
+        
+        // 畫面動畫變身
+        document.getElementById('arrival_overlay').classList.add('active');
+        document.querySelector('.status-bar').style.backgroundColor = 'var(--success)';
+        document.querySelector('.status-bar').innerHTML = '<div style="width:100%; text-align:center;">🎉 已安全抵達目的地</div>';
+        
+        // 傳送抵達訊號給雲端
+        let timeStr = new Date().toLocaleString('zh-TW', { hour12: false });
+        fetch(GAS_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                action: "updateCaseTracking",
+                payload: { caseId: caseId, actionType: "arrive", value1: timeStr }
+            })
+        });
+    }
+
+    // ==========================================
+    // ☁️ 背景傳輸 GPS 到 GAS (防頻繁發送)
+    // ==========================================
+    let lastGpsSendTime = 0;
+    function sendGpsToCloud(lat, lng) {
+        const now = Date.now();
+        // 限制至少 30 秒才傳送一次給雲端，避免癱瘓 GAS
+        if (now - lastGpsSendTime < 30000) return; 
+        
+        lastGpsSendTime = now;
+        let timeStr = new Date().toLocaleString('zh-TW', { hour12: false });
+        let locStr = `Lat:${lat}, Lng:${lng}`;
+        
+        fetch(GAS_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                action: "updateCaseTracking",
+                payload: { caseId: caseId, actionType: "gps", value1: locStr, value2: timeStr }
+            })
+        }).catch(e => console.log("背景回報失敗", e));
+    }
+</script>
+</body>
+</html>
