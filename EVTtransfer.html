@@ -761,7 +761,7 @@
 </div>
     
 <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbzt7eK4RUYQ6OVDEVmdMfhETfP5W0wUwrsvTv2sQXXLTwGFNqp9XqUkLk01Kwnjr1AUIQ/exec"; 
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyBPpdisPgTpJiyOkyxXpwgnNTbx_RDZiETca73KXTqaa4pStLfy3CqrTcUDY-qhMj0pQ/exec"; 
     
     let lastKnownChatLength = {}; // 紀錄每個個案已知的對話字串長度
     let activeChatCaseId = null;  // 紀錄目前正在開啟聊天的個案 ID
@@ -836,11 +836,12 @@
 
     function getCaseTimeStr(c) {
         if (!c.requestTime) return "";
-        let reqClean = c.requestTime.length > 10 ? c.requestTime.substring(5) : c.requestTime;
+        // 🌟 修正：保留完整日期與時間（不使用 .substring(5) 切掉年份），確保跨日時清晰明確
+        let reqClean = c.requestTime.replace('T', ' ');
         let parts = [`提出: ${reqClean}`];
         if (c.cancelTime) {
             let byHosp = c.cancelHosp ? `(由 ${c.cancelHosp} 取消)` : "";
-            let canClean = c.cancelTime.length > 10 ? c.cancelTime.substring(5) : c.cancelTime;
+            let canClean = c.cancelTime.replace('T', ' ');
             parts.push(`取消${byHosp}: ${canClean}`);
         }
         return `(${parts.join(', ')})`;
