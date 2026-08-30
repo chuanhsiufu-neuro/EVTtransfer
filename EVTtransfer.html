@@ -628,7 +628,7 @@
 </div>
     
 <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbwwXqSR0hYjUTwik_N6-fZpAoPhQ6KqYc6Pu0zp7RmtkAA3boycqzYnf-jsO1GQelaF9A/exec"; 
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyvP0vZQEPc7MrLc9cYVFKSO3q205MrlVhJ6I8r7c0GzMf8UGBfo2W5JHJwcODDHQx7Jg/exec"; 
 
     let hospitalsConfigData = {}; let currentRosterData = {}; let hospitals = []; 
     let cases = {}; let currentTrackCaseId = null; let loggedInHosp = null;
@@ -1273,30 +1273,58 @@
                 let lockTimeStr = c.lockTime ? ` <span style="font-weight:normal; font-size: 0.85em; color:#666;">(${c.lockTime.length > 10 ? c.lockTime.substring(5) : c.lockTime})</span>` : "";
                 let destStatus = c.finalDest ? `<span class="text-success fw-bold">已鎖定：${c.finalDest}${lockTimeStr}</span>` : `<span class="text-warning fw-bold">媒合中...</span>`;
                 
-                if (c.departTime && c.finalDest) {
+                // 🌟 更新看板的抵達狀態文字
+                if (c.confirmArriveTime && c.finalDest) {
+                    let confTimeStr = c.confirmArriveTime.length > 10 ? c.confirmArriveTime.substring(5) : c.confirmArriveTime;
+                    destStatus = `<span class="text-success fw-bold">已確認檢傷：${c.finalDest} <span style="font-weight:normal; font-size: 0.85em; color:#666;">(${confTimeStr})</span></span>`;
+                } else if (c.arriveTime && c.finalDest) {
+                    let arrTimeStr = c.arriveTime.length > 10 ? c.arriveTime.substring(5) : c.arriveTime;
+                    destStatus = `<span class="text-info fw-bold">抵達待確認：${c.finalDest} <span style="font-weight:normal; font-size: 0.85em; color:#666;">(${arrTimeStr})</span></span>`;
+                } else if (c.departTime && c.finalDest) {
                     let depTimeStr = c.departTime.length > 10 ? c.departTime.substring(5) : c.departTime;
                     destStatus = `<span class="text-danger fw-bold">已出發轉往：${c.finalDest} <span style="font-weight:normal; font-size: 0.85em; color:#666;">(${depTimeStr})</span></span>`;
-                }
-                if (c.arriveTime && c.finalDest) {
-                    let arrTimeStr = c.arriveTime.length > 10 ? c.arriveTime.substring(5) : c.arriveTime;
-                    destStatus = `<span class="text-info fw-bold">已抵達：${c.finalDest} <span style="font-weight:normal; font-size: 0.85em; color:#666;">(${arrTimeStr})</span></span>`;
                 }
                 
                 board.innerHTML += `
                 <div class="quick-case-card" style="position: relative; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 6px; padding: 12px 15px;">
-                    <!-- 🌟 移除原本的出發/抵達按鈕，只保留右上角 GPS 更新 -->
                     <button style="position: absolute; top: 12px; right: 12px; background: #4a805f; border: none; border-radius: 6px; cursor: pointer; font-size: 1.2em; padding: 6px 10px; color: white; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.15);" onclick="quickUpdateLocation('${caseId}')" title="傳送 GPS 位置" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">📍</button>
-                    
                     <div style="display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; padding-right: 45px;">
                         <span class="cid" style="font-size: 1.05em; color: var(--ink); margin: 0;">📄 ${caseId}</span>
                         <span style="font-size: 0.85em; color: #666; font-family: var(--mono);">${getCaseTimeStr(c)}</span>
                     </div>
-                    
                     <div class="info" style="font-size: 0.95em; margin: 0; padding-right: 45px;">狀態：${destStatus}</div>
                 </div>`;
             }
         }
         if (!hasActiveCases) board.innerHTML = `<span class="text-muted p-2">目前近4小時無進行中個案。</span>`;
+    }
+
+    function markTime(caseId, type) {
+        let msg = "";
+        if (type === 'depart') msg = "標記【已出發】？";
+        else if (type === 'arrive') msg = "標記【已抵達】？\n\n(注意：點擊後接收端醫院需點擊「確認抵達檢傷」，才會自動移動影像資料夾)";
+        else if (type === 'confirmArrive') msg = "確認病患【已抵達檢傷】？\n\n(點擊後系統將正式移動影像資料夾，並鎖定取消轉入功能)";
+
+        if(confirm(msg)) { 
+            let t = formatDateTime(); 
+            if(type === 'depart') cases[caseId].departTime = t;
+            else if(type === 'arrive') cases[caseId].arriveTime = t;
+            else if(type === 'confirmArrive') cases[caseId].confirmArriveTime = t;
+
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "updateCaseTracking", payload: { caseId: caseId, actionType: type, value1: t } }) });
+            renderQuickUpdateBoard(); if(currentTrackCaseId === caseId) renderTrackerDashboard(); if(loggedInHosp) renderHospitalCases(); 
+        }
+    }
+    
+    function undoTime(caseId, type) {
+        if(confirm("確定取消標記嗎？")) { 
+            if(type === 'depart') cases[caseId].departTime = null; 
+            else if(type === 'arrive') cases[caseId].arriveTime = null; 
+            else if(type === 'confirmArrive') cases[caseId].confirmArriveTime = null;
+            
+            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "updateCaseTracking", payload: { caseId: caseId, actionType: type, value1: "" } }) });
+            renderQuickUpdateBoard(); if(currentTrackCaseId === caseId) renderTrackerDashboard(); if(loggedInHosp) renderHospitalCases(); 
+        }
     }
     
     function openPrepGuide(caseId) {
@@ -1318,16 +1346,6 @@
         window.open(guideUrl, '_blank', 'width=600,height=700,top=100,left=200');
     }
     
-    function markTime(caseId, type) {
-        if(confirm(type === 'depart' ? "標記【已出發】？" : "標記【已抵達】？")) { 
-            let t = formatDateTime(); cases[caseId][type === 'depart' ? 'departTime' : 'arriveTime'] = t; 
-            fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "updateCaseTracking", payload: { caseId: caseId, actionType: type, value1: t } }) });
-            renderQuickUpdateBoard(); if(currentTrackCaseId === caseId) renderTrackerDashboard(); if(loggedInHosp) renderHospitalCases(); 
-        }
-    }
-    function undoTime(caseId, type) {
-        if(confirm("確定取消標記嗎？")) { if(type === 'depart') cases[caseId].departTime = null; else cases[caseId].arriveTime = null; renderQuickUpdateBoard(); if(currentTrackCaseId === caseId) renderTrackerDashboard(); if(loggedInHosp) renderHospitalCases(); }
-    }
     function quickUpdateLocation(caseId) {
         if (!navigator.geolocation) return alert("不支援定位！");
         navigator.geolocation.getCurrentPosition(
@@ -1358,29 +1376,39 @@
         const container = document.getElementById('track_list_container'); const chatArea = document.getElementById('track_chat_area');
         container.innerHTML = ""; chatArea.innerHTML = ""; chatArea.style.display = "none";
 
+        // 🌟 1. 將按鈕與圖示移至頂部區塊
+        let folderLink = c.clinicalData && c.clinicalData.folderUrl ? c.clinicalData.folderUrl : "#";
+        document.getElementById('track_top_actions').innerHTML = `
+            <span style="font-size: 1.6em; cursor: pointer; transition: 0.2s;" onclick="openMessenger('${currentTrackCaseId}', 1, 'requester', '${c.reqHospOut}')" title="💬 即時溝通" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">💬</span>
+            <span style="font-size: 1.6em; cursor: pointer; transition: 0.2s;" onclick="openPrepGuide('${currentTrackCaseId}')" title="🚨 注意事項" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">🚨</span>
+            <button class="btn-custom btn-theme-success" onclick="window.open('${folderLink}', '_blank')">📂 開啟影像</button>
+            <button class="btn-custom btn-theme-info" onclick="editExistingClinical()">📝 開啟表單修改</button>
+            <button class="btn-custom btn-theme-warning" onclick="updateClinicalToExistCase()">🔄 同步修改至本案</button>
+        `;
+
        if (c.finalDest) {
-            chatArea.style.display = "flex"; chatArea.className = "chat-room-banner";
-            let folderLink = c.clinicalData.folderUrl ? c.clinicalData.folderUrl : "#";
+            chatArea.style.display = "block"; // 改為 block 確保內部排版不斷行
+            chatArea.className = "chat-room-banner";
             
             let btnDepart = c.departTime ? `<button class="btn btn-secondary btn-sm fw-bold" onclick="undoTime('${currentTrackCaseId}', 'depart')">已出發 ${c.departTime} ↺</button>` : `<button class="btn btn-warning btn-sm fw-bold text-dark" onclick="markTime('${currentTrackCaseId}', 'depart')">🚑 記錄出發</button>`;
             let btnArrive = c.arriveTime ? `<button class="btn btn-secondary btn-sm fw-bold" onclick="undoTime('${currentTrackCaseId}', 'arrive')">已抵達 ${c.arriveTime} ↺</button>` : `<button class="btn btn-danger btn-sm fw-bold" onclick="markTime('${currentTrackCaseId}', 'arrive')">🏥 記錄抵達</button>`;
 
             let cancelBtnHtml = "";
-        if (!c.departTime && !c.arriveTime) {
-            cancelBtnHtml = `<button class="btn-custom btn-theme-danger" onclick="cancelFinalDest('${currentTrackCaseId}', '${c.reqHospOut}')">❌ 取消</button>`;
+            // 🌟 2. 解除抵達鎖定：只要「接收端尚未確認檢傷」，轉出端都可以取消
+            if (!c.confirmArriveTime) {
+                cancelBtnHtml = `<button class="btn-custom btn-theme-danger" onclick="cancelFinalDest('${currentTrackCaseId}', '${c.reqHospOut}')">❌ 取消轉入</button>`;
             }
 
             chatArea.innerHTML = `
-            <div class="w-100 mb-1">
-                <strong style="color:#0056b3; font-size: 1.1em;">💬 已鎖定：${c.finalDest} (${c.lockTime})</strong>
+            <div class="w-100 mb-2 d-flex justify-content-between align-items-center">
+                <strong style="color:#0056b3; font-size: 1.1em;">🔒 已鎖定：${c.finalDest} (${c.lockTime})</strong>
+                <div>
+                    ${c.confirmArriveTime ? `<span class="badge bg-success fs-6 px-3 py-2 shadow-sm">✅ 接收端已確認檢傷 (${c.confirmArriveTime})</span>` : ``}
+                </div>
             </div>
             <div style="display:flex; gap:10px; flex-wrap: wrap; width: 100%;">
                 ${btnDepart}
                 ${btnArrive}
-                <!-- 🌟 移除多餘的 GPS 更新按鈕 -->
-                <button class="btn-custom btn-theme-success" onclick="window.open('${folderLink}', '_blank')">📂 開啟影像</button>
-                <button class="btn-custom btn-theme-info" onclick="openMessenger('${currentTrackCaseId}', 1, 'requester', '${c.reqHospOut}')">💬 即時溝通</button>
-                <button class="btn-custom btn-theme-warning" onclick="openPrepGuide('${currentTrackCaseId}')" title="出發前準備與注意事項">🚨 注意事項</button>
                 ${cancelBtnHtml}
             </div>`;
         }
@@ -1590,50 +1618,49 @@
             const c = cases[caseId];
             if (c.targets.includes(loggedInHosp)) {
                 if (c.hospStatus[loggedInHosp] && c.hospStatus[loggedInHosp].includes("已結案")) continue; 
-                
-                if (c.finalDest && c.finalDest !== loggedInHosp) {
-                    if (c.arriveTime) {
-                        continue; 
-                    }
-                }
-
+                if (c.finalDest && c.finalDest !== loggedInHosp) { if (c.arriveTime) continue; }
                 if (c.hospStatus[loggedInHosp] === "尚未讀取個案") c.hospStatus[loggedInHosp] = "評估中";
                 
                 let intentText = "評估中"; 
-    let actionBtns = `<button class="btn-custom btn-theme-orange" onclick="openReplyModal('${caseId}')">🏥 回覆量能</button>`;
-    
-    if (c.finalDest === loggedInHosp) {
-        if (c.arriveTime) { intentText = `<span class="text-info fw-bold">🏥 已抵達本院 (${c.arriveTime})</span>`; } 
-        else if (c.departTime) { intentText = `<span class="text-warning fw-bold">🚑 救護車已出發 (${c.departTime})</span>`; } 
-        else { intentText = `<span class="text-success fw-bold">✅ 已轉入本院 (${c.lockTime})</span>`; }
+                let actionBtns = `<button class="btn-custom btn-theme-orange" onclick="openReplyModal('${caseId}')">🏥 回覆量能</button>`;
+                
+                if (c.finalDest === loggedInHosp) {
+                    // 🌟 更新狀態文字邏輯
+                    if (c.confirmArriveTime) { intentText = `<span class="text-success fw-bold">✅ 已確認檢傷 (${c.confirmArriveTime})</span>`; } 
+                    else if (c.arriveTime) { intentText = `<span class="text-info fw-bold">🏥 救護車抵達待確認 (${c.arriveTime})</span>`; } 
+                    else if (c.departTime) { intentText = `<span class="text-warning fw-bold">🚑 救護車已出發 (${c.departTime})</span>`; } 
+                    else { intentText = `<span class="text-primary fw-bold">✅ 已轉入本院 (${c.lockTime})</span>`; }
 
-        let mapUrl = "";
-        if (c.location) {
-            if (typeof c.location === 'object' && c.location.lat) {
-                mapUrl = `https://www.google.com/maps/search/?api=1&query=${c.location.lat},${c.location.lng}`;
-            } else {
-                let match = String(c.location).match(/Lat:([^,]+),\s*Lng:([^,]+)/);
-                if (match) mapUrl = `https://www.google.com/maps/search/?api=1&query=${match[1].trim()},${match[2].trim()}`;
-            }
-        }
-        let mapBtn = mapUrl ? `<button class="btn-custom btn-theme-success" onclick="window.open('${mapUrl}', '_blank')">🗺️ GPS地圖</button>` : `<span style="font-size:0.85em; color:#888;">(尚未回報GPS)</span>`;
-        let chatBtn = `<button class="btn-custom btn-theme-info" onclick="openMessenger('${caseId}', 1, 'evt', '${loggedInHosp}')">💬 即時文字溝通</button>`;
-        
-        if (c.arriveTime) {
-            let feedbackBtn = `<button class="btn-custom btn-theme-warning" onclick="openFeedbackModal('${caseId}')">📝 個案回饋與結案</button>`;
-            actionBtns = `${mapBtn} ${chatBtn} ${feedbackBtn}`; 
-        } else {
-            let cancelBtn = `<button class="btn-custom btn-theme-danger" onclick="cancelFinalDest('${caseId}', '${loggedInHosp}')">❌ 取消轉入</button>`;
-            actionBtns = `${mapBtn} ${chatBtn} ${cancelBtn}`; 
-        }
-    } else if (c.finalDest) { 
-        if (c.departTime) {
-            intentText = `<span class="text-danger fw-bold">已出發轉至 ${c.finalDest}</span>`;
-        } else {
-            intentText = `<span class="text-danger fw-bold">已鎖定轉至 ${c.finalDest}</span>`; 
-        }
-        actionBtns = ``; 
-    }
+                    let mapUrl = "";
+                    if (c.location) {
+                        if (typeof c.location === 'object' && c.location.lat) {
+                            mapUrl = `https://www.google.com/maps/search/?api=1&query=${c.location.lat},${c.location.lng}`;
+                        } else {
+                            let match = String(c.location).match(/Lat:([^,]+),\s*Lng:([^,]+)/);
+                            if (match) mapUrl = `https://www.google.com/maps/search/?api=1&query=${match[1].trim()},${match[2].trim()}`;
+                        }
+                    }
+                    let mapBtn = mapUrl ? `<button class="btn-custom btn-theme-success" onclick="window.open('${mapUrl}', '_blank')">🗺️ GPS地圖</button>` : `<span style="font-size:0.85em; color:#888;">(尚未回報GPS)</span>`;
+                    let chatBtn = `<button class="btn-custom btn-theme-info" onclick="openMessenger('${caseId}', 1, 'evt', '${loggedInHosp}')">💬 即時文字溝通</button>`;
+                    
+                    // 🌟 加入「確認抵達檢傷」二次確認邏輯
+                    if (c.confirmArriveTime) {
+                        let feedbackBtn = `<button class="btn-custom btn-theme-warning" onclick="openFeedbackModal('${caseId}')">📝 個案回饋與結案</button>`;
+                        let undoConfirmBtn = `<button class="btn btn-secondary btn-sm fw-bold" onclick="undoTime('${caseId}', 'confirmArrive')">撤銷檢傷 ↺</button>`;
+                        actionBtns = `${mapBtn} ${chatBtn} ${feedbackBtn} ${undoConfirmBtn}`; 
+                    } else if (c.arriveTime) {
+                        let confirmBtn = `<button class="btn-custom btn-theme-success fw-bold" onclick="markTime('${caseId}', 'confirmArrive')">✅ 確認抵達檢傷</button>`;
+                        let cancelBtn = `<button class="btn-custom btn-theme-danger" onclick="cancelFinalDest('${caseId}', '${loggedInHosp}')">❌ 取消轉入</button>`;
+                        actionBtns = `${mapBtn} ${chatBtn} ${confirmBtn} ${cancelBtn}`; 
+                    } else {
+                        let cancelBtn = `<button class="btn-custom btn-theme-danger" onclick="cancelFinalDest('${caseId}', '${loggedInHosp}')">❌ 取消轉入</button>`;
+                        actionBtns = `${mapBtn} ${chatBtn} ${cancelBtn}`; 
+                    }
+                } else if (c.finalDest) { 
+                    if (c.departTime) intentText = `<span class="text-danger fw-bold">已出發轉至 ${c.finalDest}</span>`;
+                    else intentText = `<span class="text-danger fw-bold">已鎖定轉至 ${c.finalDest}</span>`; 
+                    actionBtns = ``; 
+                }
 
                 let timesInfo = getCaseTimeStr(c); let replyTimeStr = c.hospReplyTime[loggedInHosp] ? ` <span class="small text-muted">(${c.hospReplyTime[loggedInHosp]})</span>` : "";
 
