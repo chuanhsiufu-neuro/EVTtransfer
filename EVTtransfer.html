@@ -467,7 +467,7 @@
 <div id="radarModal" class="modal" style="align-items: center; padding-top: 0; z-index: 1050;">
     <div class="modal-content" style="max-width: 600px; padding: 0; overflow: hidden; display: flex; flex-direction: column; height: 75vh; max-height: 600px;">
         <div style="background-color: #0F5C61; color: white; padding: 15px; position: relative; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 10;">
-            <h3 style="margin: 0; font-size: 1.2em; text-align: center; font-family: var(--serif);">📡 救護車即時雷達</h3>
+            <h3 style="margin: 0; font-size: 1.2em; text-align: center; font-family: var(--serif);">📡 救護車即時追蹤</h3>
             <span class="close-btn" style="color: white; top: 8px; right: 15px; font-size: 32px;" onclick="closeRadarModal()">&times;</span>
         </div>
         <div style="padding: 10px 15px; background: #E4F1EF; border-bottom: 2px solid #17878A; display: flex; justify-content: space-between; align-items: center;">
@@ -718,7 +718,7 @@
 </div>
     
 <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbx5JmsDz4rD2F-jCulQsUFST1XCSMOPD7ZyTnouPp1D-YWjbrCLkyQk-yot7VA9hyPfaQ/exec"; 
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbw5n_GXvPDH3n6liENxNBe6sjb_MkSGsDY-FCWI0XDrd32MnIO2eNR3R_Fk1xFuaEqZOw/exec"; 
 
     let hospitalsConfigData = {}; let currentRosterData = {}; let hospitals = []; 
     let cases = {}; let currentTrackCaseId = null; let loggedInHosp = null;
@@ -1865,7 +1865,7 @@
 
                     let mapBtn = `<span style="font-size:0.85em; color:#888;">(尚未回報GPS)</span>`;
                     if (c.location && c.location.lat) {
-                        mapBtn = `<button class="btn-custom btn-theme-success fw-bold" onclick="openRadarModal('${caseId}')">📡 即時雷達</button>`;
+                        mapBtn = `<button class="btn-custom btn-theme-success fw-bold" onclick="openRadarModal('${caseId}')">📡 救護車即時追蹤</button>`;
                     }
                     let chatBtn = `<button class="btn-custom btn-theme-info" onclick="openMessenger('${caseId}', 1, 'evt', '${loggedInHosp}')">💬 即時文字溝通</button>`;
                     
@@ -1928,7 +1928,7 @@
     function closeViewCaseModal() { document.getElementById('viewCaseModal').style.display = 'none'; }
 
     // ==========================================
-    // 🖨️ QR Code 列印與網址生成邏輯
+    // 🖨️ QR Code 列印與網址生成邏輯 (同步觸發出發)
     // ==========================================
     function openQrModal(caseId) {
         const c = cases[caseId];
@@ -1950,7 +1950,23 @@
         const qrApiUrl = `https://quickchart.io/qr?text=${encodeURIComponent(trackingUrl)}&size=300&margin=1`;
         document.getElementById('qr_image').src = qrApiUrl;
         
-        // 🌟 新增：將產生的追蹤網址回傳給 GAS，存入 Excel 的 GPSURL 欄位中
+        // 🌟 1. 自動記錄當下時間為出發時間 (若尚未記錄過)
+        let depTimeStr = c.departTime;
+        if (!depTimeStr) {
+            depTimeStr = formatDateTime();
+            cases[caseId].departTime = depTimeStr;
+            
+            // 同步發送「出發」指令給 GAS
+            fetch(GAS_URL, { 
+                method: 'POST', 
+                body: JSON.stringify({ 
+                    action: "updateCaseTracking", 
+                    payload: { caseId: caseId, actionType: "depart", value1: depTimeStr } 
+                }) 
+            });
+        }
+
+        // 🌟 2. 將產生的追蹤網址回傳給 GAS，存入 Excel 的 GPSURL 欄位中
         fetch(GAS_URL, { 
             method: 'POST', 
             body: JSON.stringify({ 
@@ -1959,6 +1975,11 @@
             }) 
         });
         
+        // 重新整理即時看板顯示
+        renderQuickUpdateBoard();
+        if(currentTrackCaseId === caseId) renderTrackerDashboard();
+        if(loggedInHosp) renderHospitalCases();
+
         document.getElementById('qrModal').style.display = 'flex';
     }
 
