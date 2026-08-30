@@ -1749,14 +1749,16 @@
         fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: "getChatHistory", payload: { caseId: currentChatContext.caseId, attempt: currentChatContext.attempt } }) })
         .then(res => res.json()).then(data => {
             if(data.status === "success") {
-                let rawText = data.data || ""; 
                 
-                let prevLength = lastKnownChatLength[currentChatContext.caseId] || 0;
-                if (rawText.length > prevLength && activeChatCaseId !== currentChatContext.caseId) {
-                    lastKnownChatLength[currentChatContext.caseId] = rawText.length;
-                    triggerChatFlash(currentChatContext.caseId, true);
+                let rawText = data.data || ""; 
+                let prevText = lastKnownChatLength[currentChatContext.caseId] || "";
+
+                // 如果新抓回來的對話文字比之前長，且目前並未開啟這個聊天室窗
+                if (rawText.length > prevText.length && activeChatCaseId !== currentChatContext.caseId) {
+                    lastKnownChatLength[currentChatContext.caseId] = rawText;
+                    triggerChatFlash(currentChatContext.caseId, true); // 啟動按鈕閃爍！
                 } else {
-                    lastKnownChatLength[currentChatContext.caseId] = rawText.length;
+                    lastKnownChatLength[currentChatContext.caseId] = rawText;
                 }
 
                 let box = document.getElementById('chatHistoryBox'); 
