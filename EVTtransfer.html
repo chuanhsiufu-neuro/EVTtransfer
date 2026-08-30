@@ -1181,10 +1181,6 @@
    // 🌟 新增：一鍵強制覆寫醫師專用函數
     function forceOverrideDr(btn) {
         let forceDr = document.getElementById('sys_set_today_dr').value.trim(); 
-        
-        // 🌟 修正：移除原本的阻擋，允許留白傳送。
-        // 如果留白 (forceDr === "")，後端就會自動清除覆蓋、恢復原本預設排班。
-        // 如果輸入「無」或特定名稱，後端就會強制覆寫。
 
         if (!loggedInHosp) return alert("⚠️ 請先登入醫院！");
 
@@ -1212,7 +1208,8 @@
                 } else {
                     alert(`✅ 已成功強制覆寫當前時段醫師為：${forceDr}`);
                 }
-                fetchActiveDataFromGAS(); // 重新整理看板資料
+                // 🌟 修正：正確的重新讀取資料函式名稱是 fetchDataFromGAS
+                fetchDataFromGAS(); 
             } else {
                 alert("❌ 覆寫失敗：" + data.error);
             }
@@ -1220,7 +1217,7 @@
         .catch(err => {
             btn.innerHTML = origText;
             btn.disabled = false;
-            alert("❌ 連線錯誤：" + err);
+            alert("❌ 發生錯誤：" + err);
         });
     }
     
