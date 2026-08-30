@@ -364,7 +364,7 @@
   <h1 class="title">轉院取栓準備<br><em>暨家屬病情說明</em></h1>
   <p class="hero-sub">整合轉出端交班要項與轉入端出發前準備，提供醫療團隊快速核對、向家屬完整說明病情。</p>
   <div class="hero-meta">
-    <span>轉入醫院 <strong id="hospNameDisplay">目標醫院</strong></span>
+    <span>轉入醫院 <strong class="hospNameDisplay">目標醫院</strong></span>
     <span>急診轉診專線 <strong id="hospPhoneDisplay">03-4941234 #3100</strong></span>
     <span>適用對象 <strong>疑似大血管阻塞 · 機械取栓評估</strong></span>
   </div>
@@ -392,7 +392,7 @@
         <span class="check-mark">✓</span>
         <span class="check-text">
           <span class="label">完成院際急診轉診交班</span>
-          <span class="phone-pill"><strong id="hospNameDisplay">目標醫院</strong></span>
+          <span class="phone-pill"><strong class="hospNameDisplay">目標醫院</strong></span>
           <span class="phone-pill" id="checklistPhone">☎ TEL 03-4941234 #3100</span>
         </span>
       </div>
@@ -484,9 +484,9 @@
   // 優先採用系統傳過來的電話，若無則從備用表抓，再沒有就顯示預設字串
   let finalPhone = customPhone || (hospital && hospitalPhones[hospital]) || "03-4941234 #3100";
 
-  // 🌟 關鍵修正：使用 querySelectorAll 把畫面上「所有」標記這個 ID 的地方都換掉
+  // 🌟 關鍵修正：使用 .hospNameDisplay (Class 選擇器)，確保網頁上所有標記的地方都被換掉
   if (hospital) {
-    document.querySelectorAll('#hospNameDisplay').forEach(el => el.innerText = hospital);
+    document.querySelectorAll('.hospNameDisplay').forEach(el => el.innerText = hospital);
   }
   
   const hospPhoneDisplay = document.getElementById('hospPhoneDisplay');
