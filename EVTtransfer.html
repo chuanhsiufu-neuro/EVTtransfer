@@ -59,7 +59,27 @@
         .section-header { font-family: var(--serif); font-size: 1.25em; font-weight: 700; color: #0B3A3F; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #BFE0DC; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; user-select: none;}
         .sub-header { font-family: var(--serif); background-color: #E4F1EF; padding: 8px 14px; margin: 18px 0 12px 0; border-radius: 8px; font-weight: 700; color: #0B3A3F; border-left: 4px solid #0F5C61; font-size: 1.05em; }
         
-        .status-board { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        /* 🌟 量能看板改為橫向自動換行 */
+        .status-board { display: flex; flex-direction: row; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+        
+        /* 🌟 新增：精簡版醫院下拉按鈕樣式 */
+        .hosp-btn-compact {
+            background-color: var(--card);
+            border-radius: 30px; /* 圓角藥丸造型 */
+            padding: 8px 16px;
+            box-shadow: 0 2px 6px rgba(11,58,63,0.08);
+            display: inline-flex;
+            align-items: center;
+            transition: 0.2s;
+            text-decoration: none;
+        }
+        .hosp-btn-compact:hover, .hosp-btn-compact:focus {
+            background-color: #FDFDFB;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(11,58,63,0.12);
+        }
+        /* 調整 Bootstrap 下拉箭頭的顏色與間距 */
+        .hosp-btn-compact::after { margin-left: 10px; color: #94A29D; }
         
         .hosp-card { 
             background: var(--card); border-radius: 12px; padding: 12px 16px; 
@@ -250,10 +270,10 @@
     
     <!-- 預設隱藏 -->
     <div class="status-board" id="hospital_status_board" style="display: none;">
-        <div class="loading-caption">正在從雲端載入各醫院即時量能<span class="loading-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span></div>
-        <div class="skeleton-card"><div class="skeleton-bar w-60"></div><div class="skeleton-pill"></div></div>
-        <div class="skeleton-card"><div class="skeleton-bar w-60"></div><div class="skeleton-pill"></div></div>
-        <div class="skeleton-card"><div class="skeleton-bar w-60"></div><div class="skeleton-pill"></div></div>
+        <div class="loading-caption w-100 mb-2">正在從雲端載入各醫院即時量能<span class="loading-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span></div>
+        <div class="skeleton-card" style="border-radius: 30px; padding: 10px 20px; border-top: 2px solid var(--line);"><div class="skeleton-bar w-60"></div><div class="skeleton-pill"></div></div>
+        <div class="skeleton-card" style="border-radius: 30px; padding: 10px 20px; border-top: 2px solid var(--line);"><div class="skeleton-bar w-60"></div><div class="skeleton-pill"></div></div>
+        <div class="skeleton-card" style="border-radius: 30px; padding: 10px 20px; border-top: 2px solid var(--line);"><div class="skeleton-bar w-60"></div><div class="skeleton-pill"></div></div>
     </div>
 
     <!-- 🚑 轉運即時紀錄看板 (點擊可展開/摺疊) -->
@@ -905,11 +925,9 @@
    function renderHospitalBoard() {
         const board = document.getElementById('hospital_status_board'); board.innerHTML = "";
         
-        // 🌟 加入狀態排序邏輯：綠燈優先 (1) -> 橘燈滿床 (2) -> 紅燈無人力 (3)
         const statusOrder = { "green": 1, "orange": 2, "red": 3 };
         let sortedHospitals = [...hospitals].sort((a, b) => statusOrder[a.status] - statusOrder[b.status]);
 
-        // 改用 sortedHospitals 來生成卡片
         sortedHospitals.forEach(hosp => {
             const topColor = hosp.status === 'green' ? 'var(--success)' : (hosp.status === 'orange' ? 'var(--amber)' : 'var(--alert)');
             let statusBadge = hosp.status === 'green' ? 'status-green' : (hosp.status === 'orange' ? 'status-orange' : 'status-red');
@@ -918,21 +936,24 @@
                 `window.open('${hosp.lineGroup}', '_blank')` : 
                 `alert('目前無 LINE 群組連結')`;
 
-            /* 🌟 精簡後的單行醫院資訊卡片 */
+            /* 🌟 全新精簡版：醫院下拉按鈕 (Dropdown) */
             board.innerHTML += `
-            <div class="hosp-card" style="border-top-color: ${topColor};">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <h3>${hosp.name}</h3>
-                    <span class="status-indicator ${statusBadge}">${hosp.statusText}</span>
-                </div>
-                <div style="display: flex; gap: 12px; align-items: center;">
-                    <span style="cursor: pointer; font-size: 1.4em; opacity: 0.8; transition: 0.2s;" onclick="openCallModal('${hosp.name}')" title="撥打電話">📞</span>
-                    <span style="cursor: pointer; font-size: 1.4em; opacity: 0.8; transition: 0.2s;" onclick="${lineAction}" title="開啟 LINE 群組">💬</span>
-                    <span style="cursor: pointer; font-size: 1.4em; opacity: 0.8; transition: 0.2s;" onclick="openHospSettingsModal('${hosp.name}')" title="更新量能狀態">⚙️</span>
-                </div>
+            <div class="dropdown">
+                <button class="btn hosp-btn-compact dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="border: 2px solid ${topColor};">
+                    <span style="font-family: var(--serif); font-weight: 900; font-size: 1.15em; color: var(--ink); margin-right: 8px;">${hosp.name}</span>
+                    <span class="status-indicator ${statusBadge}" style="padding: 3px 8px; font-size: 0.85em;">${hosp.statusText}</span>
+                </button>
+                
+                <ul class="dropdown-menu shadow border-0" style="border-radius: 12px; z-index: 1050; background-color: var(--card); padding: 8px 0; min-width: 200px;">
+                    <li><a class="dropdown-item py-2 fw-bold" href="javascript:void(0)" onclick="openCallModal('${hosp.name}')" style="color: var(--teal-700); font-size: 1.05em;">📞 聯絡電話與值班</a></li>
+                    <li><a class="dropdown-item py-2 fw-bold" href="javascript:void(0)" onclick="${lineAction}" style="color: var(--teal-700); font-size: 1.05em;">💬 開啟 LINE 群組</a></li>
+                    <li><hr class="dropdown-divider" style="border-color: var(--line); margin: 4px 0;"></li>
+                    <li><a class="dropdown-item py-2 fw-bold" href="javascript:void(0)" onclick="openHospSettingsModal('${hosp.name}')" style="color: #666; font-size: 0.95em;">⚙️ 更新量能狀態</a></li>
+                </ul>
             </div>`;
         });
     }
+    
     function openCallModal(hospName) {
         const hosp = hospitals.find(h => h.name === hospName); if (!hosp) return;
         document.getElementById('call_hosp_name').innerText = hospName;
