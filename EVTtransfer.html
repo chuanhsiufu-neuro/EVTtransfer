@@ -770,6 +770,7 @@
     let currentReplyCaseId = null; let pendingClinicalData = {}; let editingHospStatus = "green";
 
     let feedbackImages = [];
+    let hasAutoLoggedTrack = false; // 紀錄是否已經執行過自動登入追蹤
 
     // 🌟 新增：看板折疊與展開功能
     function toggleSection(sectionId, iconId) {
@@ -911,15 +912,35 @@
             if (resData.status === "success" && resData.data.cases) {
                 let newCases = resData.data.cases; const now = Date.now();
                 for (let cid in cases) { if (!newCases[cid] && (now - cases[cid].timestamp < 20000)) newCases[cid] = cases[cid]; }
-                cases = newCases; renderQuickUpdateBoard(); if (currentTrackCaseId) renderTrackerDashboard(); if (loggedInHosp) renderHospitalCases();
+                cases = newCases; 
+                
+                // 🌟 新增：智慧辨識網址參數，自動登入個案追蹤 (Tab 2)
+                if (!hasAutoLoggedTrack) {
+                    const urlP = new URLSearchParams(window.location.search);
+                    if (urlP.get('tab') === 'tab2' && urlP.get('caseId') && urlP.get('phone')) {
+                        // 切換到分頁 2
+                        const tabBtn2 = document.querySelectorAll('.tab-btn')[1];
+                        if (tabBtn2) switchTab(tabBtn2, 'tab2');
+                        
+                        // 填入帳密並執行登入
+                        document.getElementById('track_case_id').value = urlP.get('caseId');
+                        document.getElementById('track_phone').value = urlP.get('phone');
+                        loginTracker();
+                    } else if (urlP.get('tab') === 'tab1') {
+                        // 若從新個案返回，確保在分頁 1
+                        const tabBtn1 = document.querySelectorAll('.tab-btn')[0];
+                        if (tabBtn1) switchTab(tabBtn1, 'tab1');
+                    }
+                    hasAutoLoggedTrack = true;
+                }
+
+                renderQuickUpdateBoard(); if (currentTrackCaseId) renderTrackerDashboard(); if (loggedInHosp) renderHospitalCases();
             }
             
-            // 🌟 智慧動態輪詢 (Adaptive Polling) 邏輯
-            let nextInterval = 300000; // 沒登入時：預設 5 分鐘拉一次
+            let nextInterval = 300000; 
             if (loggedInHosp) {
-                // 檢查是否有「鎖定本院」且「尚未確認檢傷」的緊急個案
                 let isUrgent = Object.values(cases).some(c => c.finalDest === loggedInHosp && !c.confirmArriveTime);
-                nextInterval = isUrgent ? 10000 : 60000; // 🚨 緊急期：每 10 秒更新！ 平時：每 60 秒更新
+                nextInterval = isUrgent ? 10000 : 60000; 
             }
             
             if (autoSyncTimer) clearTimeout(autoSyncTimer);
@@ -928,7 +949,7 @@
         }).catch(e => {
             console.log("即時同步失敗", e);
             if (autoSyncTimer) clearTimeout(autoSyncTimer);
-            autoSyncTimer = setTimeout(fetchRecentCasesFromGAS, 60000); // 失敗的話 1 分鐘後重試
+            autoSyncTimer = setTimeout(fetchRecentCasesFromGAS, 60000); 
         });
     }
 
@@ -1113,7 +1134,7 @@
                 }
             } catch (e) { localStorage.removeItem('stroke_transfer_clinical_data'); }
         }
-        window.open('clinical.html', '_blank');
+        window.location.href = 'clinical.html'; // 🌟 改為同分頁跳轉，不開新視窗
     }
 
     function resetFormStatusCard() {
@@ -1140,16 +1161,15 @@
         let c = cases[currentTrackCaseId];
         let currentData = c.clinicalData || {}; 
         
-        // 🌟 補齊漏掉的欄位，確保帶入獨立表單中
         currentData.caseId = currentTrackCaseId;
-        currentData.reqHospOut = c.reqHospOut || "";
-        currentData.reqDocPhone = c.phone || "";
+        currentData.reqHospOut = c.reqHospOut || currentData.reqHospOut || "";
+        currentData.reqDocPhone = c.phone || currentData.reqDocPhone || "";
         
-        // 如果原本的 clinicalData 裡面沒有存到 email 或時間，嘗試從 c 或表單補抓
-        if (!currentData.reqDocEmail && c.email) currentData.reqDocEmail = c.email;
+        // 🌟 確保 Email 也會被抓出來帶過去給表單
+        currentData.reqDocEmail = c.reqEmail || c.email || currentData.reqDocEmail || "";
 
         localStorage.setItem('stroke_transfer_clinical_data', JSON.stringify(currentData)); 
-        window.open('clinical.html', '_blank');
+        window.location.href = 'clinical.html'; // 🌟 改為同分頁跳轉
     }
 
     function updateClinicalToExistCase() {
@@ -1647,7 +1667,7 @@
 
             let mapBtn = `<span class="small text-muted">(尚未回報GPS)</span>`;
             if (c.location && c.location.lat) {
-                mapBtn = `<button class="btn-custom btn-theme-success fw-bold px-3 py-2" onclick="openRadarModal('${currentTrackCaseId}')" title="救護車即時追蹤雷達">📡</button>`;
+                mapBtn = `<button class="btn-custom btn-theme-success fw-bold px-3 py-2" onclick="openRadarModal('${currentTrackCaseId}')" title="救護車即時追蹤">📡</button>`;
             }
 
             let cancelBtnHtml = "";
@@ -2192,7 +2212,7 @@ let chatBtn = `<button id="chat_btn_${caseId}" class="btn-custom btn-theme-info"
                         radarMapInstance.fitBounds(bounds, { padding: [40, 40], maxZoom: 16 });
                     }
                 }
-            }).catch(e => console.log("雷達更新失敗", e));
+            }).catch(e => console.log("追蹤更新失敗", e));
         }, 10000);
     }
 
