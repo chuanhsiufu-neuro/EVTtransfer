@@ -589,14 +589,26 @@
             images: imgArr.join(', ')
         };
 
+        // 🌟 讀取剛剛存入的「原始密碼」，如果有的話就保留並作為登入金鑰
+        let loginPhone = reqDocPhone; // 預設使用畫面上的電話
+        const savedStr = localStorage.getItem('stroke_transfer_clinical_data');
+        if (savedStr) {
+            try {
+                let d = JSON.parse(savedStr);
+                if (d.originalPhone) {
+                    data.originalPhone = d.originalPhone; 
+                    loginPhone = d.originalPhone; // 強制使用原本的密碼來跳轉登入
+                }
+            } catch (e) {}
+        }
+
         localStorage.setItem('stroke_transfer_clinical_data', JSON.stringify(data));
         alert("✅ 表單已暫存成功！點擊確定後將為您導向轉診主畫面...");
         
-        // 🌟 智慧判斷跳轉：如果是編輯舊個案，帶上參數跳回 tab2 並準備自動登入
         if (currentEditingCaseId) {
-            window.location.href = `EVTtransfer.html?tab=tab2&caseId=${encodeURIComponent(currentEditingCaseId)}&phone=${encodeURIComponent(reqDocPhone)}`;
+            // 🌟 這裡就會帶著「原始密碼 (loginPhone)」跳轉回去，保證 100% 登入成功！
+            window.location.href = `EVTtransfer.html?tab=tab2&caseId=${encodeURIComponent(currentEditingCaseId)}&phone=${encodeURIComponent(loginPhone)}`;
         } else {
-            // 如果是全新草稿，回到 tab1
             window.location.href = 'EVTtransfer.html?tab=tab1'; 
         }
     }
