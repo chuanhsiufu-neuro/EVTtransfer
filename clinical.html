@@ -544,7 +544,6 @@
     }
 
     function saveToLocal() {
-        // 🌟 新增防呆：確保聯絡資訊有填寫
         const reqHospOut = document.getElementById('req_hosp_out').value.trim();
         const reqDocPhone = document.getElementById('req_doc_phone').value.trim();
         if (!reqHospOut || !reqDocPhone) {
@@ -559,7 +558,6 @@
         const tpaStatus = document.querySelector('input[name="tpa_status"]:checked')?.value || "";
 
         const data = {
-            // 🌟 寫入新的聯絡資訊
             reqHospOut: reqHospOut,
             reqDocPhone: reqDocPhone,
             reqDocEmail: document.getElementById('req_doc_email').value.trim(),
@@ -593,7 +591,14 @@
 
         localStorage.setItem('stroke_transfer_clinical_data', JSON.stringify(data));
         alert("✅ 表單已暫存成功！點擊確定後將為您導向轉診主畫面...");
-        window.location.href = 'https://chuanhsiufu-neuro.github.io/EVTtransfer/EVTtransfer.html'; 
+        
+        // 🌟 智慧判斷跳轉：如果是編輯舊個案，帶上參數跳回 tab2 並準備自動登入
+        if (currentEditingCaseId) {
+            window.location.href = `EVTtransfer.html?tab=tab2&caseId=${encodeURIComponent(currentEditingCaseId)}&phone=${encodeURIComponent(reqDocPhone)}`;
+        } else {
+            // 如果是全新草稿，回到 tab1
+            window.location.href = 'EVTtransfer.html?tab=tab1'; 
+        }
     }
 
    // 🌟 時間格式轉換輔助函數：確保 datetime-local 輸入框能正確吃進各種格式的時間
@@ -631,16 +636,15 @@
                     document.getElementById('display_case_id').style.color = "#A8E6CF";
                 }
                 
-                // 1. 聯絡資訊 (補上缺少的 req_doc_email)
                 document.getElementById('req_hosp_out').value = d.reqHospOut || "";
                 document.getElementById('req_doc_phone').value = d.reqDocPhone || "";
-                document.getElementById('req_doc_email').value = d.reqDocEmail || d.email || ""; // 支援 reqDocEmail 或 email 欄位
+                // 🌟 確保 Email 防呆機制 (多方抓取)
+                document.getElementById('req_doc_email').value = d.reqDocEmail || d.email || d.reqEmail || ""; 
 
                 document.getElementById('age').value = d.age || "";
                 document.getElementById('gender').value = d.gender || "男";
                 document.getElementById('mrs').value = d.mrs || "0";
                 
-                // 2. 時間資訊套用格式轉換，確保 datetime-local 正常顯示
                 document.getElementById('onset').value = formatForDatetimeLocal(d.onset || d.onset_time);
                 document.getElementById('door').value = formatForDatetimeLocal(d.door || d.door_time);
                 
@@ -660,22 +664,20 @@
                 document.getElementById('tpa_yes_note').value = d.tpaYesNote || "";
                 document.getElementById('tpa_no_note').value = d.tpaNoNote || "";
                 
-                // 3. 決策家屬欄位對應
                 document.getElementById('fam_sel').value = d.famSel || "配偶";
                 document.getElementById('fam_text').value = d.famText || "";
 
-                // 4. 過去病史勾選還原
                 if(d.pmhList) {
                     document.querySelectorAll('.pmh-cb').forEach(cb => {
                         cb.checked = d.pmhList.includes(cb.value);
                     });
                 }
                 
-                // 5. 影像選擇項目 (images) 勾選還原
+                // 🌟 修復影像無法勾選的問題：使用 split(',') 搭配 trim() 消除空白干擾
                 if(d.images) {
-                    let savedImgs = String(d.images).split(', ');
+                    let savedImgs = String(d.images).split(',').map(s => s.trim());
                     document.querySelectorAll('.img-cb').forEach(cb => {
-                        cb.checked = savedImgs.includes(cb.value);
+                        cb.checked = savedImgs.includes(cb.value.trim());
                     });
                 }
                 
