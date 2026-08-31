@@ -557,10 +557,23 @@
         document.querySelectorAll('.img-cb:checked').forEach(cb => imgArr.push(cb.value));
         const tpaStatus = document.querySelector('input[name="tpa_status"]:checked')?.value || "";
 
+        // 🌟 讀取剛剛存入的「原始密碼(車票)」，如果有的話就保留並作為登入金鑰
+        let loginPhone = reqDocPhone; // 預設使用畫面上的電話
+        const savedStr = localStorage.getItem('stroke_transfer_clinical_data');
+        if (savedStr) {
+            try {
+                let d = JSON.parse(savedStr);
+                if (d.originalPhone) {
+                    loginPhone = d.originalPhone; // 強制使用原本的密碼來跳轉登入
+                }
+            } catch (e) {}
+        }
+
         const data = {
             reqHospOut: reqHospOut,
             reqDocPhone: reqDocPhone,
             reqDocEmail: document.getElementById('req_doc_email').value.trim(),
+            originalPhone: loginPhone, // 繼續把舊密碼存起來備用
             
             caseId: currentEditingCaseId, 
             age: document.getElementById('age').value,
@@ -576,39 +589,26 @@
             pmhOther: document.getElementById('pmh_other').value,
             cre: document.getElementById('cre').value,
             labOther: document.getElementById('lab_other').value,
-            
             tpaStatus: tpaStatus,
             tpaDose: document.getElementById('tpa_dose').value,
             tpaBolusTime: document.getElementById('tpa_bolus_time').value,
             tpaYesNote: document.getElementById('tpa_yes_note').value,
             tpaNoNote: document.getElementById('tpa_no_note').value,
-            
             famSel: document.getElementById('fam_sel').value,
             famText: document.getElementById('fam_text').value,
             
             images: imgArr.join(', ')
         };
 
-        // 🌟 讀取剛剛存入的「原始密碼」，如果有的話就保留並作為登入金鑰
-        let loginPhone = reqDocPhone; // 預設使用畫面上的電話
-        const savedStr = localStorage.getItem('stroke_transfer_clinical_data');
-        if (savedStr) {
-            try {
-                let d = JSON.parse(savedStr);
-                if (d.originalPhone) {
-                    data.originalPhone = d.originalPhone; 
-                    loginPhone = d.originalPhone; // 強制使用原本的密碼來跳轉登入
-                }
-            } catch (e) {}
-        }
-
         localStorage.setItem('stroke_transfer_clinical_data', JSON.stringify(data));
         alert("✅ 表單已暫存成功！點擊確定後將為您導向轉診主畫面...");
         
+        // 🌟 智慧判斷跳轉
         if (currentEditingCaseId) {
-            // 🌟 這裡就會帶著「原始密碼 (loginPhone)」跳轉回去，保證 100% 登入成功！
+            // 是舊個案：帶著代碼與密碼，指定跳回 tab2
             window.location.href = `EVTtransfer.html?tab=tab2&caseId=${encodeURIComponent(currentEditingCaseId)}&phone=${encodeURIComponent(loginPhone)}`;
         } else {
+            // 是新個案：跳回 tab1
             window.location.href = 'EVTtransfer.html?tab=tab1'; 
         }
     }
