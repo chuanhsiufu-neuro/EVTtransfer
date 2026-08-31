@@ -1156,7 +1156,7 @@
     
     window.addEventListener('load', prefillTodayDate);
     
-    function editExistingClinical() {
+   function editExistingClinical() {
         if(!currentTrackCaseId || !cases[currentTrackCaseId]) return alert("請先登入個案！");
         let c = cases[currentTrackCaseId];
         let currentData = c.clinicalData || {}; 
@@ -1164,12 +1164,13 @@
         currentData.caseId = currentTrackCaseId;
         currentData.reqHospOut = c.reqHospOut || currentData.reqHospOut || "";
         currentData.reqDocPhone = c.phone || currentData.reqDocPhone || "";
-        
-        // 🌟 確保 Email 也會被抓出來帶過去給表單
         currentData.reqDocEmail = c.reqEmail || c.email || currentData.reqDocEmail || "";
 
+        // 🌟 關鍵新增：把一開始登入成功的「原始密碼」偷偷記下來交給表單
+        currentData.originalPhone = c.phone;
+
         localStorage.setItem('stroke_transfer_clinical_data', JSON.stringify(currentData)); 
-        window.location.href = 'clinical.html'; // 🌟 改為同分頁跳轉
+        window.location.href = 'clinical.html'; 
     }
 
     function updateClinicalToExistCase() {
