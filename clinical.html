@@ -642,15 +642,26 @@
         if(savedStr) {
             try {
                 const d = JSON.parse(savedStr);
+                
+                // 🌟 判斷是否為「編輯既有個案」
                 if (d.caseId) {
                     currentEditingCaseId = d.caseId;
                     document.getElementById('display_case_id').innerText = ` (正在編輯個案: ${d.caseId})`;
                     document.getElementById('display_case_id').style.color = "#A8E6CF";
+                    
+                    // 🌟 關鍵新增：鎖定電話(密碼)欄位，不允許修改
+                    let phoneInput = document.getElementById('req_doc_phone');
+                    if (phoneInput) {
+                        phoneInput.readOnly = true; // 設為唯讀
+                        phoneInput.style.backgroundColor = "#EEF2EF"; // 加上灰底提示
+                        phoneInput.style.color = "#5B6B65";
+                        phoneInput.title = "此為系統登入密碼，建立後無法修改";
+                    }
                 }
                 
                 document.getElementById('req_hosp_out').value = d.reqHospOut || "";
                 document.getElementById('req_doc_phone').value = d.reqDocPhone || "";
-                // 🌟 確保 Email 防呆機制 (多方抓取)
+                // 確保 Email 防呆機制 (多方抓取)
                 document.getElementById('req_doc_email').value = d.reqDocEmail || d.email || d.reqEmail || ""; 
 
                 document.getElementById('age').value = d.age || "";
@@ -685,7 +696,7 @@
                     });
                 }
                 
-                // 🌟 修復影像無法勾選的問題：使用 split(',') 搭配 trim() 消除空白干擾
+                // 修復影像無法勾選的問題：使用 split(',') 搭配 trim() 消除空白干擾
                 if(d.images) {
                     let savedImgs = String(d.images).split(',').map(s => s.trim());
                     document.querySelectorAll('.img-cb').forEach(cb => {
